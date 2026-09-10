@@ -72,7 +72,7 @@ func main() {
 				continue
 			}
 			handled[ev.ID] = true
-			
+
 			// Lookup namespace
 			ns := getNamespace(apiBase, ev.WorkloadID)
 			if ns == "" {
@@ -86,7 +86,7 @@ func main() {
 				time.Sleep(injectDelay)
 
 				// Signal the stub to start returning OOMKill events.
-				if err := stubPost(stubBase+"/inject/"+namespace); err != nil {
+				if err := stubPost(stubBase + "/inject/" + namespace); err != nil {
 					log.Printf("inject signal failed: %v", err)
 					return
 				}
@@ -212,4 +212,3 @@ func parseDuration(key string, def time.Duration) time.Duration {
 	}
 	return def
 }
-

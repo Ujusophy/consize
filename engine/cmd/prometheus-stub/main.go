@@ -22,8 +22,8 @@ import (
 )
 
 var (
-	mu           sync.RWMutex
-	failingNS    = map[string]bool{} // namespaces currently in failure mode
+	mu        sync.RWMutex
+	failingNS = map[string]bool{} // namespaces currently in failure mode
 )
 
 func main() {
@@ -167,4 +167,3 @@ func isThrottleQuery(q string) bool {
 
 // ensure time import is used (used for future extension).
 var _ = time.Second
-

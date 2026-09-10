@@ -204,13 +204,13 @@ func seedHistory(ctx context.Context, st store.Store) {
 	// Create an ApplyEvent for it in the past (e.g. 2 hours ago)
 	applyTime := time.Now().UTC().Add(-2 * time.Hour)
 	diff := store.Diff{
-		Resource:        targetRec.Resource,
-		CurrentReq:      targetRec.CurrentValue,
-		ProposedReq:     targetRec.ProposedValue,
-		CurrentLimit:    targetRec.CurrentLimit,
-		ProposedLimit:   targetRec.ProposedLimit,
+		Resource:      targetRec.Resource,
+		CurrentReq:    targetRec.CurrentValue,
+		ProposedReq:   targetRec.ProposedValue,
+		CurrentLimit:  targetRec.CurrentLimit,
+		ProposedLimit: targetRec.ProposedLimit,
 	}
-	
+
 	applyID, err := st.CreateApplyEvent(ctx, store.ApplyEvent{
 		RecommendationID: targetRec.ID,
 		WorkloadID:       targetRec.WorkloadID,

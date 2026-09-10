@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"consize/internal/store"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
-	"consize/internal/store"
 )
 
 type EC2API interface {

@@ -109,4 +109,3 @@ func (d *DemoPatcher) PatchDeployment(_ context.Context, namespace, name string,
 	)
 	return nil
 }
-
