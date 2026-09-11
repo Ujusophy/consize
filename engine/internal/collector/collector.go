@@ -93,8 +93,10 @@ func (c *Collector) Run(ctx context.Context) error {
 		{c.cpuQuery, store.MetricCPUMilli},
 		{c.memQuery, store.MetricMemBytes},
 	} {
+		// Prometheus outages must not block the DB surface (issue #2).
 		if err := c.collectMetric(ctx, job.query, job.metric, start, end, workloadIDs, owners); err != nil {
-			return err
+			c.Log.Warn("failed to collect prometheus metric; continuing", "metric", job.metric, "err", err)
+			continue
 		}
 	}
 	// 5. Database surface (ADR-030 §8), when configured.

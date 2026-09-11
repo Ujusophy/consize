@@ -178,7 +178,8 @@ func TestCollectorPrometheusError(t *testing.T) {
 
 	st := store.NewMemory()
 	c := New(fakeMeta{}, NewHTTPPrometheus(srv.URL, nil), st, 15*time.Minute, time.Hour)
-	if err := c.Run(ctx); err == nil {
-		t.Fatal("want error from failing prometheus")
+	// Prometheus failure is isolated: Run succeeds so later surfaces can still run.
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("prometheus failure must not abort Run: %v", err)
 	}
 }
