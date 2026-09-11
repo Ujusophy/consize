@@ -1,30 +1,64 @@
 # Consize
 
-Consize is an open-source engine for **Safe, Automated Action** in Kubernetes. 
+## Safe, automated infrastructure optimization
 
-While tools like Kubecost provide excellent observability and cost allocation, they leave the actual remediation to the operator. Consize closes this loop by automating the application of resource changes, heavily gated by an automated rollback engine driven by real-time SLIs.
+Consize helps engineering teams reduce Kubernetes and cloud waste without turning cost optimization into a production risk.
 
-## Core Philosophy
+It analyzes your infrastructure, identifies optimization opportunities, and helps you apply safer changes with built-in guardrails.
 
-We believe automation must be safe. Consize never applies a change without a mathematical guarantee that it can verify the result and roll it back if necessary.
+## Why Consize?
 
-1. **Deterministic Action:** No black-box AI applied directly to your cluster. Every change is an explicitly approved patch to a Kubernetes resource.
-2. **Verification Loop:** Consize watches your Prometheus metrics (like `OOMKills`, `CPUThrottling`, or `Latency`) immediately after a change.
-3. **Automated Rollback:** If an SLI breaches its threshold during the verification window, the change is instantly reverted.
+Infrastructure optimization often involves a difficult tradeoff:
 
-## Quick Start
+> Save money without breaking production.
 
-You can try Consize entirely locally using our interactive sandboxed demo. It includes a mock Prometheus instance, a test database, and the full verify/rollback engine.
+Consize is designed to make that tradeoff safer.
 
-```bash
-git clone https://github.com/consize-oss/consize.git
-cd consize
-docker compose -f docker-compose.demo.yaml up --build
+It combines:
+
+* **Workload analysis** to identify optimization opportunities
+* **Rightsizing recommendations** based on real usage
+* **Safety checks** before changes are applied
+* **Verification** after changes
+* **Reviewable Infrastructure-as-Code changes**
+* **Controlled runtime changes** when direct application is enabled
+
+## How it works
+
+```text
+Observe → Analyze → Recommend → Review → Apply → Verify
 ```
 
-Then open `http://localhost:3000` to access the dashboard.
+Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations.
 
-## Getting Help
+You decide how changes are applied.
 
-- Join our Discord server.
-- Open an issue on GitHub.
+### Reviewable changes
+
+Use Consize to generate changes that can go through your existing Infrastructure-as-Code and pull request workflow.
+
+### Guarded runtime changes
+
+For teams that want automated optimization, Consize can apply approved changes directly within configured boundaries.
+
+## Start using Consize
+
+The fastest way to get started is to install Consize and run it against a Kubernetes environment.
+
+[Get started](getting-started/get-started.md){ .md-button .md-button--primary }
+
+[Try the Interactive Sandbox](getting-started/sandbox.md){ .md-button }
+
+## Learn more
+
+* [Quickstart](getting-started/quickstart.md)
+* [Production Installation](getting-started/installation.md)
+* [How Consize Works](concepts/architecture.md)
+* [The Safety Net](concepts/safety-net.md)
+* [Configuration](reference/configuration.md)
+
+## Community
+
+Consize is open source.
+
+[View Consize on GitHub](https://github.com/consize-oss/consize)

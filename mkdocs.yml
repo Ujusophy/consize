@@ -31,21 +31,33 @@ theme:
     - content.code.copy
 
 nav:
-  - Welcome: index.md
-  - The Safety Net: THE_SAFETY_NET.md
-  - Architecture: architecture.md
-  - Features: features.md
-  - Interactive Demo: demo.md
+  - Overview: index.md
+
+  - Get started:
+      - Get started: getting-started/get-started.md
+      - Quickstart: getting-started/quickstart.md
+      - Interactive Sandbox: getting-started/sandbox.md
+      - Production Installation: getting-started/installation.md
+
   - Guides:
-    - Customer Guide: customer-guide.md
-    - Observability: observability.md
-    - Environments: environments.md
-  - Internal / Dev:
-    - Testing: testing.md
-    - E2E Tests: e2e.md
-    - Decisions: decisions.md
-    - Reference: reference.md
-    - Plan: plan.md
+      - Kubernetes Rightsizing: guides/rightsizing.md
+      - Observability: guides/observability.md
+      - Environments: guides/environments.md
+
+  - Concepts:
+      - How Consize Works: concepts/architecture.md
+      - The Safety Net: concepts/safety-net.md
+
+  - Reference:
+      - Configuration: reference/configuration.md
+
+  - Contributing:
+      - Testing: contributing/testing.md
+      - E2E Tests: contributing/e2e.md
+      - Decisions: contributing/decisions.md
+
+  - Resources:
+      - Roadmap: resources/roadmap.md
 
 markdown_extensions:
   - admonition
@@ -57,3 +69,6 @@ markdown_extensions:
   - pymdownx.snippets
   - pymdownx.tabbed:
       alternate_style: true
+
+extra_css:
+  - stylesheets/extra.css
