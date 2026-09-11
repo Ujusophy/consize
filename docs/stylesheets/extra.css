@@ -1,14 +1,112 @@
-/* Sidebar */
+/* ==========================================================================
+   Consize Docs — Design System
+   Builds on Material for MkDocs defaults. Organized by component.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Design tokens
+   -------------------------------------------------------------------------- */
+
+:root {
+  --consize-radius: 10px;
+  --consize-radius-sm: 6px;
+  --consize-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --consize-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --consize-transition: 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+[data-md-color-scheme="slate"] {
+  --consize-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --consize-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* --------------------------------------------------------------------------
+   2b. Full-width layout — sidebars pushed toward the viewport edges,
+       body expands to fill the middle. Overrides Material's default
+       centered, capped-width grid.
+   -------------------------------------------------------------------------- */
+
+.md-grid {
+  max-width: 100%;
+}
+
+/* Keep prose readable even though the content column is now much wider —
+   cap and center the actual text, while the column itself (and its
+   whitespace gutters) can stretch toward the sidebars. */
+@media screen and (min-width: 76.25em) {
+  .md-content__inner {
+    max-width: 50rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Give the far outer edges (outside the sidebars) a little breathing
+   room too, so sidebars sit near — not flush against — the edge */
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary {
+    margin-left: 1rem;
+  }
+  .md-sidebar--secondary {
+    margin-right: 1rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2c. Sidebars & three-column dividers
+   -------------------------------------------------------------------------- */
 
 .md-sidebar--primary {
   padding-top: 1rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.md-sidebar--primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100vh;
+  background-color: var(--md-default-fg-color--lightest);
+}
+
+.md-sidebar--secondary {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.md-sidebar--secondary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100vh;
+  background-color: var(--md-default-fg-color--lightest);
+}
+
+/* Push the body content away from both dividers so the gap reads
+   as intentional, not just "text near a line" — wider gutter,
+   Merge/Fern-docs style spacing rather than a tight margin */
+@media screen and (min-width: 76.25em) {
+  .md-content {
+    margin-left: clamp(3rem, 6vw, 6rem);
+  }
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--secondary {
+    margin-left: clamp(3rem, 6vw, 6rem);
+  }
 }
 
 .md-nav--primary > .md-nav__list > .md-nav__item {
   margin-bottom: 0.35rem;
 }
-
-/* Top-level sidebar sections */
 
 .md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link {
   font-weight: 700;
@@ -19,39 +117,220 @@
   margin-bottom: 0.35rem;
 }
 
-/* Pages inside sections */
-
 .md-nav--primary .md-nav__item .md-nav__item .md-nav__link {
   font-size: 0.82rem;
   padding-top: 0.35rem;
   padding-bottom: 0.35rem;
+  border-radius: var(--consize-radius-sm);
+  transition: background-color var(--consize-transition);
 }
 
-/* Active page */
+.md-nav--primary .md-nav__item .md-nav__item .md-nav__link:hover {
+  background-color: var(--md-accent-fg-color--transparent);
+}
 
 .md-nav__link--active {
   font-weight: 700 !important;
 }
 
-/* Better spacing between sidebar groups */
-
 .md-nav--primary > .md-nav__list > .md-nav__item + .md-nav__item {
   margin-top: 0.6rem;
 }
 
-/* Sidebar */
+/* --------------------------------------------------------------------------
+   3. Typography rhythm
+   -------------------------------------------------------------------------- */
 
-.md-sidebar--primary {
-  position: relative;
-  border-right: none;
+.md-typeset {
+  line-height: 1.7;
 }
 
-.md-sidebar--primary::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100%;
+.md-typeset h1 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5em;
+}
+
+.md-typeset h2 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 2.2em;
+  padding-top: 0.4em;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+}
+
+/* Show anchor link icon only on hover, without layout shift */
+.md-typeset .headerlink {
+  opacity: 0;
+  transition: opacity var(--consize-transition);
+}
+
+.md-typeset h1:hover .headerlink,
+.md-typeset h2:hover .headerlink,
+.md-typeset h3:hover .headerlink {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   4. Buttons
+   -------------------------------------------------------------------------- */
+
+.md-typeset .md-button {
+  border-radius: 999px;
+  font-weight: 600;
+  padding: 0.6em 1.4em;
+  transition: transform var(--consize-transition), box-shadow var(--consize-transition);
+  border-width: 1.5px;
+}
+
+.md-typeset .md-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--consize-shadow-hover);
+}
+
+.md-typeset .md-button--primary {
+  box-shadow: var(--consize-shadow);
+}
+
+/* --------------------------------------------------------------------------
+   5. Grid cards (feature cards, "Learn more" links, Next Steps)
+   -------------------------------------------------------------------------- */
+
+.md-typeset .grid.cards > ul > li {
+  border-radius: var(--consize-radius);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: var(--consize-shadow);
+  transition: transform var(--consize-transition),
+              box-shadow var(--consize-transition),
+              border-color var(--consize-transition);
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--consize-shadow-hover);
+  border-color: var(--md-accent-fg-color);
+}
+
+.md-typeset .grid.cards > ul > li > hr {
+  margin: 0.6em 0;
+  border-color: var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .grid.cards > ul > li .twemoji,
+.md-typeset .grid.cards svg[class*="mdi"] {
+  color: var(--md-accent-fg-color);
+}
+
+/* --------------------------------------------------------------------------
+   6. Code blocks — the thing developers stare at most
+   -------------------------------------------------------------------------- */
+
+.md-typeset pre {
+  border-radius: var(--consize-radius-sm);
+  box-shadow: var(--consize-shadow);
+}
+
+.md-typeset code {
+  border-radius: 4px;
+}
+
+/* Slightly larger, more legible code font in blocks */
+.md-typeset pre code {
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+/* Make the copy-to-clipboard button easier to spot without hunting */
+.md-clipboard {
+  opacity: 0.55;
+  transition: opacity var(--consize-transition);
+}
+
+.md-typeset pre:hover .md-clipboard {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   7. Admonitions (notes, tips, warnings) — give each type a clear identity
+   -------------------------------------------------------------------------- */
+
+.md-typeset .admonition {
+  border-radius: var(--consize-radius-sm);
+  box-shadow: var(--consize-shadow);
+  border-width: 0;
+  border-left-width: 4px;
+}
+
+.md-typeset .admonition-title {
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   8. Tables — common in Reference/Configuration pages
+   -------------------------------------------------------------------------- */
+
+.md-typeset table:not([class]) {
+  border-radius: var(--consize-radius-sm);
+  overflow: hidden;
+  box-shadow: var(--consize-shadow);
+  border: none;
+}
+
+.md-typeset table:not([class]) th {
   background-color: var(--md-default-fg-color--lightest);
+  font-weight: 700;
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background-color: color-mix(in srgb, var(--md-default-fg-color) 2%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   9. Mermaid diagrams — center and contain them
+   -------------------------------------------------------------------------- */
+
+.md-typeset .mermaid {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+/* --------------------------------------------------------------------------
+   10. Accessibility — keyboard users are developers too
+   -------------------------------------------------------------------------- */
+
+.md-typeset a:focus-visible,
+.md-nav__link:focus-visible,
+.md-button:focus-visible {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   11. Smooth scrolling for in-page TOC / anchor jumps
+   -------------------------------------------------------------------------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .md-typeset .md-button,
+  .md-typeset .grid.cards > ul > li {
+    transition: none;
+  }
 }

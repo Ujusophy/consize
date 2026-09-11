@@ -7,6 +7,13 @@ repo_name: consize-oss/consize
 
 theme:
   name: material
+  logo: assets/logo.svg       # TODO: add a real logo file — even a simple wordmark beats the default icon
+  favicon: assets/favicon.png # TODO: add a favicon
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -26,9 +33,16 @@ theme:
     - navigation.tabs
     - navigation.sections
     - navigation.top
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
     - search.suggest
     - search.highlight
     - content.code.copy
+    - content.tabs.link
+    - content.action.edit   # adds "edit this page" link -> lowers barrier for doc contributions
 
 nav:
   - Overview: index.md
@@ -61,14 +75,27 @@ nav:
 
 markdown_extensions:
   - admonition
+  - attr_list        # required for grid cards / button styling
+  - md_in_html        # required for grid cards
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.tabbed:
       alternate_style: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/consize-oss/consize
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/REPLACE_ME   # TODO: real invite link
 
 extra_css:
   - stylesheets/extra.css
