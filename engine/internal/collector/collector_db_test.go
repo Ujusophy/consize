@@ -2,6 +2,8 @@ package collector
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -70,5 +72,30 @@ func TestCollectorIngestsDBSurface(t *testing.T) {
 	after, _ := st.ListBuckets(ctx, wl.ID, store.MetricDBCPUPercent, rangeStart, rangeEnd)
 	if len(after) != len(before) || len(before) == 0 {
 		t.Fatalf("re-run must be idempotent: %d → %d buckets", len(before), len(after))
+	}
+}
+
+// TestCollectorPrometheusFailureStillIngestsDB: a Prometheus outage must not
+// prevent the optional DB surface from running (issue #2).
+func TestCollectorPrometheusFailureStillIngestsDB(t *testing.T) {
+	ctx := context.Background()
+	st := store.NewMemory()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, `{"status":"error","errorType":"bad_data","error":"parse error"}`, http.StatusBadRequest)
+	}))
+	defer srv.Close()
+
+	c := New(fakeMeta{}, NewHTTPPrometheus(srv.URL, nil), st, 15*time.Minute, time.Hour)
+	c.DB = dbmetrics.NewFixture()
+	if err := c.Run(ctx); err != nil {
+		t.Fatalf("prometheus failure must not abort Run when DB is configured: %v", err)
+	}
+
+	ws, err := st.ListWorkloads(ctx)
+	if err != nil || len(ws) != 1 {
+		t.Fatalf("want 1 db workload despite prometheus failure, got %d err=%v", len(ws), err)
+	}
+	if ws[0].Source != "db" {
+		t.Fatalf("expected Source=db workload, got %+v", ws[0])
 	}
 }
