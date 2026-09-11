@@ -13,10 +13,9 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-# GOARCH pinned: dev machines are Apple Silicon (arm64); the target
-# cluster is amd64, and a mismatched platform fails the kubelet pull
-# ("no match for platform in manifest").
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o /out/consize ./cmd/${BIN}
+ARG TARGETARCH
+# GOARCH is dynamic based on the target platform (e.g. amd64, arm64).
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -trimpath -ldflags="-s -w" -o /out/consize ./cmd/${BIN}
 
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /out/consize /consize
