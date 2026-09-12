@@ -62,6 +62,21 @@
 }
 
 /* --------------------------------------------------------------------------
+   1d. Hero screenshot — frames the dashboard image on the homepage so the
+       page isn't pure text above the fold.
+   -------------------------------------------------------------------------- */
+
+.md-typeset img.consize-hero-shot {
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  margin: 2rem auto;
+  border-radius: var(--consize-radius);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: var(--consize-shadow-hover);
+}
+
+/* --------------------------------------------------------------------------
    1c. Search bar — Material's default is a flat, muted pill. Give it
        definition: a real border, a focus state, and a nicer dropdown.
    -------------------------------------------------------------------------- */
@@ -321,6 +336,19 @@
 .md-typeset .grid.cards > ul > li .twemoji,
 .md-typeset .grid.cards svg[class*="mdi"] {
   color: var(--md-accent-fg-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 15%, transparent);
+  margin-bottom: 0.25rem;
+}
+
+.md-typeset .grid.cards > ul > li .twemoji svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 /* --------------------------------------------------------------------------

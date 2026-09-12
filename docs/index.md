@@ -9,6 +9,8 @@ It analyzes your infrastructure, identifies optimization opportunities, and help
 [Get started](getting-started/get-started.md){ .md-button .md-button--primary }
 [Try the Interactive Sandbox](getting-started/sandbox.md){ .md-button }
 
+![The Consize dashboard showing a rightsizing recommendation and its safety verification status](assets/demo-dashboard.png){ .consize-hero-shot }
+
 ---
 
 ## Why Consize?
