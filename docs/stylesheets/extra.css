@@ -70,7 +70,7 @@
   display: block;
   width: 100%;
   max-width: 900px;
-  margin: 2rem auto;
+  margin: 1.25rem auto;
   border-radius: var(--consize-radius);
   border: 1px solid var(--md-default-fg-color--lightest);
   box-shadow: var(--consize-shadow-hover);
@@ -339,36 +339,76 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 50%;
-  background-color: color-mix(in srgb, var(--md-accent-fg-color) 15%, transparent);
-  margin-bottom: 0.25rem;
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 8%, transparent);
+  margin-bottom: 0.15rem;
 }
 
 .md-typeset .grid.cards > ul > li .twemoji svg {
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 /* --------------------------------------------------------------------------
    6. Code blocks — the thing developers stare at most
    -------------------------------------------------------------------------- */
 
-.md-typeset pre {
-  border-radius: var(--consize-radius-sm);
-  box-shadow: var(--consize-shadow);
-}
-
-/* Moderate code font size, not too large, not too cramped */
 .md-typeset code {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   border-radius: 4px;
 }
 
 .md-typeset pre code {
-  font-size: 0.78rem;
-  line-height: 1.6;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+/* Every fenced code block gets a small terminal-style header bar
+   (traffic-light dots) instead of sitting as a flat, undecorated box. */
+.md-typeset .highlight {
+  position: relative;
+  border-radius: var(--consize-radius-sm);
+  overflow: hidden;
+  box-shadow: var(--consize-shadow);
+  border: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .highlight pre {
+  margin: 0;
+  padding-top: 1.8rem;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.md-typeset .highlight::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5rem;
+  background-color: color-mix(in srgb, var(--md-default-fg-color) 5%, transparent);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .highlight::after {
+  content: "";
+  position: absolute;
+  top: 0.58rem;
+  left: 0.9rem;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: #ff5f56;
+  box-shadow: 0.75rem 0 0 #ffbd2e, 1.5rem 0 0 #27c93f;
+}
+
+/* Fallback for any bare <pre> not wrapped in .highlight */
+.md-typeset pre {
+  border-radius: var(--consize-radius-sm);
+  box-shadow: var(--consize-shadow);
 }
 
 /* Make the copy-to-clipboard button easier to spot without hunting */
@@ -377,7 +417,7 @@
   transition: opacity var(--consize-transition);
 }
 
-.md-typeset pre:hover .md-clipboard {
+.md-typeset .highlight:hover .md-clipboard {
   opacity: 1;
 }
 
@@ -454,4 +494,50 @@ html {
   .md-typeset .grid.cards > ul > li {
     transition: none;
   }
+}
+
+/* --------------------------------------------------------------------------
+   12. Per-page footer link grid (Product / Use cases / Developers / Others)
+       Injected at the end of every page's content by overrides/main.html.
+   -------------------------------------------------------------------------- */
+
+.consize-footer-links {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem 1rem;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+@media screen and (max-width: 44.9375em) {
+  .consize-footer-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.consize-footer-links__col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.consize-footer-links__heading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-default-fg-color--light);
+  margin-bottom: 0.15rem;
+}
+
+.consize-footer-links__col a {
+  font-size: 0.8rem;
+  color: var(--md-default-fg-color--light);
+  text-decoration: none;
+  transition: color var(--consize-transition);
+}
+
+.consize-footer-links__col a:hover {
+  color: var(--md-accent-fg-color);
 }

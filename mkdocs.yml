@@ -8,6 +8,7 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  custom_dir: overrides
   logo: assets/logo.svg       # TODO: add a real logo file — even a simple wordmark beats the default icon
   favicon: assets/favicon.png # TODO: add a favicon
   font:
@@ -46,32 +47,22 @@ theme:
     - content.action.edit   # adds "edit this page" link -> lowers barrier for doc contributions
 
 nav:
-  - Overview: index.md
-
   - Get started:
       - Get started: getting-started/get-started.md
       - Interactive Sandbox: getting-started/sandbox.md
       - Production Installation: getting-started/installation.md
 
-  - Guides:
+  - Product:
       - Kubernetes Rightsizing: guides/rightsizing.md
       - Observability: guides/observability.md
       - Environments: guides/environments.md
 
-  - Concepts:
+  - Platform:
       - How Consize Works: concepts/architecture.md
       - The Safety Net: concepts/safety-net.md
 
   - Reference:
       - Configuration: reference/configuration.md
-
-  - Contributing:
-      - Testing: contributing/testing.md
-      - E2E Tests: contributing/e2e.md
-      - Decisions: contributing/decisions.md
-
-  - Resources:
-      - Roadmap: resources/roadmap.md
 
 markdown_extensions:
   - admonition
