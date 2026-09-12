@@ -3,5 +3,13 @@
 {% block content %}
   {{ super() }}
   {% include "partials/consize-page-feedback.html" %}
-  {% include "partials/consize-footer-links.html" %}
+{% endblock %}
+
+{% block footer %}
+  <div class="consize-site-footer">
+    <div class="consize-site-footer__inner">
+      {% include "partials/consize-footer-links.html" %}
+    </div>
+  </div>
+  {{ super() }}
 {% endblock %}

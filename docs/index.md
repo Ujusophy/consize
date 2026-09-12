@@ -1,5 +1,7 @@
 # Consize
 
+<p class="consize-kicker">Open Source · Kubernetes &amp; Cloud Cost Optimization</p>
+
 ## Safe, automated infrastructure optimization
 
 Consize helps engineering teams reduce Kubernetes and cloud waste without turning cost optimization into a production risk.
@@ -13,47 +15,29 @@ It analyzes your infrastructure, identifies optimization opportunities, and help
 
 ---
 
-## Why Consize?
+## Get started in three steps
 
-Infrastructure optimization often involves a difficult tradeoff — **save money without breaking production.** Consize is designed to make that tradeoff safer.
+Go from zero to a verified rightsizing change against a real workload.
 
 <div class="grid cards" markdown>
 
--   :material-magnify:{ .lg .middle } **Workload analysis**
+-   [:material-magnify:{ .lg .middle } **1. Analyze**](getting-started/get-started.md)
 
     ---
 
-    Identifies optimization opportunities from real usage data.
+    Point Consize at a cluster. It profiles real CPU and memory usage over a rolling window — no guesswork, no assumed sizing.
 
--   :material-resize:{ .lg .middle } **Rightsizing recommendations**
-
-    ---
-
-    Sizing suggestions based on observed, not assumed, resource usage.
-
--   :material-shield-check:{ .lg .middle } **Safety checks**
+-   [:material-source-pull:{ .lg .middle } **2. Review**](guides/rightsizing.md)
 
     ---
 
-    Guardrails evaluate every change before it's applied.
+    Get a rightsizing pull request against your IaC repo, or apply approved changes directly through the UI within configured boundaries.
 
--   :material-chart-line:{ .lg .middle } **Verification**
-
-    ---
-
-    SLIs are watched after every change, with automatic rollback on regression.
-
--   :material-source-pull:{ .lg .middle } **Reviewable IaC changes**
+-   [:material-shield-check:{ .lg .middle } **3. Verify**](concepts/safety-net.md)
 
     ---
 
-    Generate a pull request through your existing Infrastructure-as-Code workflow.
-
--   :material-cog-sync:{ .lg .middle } **Controlled runtime changes**
-
-    ---
-
-    Apply approved changes directly, within configured boundaries.
+    SLIs are watched after every change. If something regresses, Consize triggers an automatic, byte-identical rollback.
 
 </div>
 
@@ -69,45 +53,48 @@ flowchart LR
     F -.->|regression detected| A
 ```
 
-Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied.
+Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied — through reviewable pull requests against your existing Infrastructure-as-Code workflow, or as guarded runtime changes within configured boundaries.
+
+---
+
+## Explore the platform
 
 <div class="grid cards" markdown>
 
--   **:material-source-branch: Reviewable changes**
+-   [:material-resize:{ .lg .middle } **Kubernetes Rightsizing**](guides/rightsizing.md)
 
     ---
 
-    Use Consize to generate changes that go through your existing Infrastructure-as-Code and pull request workflow.
+    Reduce over-provisioned CPU and memory by adjusting requests and limits based on observed, not assumed, usage.
 
--   **:material-robot: Guarded runtime changes**
+-   [:material-chart-line:{ .lg .middle } **Observability**](guides/observability.md)
 
     ---
 
-    For teams that want automated optimization, Consize can apply approved changes directly within configured boundaries.
+    How the Observe → Change → Verify loop uses SLIs to confirm a change was actually safe.
+
+-   [:material-layers-outline:{ .lg .middle } **Environments**](guides/environments.md)
+
+    ---
+
+    Control the scope of what Consize can observe and modify — start small and expand automation gradually.
+
+-   [:material-sitemap:{ .lg .middle } **How Consize Works**](concepts/architecture.md)
+
+    ---
+
+    The full Observe → Analyze → Recommend → Review → Apply → Verify architecture, end to end.
+
+-   [:material-shield-lock:{ .lg .middle } **The Safety Net**](concepts/safety-net.md)
+
+    ---
+
+    Optimize infrastructure without turning cost savings into production risk — the principle the whole system is built around.
+
+-   [:material-cog:{ .lg .middle } **Configuration**](reference/configuration.md)
+
+    ---
+
+    The full reference for controlling what Consize observes, what it can change, and how it operates in your environment.
 
 </div>
-
-## Start using Consize
-
-The fastest way to get started is to install Consize and run it against a Kubernetes environment.
-
-[Get started](getting-started/get-started.md){ .md-button .md-button--primary }
-[Try the Interactive Sandbox](getting-started/sandbox.md){ .md-button }
-
-## Learn more
-
-<div class="grid cards" markdown>
-
--   [:material-rocket-launch: **Quickstart**](getting-started/get-started.md)
--   [:material-package-down: **Production Installation**](getting-started/installation.md)
--   [:material-sitemap: **How Consize Works**](concepts/architecture.md)
--   [:material-shield-lock: **The Safety Net**](concepts/safety-net.md)
--   [:material-cog: **Configuration**](reference/configuration.md)
-
-</div>
-
-## Community
-
-Consize is open source.
-
-[:fontawesome-brands-github: View Consize on GitHub](https://github.com/consize-oss/consize){ .md-button }

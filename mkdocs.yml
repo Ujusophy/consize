@@ -51,25 +51,21 @@ nav:
       - Interactive Sandbox: getting-started/sandbox.md
       - Production Installation: getting-started/installation.md
 
-  - Product:
+  - Guides:
       - Kubernetes Rightsizing: guides/rightsizing.md
       - Observability: guides/observability.md
       - Environments: guides/environments.md
-
-  - Platform:
       - How Consize Works: concepts/architecture.md
       - The Safety Net: concepts/safety-net.md
 
   - Reference:
       - Configuration: reference/configuration.md
 
-  - Contributing:
+  - Resources:
       - Contributing: contributing/index.md
       - Testing: contributing/testing.md
       - E2E Tests: contributing/e2e.md
       - Decisions: contributing/decisions.md
-
-  - Resources:
       - Roadmap: resources/roadmap.md
 
 markdown_extensions:

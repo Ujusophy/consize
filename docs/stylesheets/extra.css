@@ -147,7 +147,7 @@
  
 .md-header__source .md-source {
   height: 2.4rem;
-  padding: 0 0.35rem;
+  padding: 0 0.15rem;
   border-radius: var(--consize-radius-sm);
   background-color: var(--md-default-fg-color--lightest);
   border: 1px solid var(--md-default-fg-color--lighter);
@@ -622,9 +622,6 @@ html {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.5rem 1rem;
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--md-default-fg-color--lightest);
 }
 
 @media screen and (max-width: 44.9375em) {
@@ -657,4 +654,55 @@ html {
 
 .consize-footer-links__col a:hover {
   color: var(--md-accent-fg-color);
+}
+
+/* --------------------------------------------------------------------------
+   14. Site-wide footer wrapper — the link grid now renders once, as real
+       page chrome via {% block footer %} in overrides/main.html, instead
+       of being injected into every page's scrollable content column.
+   -------------------------------------------------------------------------- */
+
+.consize-site-footer {
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  background-color: var(--md-default-bg-color);
+}
+
+.consize-site-footer__inner {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 2rem;
+}
+
+/* --------------------------------------------------------------------------
+   15. Homepage kicker pill — small colored tag above the H1, in the
+       brand accent green. Same idea as Merge's "Unified" pill above
+       their homepage title.
+   -------------------------------------------------------------------------- */
+
+.consize-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  color: var(--md-accent-fg-color);
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-accent-fg-color) 30%, transparent);
+  margin-bottom: 0.75rem;
+}
+
+/* --------------------------------------------------------------------------
+   16. "Explore the platform" cards — same grid.cards styling, but used
+       here as real navigation (each card links to its own page) rather
+       than static feature bullets, mirroring Merge's "Explore by
+       category" section.
+   -------------------------------------------------------------------------- */
+
+.md-typeset .grid.cards > ul > li a {
+  text-decoration: none;
+  color: inherit;
 }
