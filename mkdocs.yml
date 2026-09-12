@@ -9,7 +9,7 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   custom_dir: overrides
-  logo: assets/logo-mark.svg
+  logo: assets/logo-mark.png
   favicon: assets/favicon.png
   font:
     text: Inter
