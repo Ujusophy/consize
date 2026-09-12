@@ -61,6 +61,13 @@
   width: auto;
 }
 
+/* Site title text in the header, next to the logo — Material's default
+   weight and size read thin/small next to a bold icon mark. */
+.md-header__title .md-header__topic:first-child {
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
 /* --------------------------------------------------------------------------
    1d. Hero screenshot — frames the dashboard image on the homepage so the
        page isn't pure text above the fold.
@@ -77,18 +84,20 @@
 }
 
 /* --------------------------------------------------------------------------
-   1c. Search bar — Material's default is a flat, muted pill. Give it
-       definition: a real border, a focus state, and a nicer dropdown.
+   1c. Search bar — classic bordered box: solid fill, modest corner
+       radius, visible border at rest (not just on hover/focus).
    -------------------------------------------------------------------------- */
 
 .md-search__form {
-  border-radius: 999px;
-  background-color: transparent;
+  border-radius: var(--consize-radius-sm);
+  background-color: var(--md-default-fg-color--lightest);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  height: 1.6rem;
   transition: border-color var(--consize-transition), box-shadow var(--consize-transition);
 }
 
 .md-search__form:hover {
-  border-color: var(--md-default-fg-color--lighter);
+  border-color: var(--md-accent-fg-color);
 }
 
 /* Focus state — when the input inside is focused, light up the pill */
@@ -99,7 +108,7 @@
 }
 
 .md-search__input {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 
 .md-search__input::placeholder {
@@ -125,6 +134,34 @@
 .md-search-result__link:hover,
 .md-search-result__link[data-md-state="active"] {
   background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* --------------------------------------------------------------------------
+   1e. GitHub repo link — classic bordered button (icon + "owner/repo"
+       text) instead of a bare, borderless icon floating in the header.
+   -------------------------------------------------------------------------- */
+ 
+.md-header__source {
+  margin-left: 0.4rem;
+}
+ 
+.md-header__source .md-source {
+  height: 2.4rem;
+  padding: 0 0.35rem;
+  border-radius: var(--consize-radius-sm);
+  background-color: var(--md-default-fg-color--lightest);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  transition: border-color var(--consize-transition), background-color var(--consize-transition);
+}
+ 
+.md-header__source .md-source:hover {
+  border-color: var(--md-accent-fg-color);
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 8%, transparent);
+}
+ 
+.md-header__source .md-source__repository {
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 /* --------------------------------------------------------------------------
@@ -356,17 +393,17 @@
    -------------------------------------------------------------------------- */
 
 .md-typeset code {
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   border-radius: 4px;
 }
 
 .md-typeset pre code {
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   line-height: 1.55;
 }
 
-/* Every fenced code block gets a small terminal-style header bar
-   (traffic-light dots) instead of sitting as a flat, undecorated box. */
+/* Every fenced code block gets a small, neutral header bar — no
+   traffic-light dots, just a plain strip to separate it from the box. */
 .md-typeset .highlight {
   position: relative;
   border-radius: var(--consize-radius-sm);
@@ -391,18 +428,6 @@
   height: 1.5rem;
   background-color: color-mix(in srgb, var(--md-default-fg-color) 5%, transparent);
   border-bottom: 1px solid var(--md-default-fg-color--lightest);
-}
-
-.md-typeset .highlight::after {
-  content: "";
-  position: absolute;
-  top: 0.58rem;
-  left: 0.9rem;
-  width: 0.4rem;
-  height: 0.4rem;
-  border-radius: 50%;
-  background: #ff5f56;
-  box-shadow: 0.75rem 0 0 #ffbd2e, 1.5rem 0 0 #27c93f;
 }
 
 /* Fallback for any bare <pre> not wrapped in .highlight */
@@ -497,7 +522,99 @@ html {
 }
 
 /* --------------------------------------------------------------------------
-   12. Per-page footer link grid (Product / Use cases / Developers / Others)
+   12. Page feedback strip — "Was this page helpful?" with Yes/No, plus
+       explicit Suggest edits / Raise issue links. Replaces the default
+       Material edit-pencil icon (content.action.edit), which is now off.
+   -------------------------------------------------------------------------- */
+
+.consize-page-feedback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 3rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  font-size: 0.72rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.consize-page-feedback__question {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.consize-page-feedback__buttons {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.consize-page-feedback__btn {
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: transparent;
+  color: var(--md-default-fg-color--light);
+  cursor: pointer;
+  transition: background-color var(--consize-transition),
+              color var(--consize-transition),
+              border-color var(--consize-transition);
+}
+
+.consize-page-feedback__btn:hover {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-accent-fg-color);
+}
+
+.consize-page-feedback__thanks {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--md-accent-fg-color);
+}
+
+.consize-page-feedback__links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* "Suggest edits" / "Raise issue" — transparent squares with a border,
+   emoji + label, sized down to match Infisical's compact footer links. */
+.consize-page-feedback__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--consize-radius-sm);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: transparent;
+  color: var(--md-default-fg-color--light);
+  text-decoration: none;
+  transition: border-color var(--consize-transition), color var(--consize-transition);
+}
+
+.consize-page-feedback__chip:hover {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-accent-fg-color);
+}
+
+@media screen and (max-width: 44.9375em) {
+  .consize-page-feedback {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   13. Per-page footer link grid (Product / Use cases / Developers / Others)
        Injected at the end of every page's content by overrides/main.html.
    -------------------------------------------------------------------------- */
 
@@ -519,20 +636,20 @@ html {
 .consize-footer-links__col {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.35rem;
 }
 
 .consize-footer-links__heading {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--md-default-fg-color--light);
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.1rem;
 }
 
 .consize-footer-links__col a {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: var(--md-default-fg-color--light);
   text-decoration: none;
   transition: color var(--consize-transition);

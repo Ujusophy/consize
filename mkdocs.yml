@@ -9,8 +9,8 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   custom_dir: overrides
-  logo: assets/logo.svg       # TODO: add a real logo file — even a simple wordmark beats the default icon
-  favicon: assets/favicon.png # TODO: add a favicon
+  logo: assets/logo.svg
+  favicon: assets/favicon.png
   font:
     text: Inter
     code: JetBrains Mono
@@ -44,7 +44,6 @@ theme:
     - search.highlight
     - content.code.copy
     - content.tabs.link
-    - content.action.edit   # adds "edit this page" link -> lowers barrier for doc contributions
 
 nav:
   - Get started:
@@ -63,6 +62,15 @@ nav:
 
   - Reference:
       - Configuration: reference/configuration.md
+
+  - Contributing:
+      - Contributing: contributing/index.md
+      - Testing: contributing/testing.md
+      - E2E Tests: contributing/e2e.md
+      - Decisions: contributing/decisions.md
+
+  - Resources:
+      - Roadmap: resources/roadmap.md
 
 markdown_extensions:
   - admonition
@@ -86,13 +94,16 @@ markdown_extensions:
 
 extra_javascript:
   - javascripts/mermaid-init.js
+  - javascripts/page-feedback.js
 
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/consize-oss/consize
-    - icon: fontawesome/brands/discord
-      link: https://discord.gg/REPLACE_ME   # TODO: real invite link
+    # Discord icon removed until a real invite link exists — a dead invite
+    # is worse than no invite. Add back:
+    # - icon: fontawesome/brands/discord
+    #   link: <real invite link>
 
 extra_css:
   - stylesheets/extra.css
