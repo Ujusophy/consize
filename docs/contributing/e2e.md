@@ -2,7 +2,7 @@
 
 End-to-end tests validate Consize against a real Kubernetes environment.
 
-They are useful for testing behavior that cannot be fully covered by unit tests alone.
+They are useful for testing behavior that cannot be fully covered by unit tests alone. Consize's E2E suite runs against a dedicated sandbox cluster, nightly and pre-release, using synthetic fixture workloads (never real customer data).
 
 ## When to use E2E tests
 
@@ -15,7 +15,7 @@ Use E2E tests when a change affects things such as:
 * Helm deployment behavior
 * Components communicating with each other
 
-For changes that do not require a running Kubernetes environment, prefer the regular test suite.
+For changes that do not require a running Kubernetes environment, prefer the regular test suite, see [Testing](testing.md).
 
 ## Before running E2E tests
 
@@ -23,52 +23,40 @@ Make sure you have:
 
 * A working Kubernetes cluster
 * `kubectl` configured for the cluster
-* The required Consize components available
-* The dependencies required by the test environment
+* The required Consize components deployed (see [Production Installation](../getting-started/installation.md))
 
 Check your current Kubernetes context:
 
-```sh id="x8q4mt"
+```sh
 kubectl config current-context
 ```
 
 Then verify that the cluster is reachable:
 
-```sh id="k2v7pc"
+```sh
 kubectl get nodes
 ```
 
 ## Running E2E tests
 
-Run the repository's E2E test command from the project root.
+The engine is written in Go. E2E tests are built with an `e2e` build tag so they don't run as part of the regular `go test ./...` suite:
 
-If the tests are implemented with pytest, a specific E2E test can be run with:
-
-```sh id="m5n9rx"
-pytest path/to/e2e_test.py
+```sh
+cd engine
+go test -tags=e2e ./e2e/...
 ```
 
 Use the test configuration provided by the repository rather than creating a separate local configuration unless the test requires it.
 
-## What E2E tests should verify
+## What E2E tests verify
 
-An E2E test should verify behavior across the system rather than testing an individual function.
+E2E tests use synthetic fixture workloads (a fixture exporter emitting CPU/memory at a known, fixed profile) so expected outcomes are deterministic.
 
-For example:
+**Happy path (compute):** deploy fixture workloads with inflated requests (e.g. 8Gi requested against 300Mi actually used), confirm Consize generates the expected rightsizing recommendation.
 
-```text id="j6p3wv"
-Deploy Consize
-      ↓
-Create test workload
-      ↓
-Collect workload data
-      ↓
-Generate recommendation
-      ↓
-Apply change
-      ↓
-Verify resulting state
-```
+**Rollback path**, the scenario that proves the safety guarantees actually work: deploy a workload with a latency bug, apply a rightsizing change, the induced bug pushes error rate up 50%, the verifier returns `FAIL`, Consize automatically rolls back to the previous values, records the event as `rolled_back` with evidence, and fires an alert. The test asserts the rollout was actually restored, not just that a rollback was logged.
+
+**Idempotency:** applying the same recommendation twice is a no-op the second time, since the workload is already at the target values.
 
 ## Keep E2E tests isolated
 
@@ -77,7 +65,7 @@ E2E tests should avoid modifying unrelated workloads or shared environments.
 When possible:
 
 * Use dedicated test namespaces
-* Use predictable test resources
+* Use predictable, synthetic test resources, never real customer data
 * Clean up resources after the test
 * Avoid production clusters
 * Keep test credentials separate from production credentials
@@ -88,23 +76,23 @@ When an E2E test fails, check the Kubernetes environment first.
 
 Useful commands include:
 
-```sh id="r4x8nd"
+```sh
 kubectl get pods -A
 ```
 
-```sh id="u7m2kp"
+```sh
 kubectl get events -A --sort-by=.lastTimestamp
 ```
 
 For a specific namespace:
 
-```sh id="c9q5vt"
+```sh
 kubectl -n <namespace> get pods
 ```
 
 Then inspect the logs of the affected component:
 
-```sh id="a3k6yw"
+```sh
 kubectl -n <namespace> logs <pod-name>
 ```
 

@@ -21,6 +21,14 @@ Consize analyzes workload resource usage, including:
 
 The goal is to compare **what a workload has been allocated** with **what it actually uses**.
 
+### Why percentiles, not averages
+
+Consize sizes requests from the **p95** of usage and limits from the **p99**, both computed over a 14-day window of 15-minute buckets, with explicit headroom multipliers on top. It never uses a plain average.
+
+Averages hide bursts, a workload that spikes to 2Gi once a day but averages 500Mi would get under-provisioned and start OOM-killing under an average-based policy. Maxes overcorrect the other way and recommend sizes so generous there's no real savings. Percentiles sit in between: robust to spikes and weekly patterns, without chasing a single outlier.
+
+This means Consize's recommendations are sometimes slightly larger than a naive average-based tool would suggest. That's intentional, the goal is *safe* savings, not maximal savings.
+
 ## A simple example
 
 Imagine a deployment has:
@@ -40,20 +48,10 @@ Instead of immediately changing the workload, the recommendation can go through 
 
 ## The rightsizing workflow
 
-```text
-Collect usage
-     ↓
-Analyze workload
-     ↓
-Identify opportunity
-     ↓
-Generate recommendation
-     ↓
-Safety checks
-     ↓
-Review or apply
-     ↓
-Verify
+Consize follows the same core loop described on the [homepage](../index.md#how-it-works):
+
+```
+Observe → Analyze → Recommend → Review → Apply → Verify
 ```
 
 ## Recommendations
@@ -71,7 +69,7 @@ Memory request: 2Gi → 1Gi
 
 ### Why should it change?
 
-The recommendation is based on observed resource usage and the configured optimization strategy.
+The recommendation is based on observed resource usage (p95/p99 over a 14-day window, see above) and the [configured optimization strategy](../reference/configuration.md).
 
 ### Is the change safe?
 
@@ -140,6 +138,7 @@ Consize's verification workflow helps close this loop.
 
 ## Next steps
 
+* [Try it in the Interactive Sandbox](../getting-started/sandbox.md)
 * [The Safety Net](../concepts/safety-net.md)
 * [How Consize Works](../concepts/architecture.md)
 * [Production Installation](../getting-started/installation.md)

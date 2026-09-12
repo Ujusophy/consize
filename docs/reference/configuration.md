@@ -2,140 +2,58 @@
 
 Consize can be configured to control what it observes, what it can change, and how it operates in your environment.
 
-This page covers the main configuration options.
+This page is the reference list of configuration options. For task-based walkthroughs, see [Production Installation](../getting-started/installation.md) and [Environments](../guides/environments.md).
 
-## Collection scope
+## Collection
 
-Use `CONSIZE_NAMESPACES` to control which Kubernetes namespaces Consize observes.
+| Variable | Default | Description |
+|---|---|---|
+| `CONSIZE_NAMESPACES` | empty (cluster-wide) | Comma-separated namespaces to scope collection to, e.g. `boutique,payments,checkout` |
+| `CONSIZE_MIN_DATA_DAYS` | `5` | Minimum distinct days of data required before a recommendation is generated. Confidence scores scale with data volume regardless of this setting. |
 
-### Specific namespaces
+## Verification
 
-```yaml id="8y4k2m"
-env:
-  CONSIZE_NAMESPACES: boutique,payments,checkout
-```
+| Variable | Default | Description |
+|---|---|---|
+| `CONSIZE_SUSTAINED_MINUTES` | `5` | How long a signal must stay past its regression threshold before it counts as a breach and triggers rollback |
+| `CONSIZE_SLI_ERROR_EXPR` | unset (off) | Optional PromQL expression for an app-level error-rate signal. Off by default until you provide app-level labels. |
+| `CONSIZE_SLI_P99_EXPR` | unset (off) | Optional PromQL expression for an app-level p99 latency signal |
 
-### All namespaces
+Without zero-instrumentation SLIs (restarts, OOM kills, evictions, CPU throttling), verification still runs, see [The Safety Net](../concepts/safety-net.md) for the default signal set and verdict logic.
 
-```yaml id="5t7n3q"
-env:
-  CONSIZE_NAMESPACES: ""
-```
+## Cloud database metrics
 
-## Collector configuration
+| Variable | Default | Description |
+|---|---|---|
+| `CONSIZE_DBMETRICS` | `none` (Kubernetes-only) | Selects the DB metrics source: `none`, `cloudwatch` (AWS RDS), or `cloudmonitoring` (GCP Cloud SQL) |
+| `CONSIZE_AWS_REGION` | `us-east-1` | AWS region, used when `CONSIZE_DBMETRICS=cloudwatch` |
+| `CONSIZE_GCP_PROJECT` | inferred from service account key | GCP project, used when `CONSIZE_DBMETRICS=cloudmonitoring` |
+| `CONSIZE_DB_FILTER` | unset | Optional filter limiting which DB instances are collected |
 
-The collector can also be configured through Helm values.
+## Recommendation retention
 
-For example:
+| Variable | Default | Description |
+|---|---|---|
+| `CONSIZE_REC_RETENTION` | `168h` (7 days) | How long superseded recommendations are kept before pruning. Applied, verified, rolled-back, and pending recommendations are never pruned. |
 
-```yaml id="3p6x9v"
-collector:
-  namespaces:
-    - boutique
-    - checkout
-```
+## Authentication
 
-An empty list can be used when the collector should operate across the cluster:
+| Variable | Default | Description |
+|---|---|---|
+| `CONSIZE_AUTH_REQUIRED` | `false` | Whether login is enforced on the API/UI |
+| `CONSIZE_BOOTSTRAP_ADMIN` | unset | `"email:password"`, creates the first admin account, and only while the users table is empty |
 
-```yaml id="1w8c5r"
-collector:
-  namespaces: []
-```
+## Namespace and RBAC scoping
 
-## Writer configuration
+Collection scope, write scope, and automatic-application eligibility are configured through Helm values and Kubernetes labels rather than environment variables, see [Environments](../guides/environments.md) for the `collector.namespaces` / `rbac.writer.namespaces` values and the `consize.savings.dev/auto-apply` label.
 
-Direct runtime changes can be restricted to specific namespaces.
+## Secrets
 
-For example:
+Metrics connection, Slack notifications, and GitHub integration are configured through Kubernetes secrets (`consize-store`, `consize-alerts`, `consize-github`), see [Production Installation](../getting-started/installation.md#2-configure-your-metrics-connection) for the exact commands.
 
-```yaml id="6q2m7k"
-rbac:
-  writer:
-    namespaces:
-      - boutique
-```
+## Helm values
 
-This allows the Consize writer to operate only within the configured namespace.
-
-## Automatic application
-
-A namespace can be explicitly marked as eligible for automatic application:
-
-```sh id="4n7p2x"
-kubectl label namespace boutique consize.savings.dev/auto-apply=enabled
-```
-
-This provides an additional boundary around where automated changes can occur.
-
-## Metrics connection
-
-Consize requires access to a Prometheus or compatible metrics endpoint.
-
-The connection can be provided through the `consize-store` secret:
-
-```sh id="9v3m6q"
-kubectl -n consize-system create secret generic consize-store \
-  --from-literal=prometheus-url='http://prometheus-operated.monitoring:9090'
-```
-
-Replace the URL with the metrics endpoint used by your environment.
-
-## Notifications
-
-Slack notifications can be configured through the `consize-alerts` secret:
-
-```sh id="2k8r5n"
-kubectl -n consize-system create secret generic consize-alerts \
-  --from-literal=slack-webhook='https://hooks.slack.com/services/...'
-```
-
-## GitHub integration
-
-GitHub integration can be configured using the `consize-github` secret:
-
-```sh id="7m4q1p"
-kubectl -n consize-system create secret generic consize-github \
-  --from-literal=token='github_pat_...'
-```
-
-Keep GitHub credentials in Kubernetes secrets and avoid committing tokens to your repository.
-
-## Configuration and permissions
-
-Configuration controls what Consize is intended to do.
-
-Kubernetes RBAC controls what Consize is actually allowed to do.
-
-Both should be configured together.
-
-For example, you might configure Consize to observe multiple namespaces while granting write access to only one:
-
-```yaml id="5c9x2v"
-collector:
-  namespaces: []
-
-rbac:
-  writer:
-    namespaces:
-      - boutique
-```
-
-See [The Safety Net](../concepts/safety-net.md) for more information about permissions and guardrails.
-
-## Helm configuration
-
-Production installations use Helm values to configure Consize.
-
-Example:
-
-```sh id="3h6m9q"
-helm upgrade --install consize ./charts/consize \
-  --namespace consize-system \
-  --create-namespace \
-  -f ./charts/consize/examples/values-prod.yaml
-```
-
-Use your environment-specific values file to configure Consize for your deployment.
+Production installations use Helm values to configure Consize. See [Production Installation](../getting-started/installation.md#6-install-consize-with-helm) for the install commands.
 
 ## Next steps
 

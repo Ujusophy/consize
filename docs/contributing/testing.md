@@ -4,52 +4,69 @@ Consize uses automated tests to help catch regressions before changes are merged
 
 When making a change, run the tests that cover the part of the project you modified.
 
-## Run the test suite
+## Run the engine test suite
 
-From the repository root:
-
-```sh
-pytest
-```
-
-If your environment uses a project-specific test command, follow the command documented by the repository.
-
-## Run tests for a specific area
-
-You can run a specific test file when working on one part of the codebase:
+The engine is written in Go. From the repository root:
 
 ```sh
-pytest path/to/test_file.py
+cd engine
+go test ./...
 ```
 
-You can also run an individual test:
+## Run tests for a specific package
+
+You can scope tests to one package when working on a focused change:
 
 ```sh
-pytest path/to/test_file.py::test_name
+go test ./internal/analysis/...
 ```
 
-This is useful when iterating on a change and you do not want to run the entire test suite every time.
+Run a single test by name:
+
+```sh
+go test ./internal/analysis/... -run TestPercentileSizing
+```
+
+This is useful when iterating on a change and you do not want to run the entire suite every time.
+
+## Lint
+
+```sh
+golangci-lint run
+```
+
+## UI
+
+The UI (`ui/`) currently ships a linter but no automated test suite yet:
+
+```sh
+cd ui
+npm run lint
+```
+
+If you're adding UI logic that would benefit from tests, that's a good candidate for a first contribution, see [Decisions](decisions.md) for how to think about introducing new tooling.
 
 ## Before opening a pull request
 
 Before submitting a pull request:
 
-1. Run the relevant tests.
-2. Run the full test suite.
-3. Check that documentation and configuration examples still work.
-4. Review the changes with `git diff`.
-5. Make sure unrelated files were not changed.
+1. Run `go test ./...` for the areas you touched, then the full suite.
+2. Run `golangci-lint run`.
+3. Run `npm run lint` in `ui/` if you touched the UI.
+4. Check that documentation and configuration examples still work.
+5. Review the changes with `git diff`.
+6. Make sure unrelated files were not changed.
 
 A typical workflow is:
 
-```text
+```
 Make change
     ↓
 Run focused tests
     ↓
 Fix failures
     ↓
-Run full test suite
+Run full test suite + lint
     ↓
 Review git diff
     ↓
@@ -58,9 +75,7 @@ Open pull request
 
 ## End-to-end tests
 
-Some behavior cannot be fully tested with unit tests alone.
-
-For tests that interact with a running Kubernetes environment, see [E2E Tests](e2e.md).
+Some behavior cannot be fully tested with unit tests alone. For tests that interact with a running Kubernetes environment, see [E2E Tests](e2e.md).
 
 ## When tests fail
 

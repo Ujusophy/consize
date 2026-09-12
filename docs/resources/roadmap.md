@@ -4,6 +4,17 @@ Consize is being developed as an open-source infrastructure optimization platfor
 
 The roadmap focuses on making optimization safer, easier to adopt, and useful across more infrastructure environments.
 
+## Available today
+
+Some capabilities are already shipped, not just planned:
+
+* **Kubernetes rightsizing**, percentile-based CPU/memory recommendations, see [Kubernetes Rightsizing](../guides/rightsizing.md)
+* **Cloud database rightsizing** for AWS RDS and GCP Cloud SQL
+* **Cloud waste scanning**
+* **The safety engine**, guardrails, step-wise apply, and automatic rollback on regression, see [The Safety Net](../concepts/safety-net.md)
+* **Reviewable Infrastructure-as-Code changes** through your existing pull request workflow, as an alternative to direct runtime application
+* **Slack and GitHub integrations**
+
 ## Current focus
 
 ### Kubernetes rightsizing
@@ -40,9 +51,8 @@ Make Consize easier to install, understand, and operate.
 
 As the project develops, the roadmap may expand into areas such as:
 
-* Additional cloud resource optimization
-* Database optimization
-* Infrastructure-as-Code workflows
+* Support for additional cloud providers
+* Additional Infrastructure-as-Code workflow integrations
 * Additional notification and collaboration integrations
 * More optimization strategies
 

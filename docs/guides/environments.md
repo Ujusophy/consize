@@ -10,7 +10,7 @@ You can configure which Kubernetes namespaces Consize collects data from.
 
 For example:
 
-```yaml id="2e9q5m"
+```yaml
 env:
   CONSIZE_NAMESPACES: boutique,payments,checkout
 ```
@@ -19,7 +19,7 @@ This limits collection to the specified namespaces.
 
 To collect across the cluster:
 
-```yaml id="9k3v7p"
+```yaml
 env:
   CONSIZE_NAMESPACES: ""
 ```
@@ -40,7 +40,7 @@ This gives teams a way to use broad visibility while keeping modification permis
 
 A production setup might look like:
 
-```yaml id="6p2m8r"
+```yaml
 collector:
   namespaces: []
 
@@ -59,7 +59,7 @@ In this example:
 
 For a smaller environment, you can restrict collection as well:
 
-```yaml id="c7n4qx"
+```yaml
 collector:
   namespaces:
     - boutique
@@ -79,7 +79,7 @@ Automatic application can be enabled for a specific namespace.
 
 For example:
 
-```sh id="p3k6vw"
+```sh
 kubectl label namespace boutique consize.savings.dev/auto-apply=enabled
 ```
 
@@ -89,7 +89,7 @@ This allows teams to explicitly mark which namespaces are eligible for automatic
 
 A good way to introduce Consize is to begin with a limited scope:
 
-```text id="x5j9ta"
+```text
 One namespace
       ↓
 Several workloads
@@ -109,7 +109,7 @@ This lets your team understand Consize's recommendations before expanding its pe
 
 Namespace scope is only one part of the safety model.
 
-Kubernetes RBAC determines what Consize can actually read or modify.
+Kubernetes RBAC determines what Consize can actually read or modify. The `rbac.writer.namespaces` values shown above are what the Helm chart uses to generate the actual `Role`/`RoleBinding` resources, see [Production Installation](../getting-started/installation.md#5-configure-kubernetes-permissions) for the underlying RBAC manifests if you need to configure permissions by hand instead of through Helm values.
 
 For more information, see [The Safety Net](../concepts/safety-net.md).
 

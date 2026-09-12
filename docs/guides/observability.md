@@ -33,54 +33,29 @@ The recommendation is then evaluated against the configured safety boundaries.
 
 ## After a change
 
-Verification is an important part of the optimization workflow.
+Verification is an important part of the optimization workflow. After a change is applied, Consize compares health signals before and after, on the changed workload specifically, not the whole namespace.
 
-After a change is applied, the workload should continue to be monitored for unexpected behavior.
+By default, it checks:
 
-Useful signals include:
-
-* CPU pressure
-* Memory pressure
 * Restarts
-* Failed deployments
-* Increased latency
-* Application-specific health signals
+* OOM kills
+* Evictions
+* CPU throttling
+* Optional application-level latency or error-rate metrics, if you've configured them
+
+Verification returns one of three verdicts:
+
+| Verdict | Meaning |
+|---|---|
+| `passed` | The change looks safe. The saving is counted as realized. |
+| `failed` | The change likely caused a regression. Consize rolls back and records evidence. |
+| `inconclusive` | Not enough data to prove safety. No automatic rollback, but it requires human attention. |
+
+The default verification window starts at **1 hour and scales with the apply step**, step 1 verifies after 1 hour, step 2 after 2 hours, step 3 after 3 hours, and so on. This keeps the first feedback loop fast while giving deeper reductions more observation time. The verifier itself runs every minute, picking up applies automatically as soon as their window opens, it never verifies early.
 
 ## Health checks
 
-You can check whether the Consize API is ready with:
-
-```sh id="9iz3wr"
-kubectl -n consize-system port-forward svc/consize-api 18099:8080
-```
-
-Then, from another terminal:
-
-```sh id="2l1f9m"
-curl http://127.0.0.1:18099/readyz
-```
-
-A healthy API should return:
-
-```json id="7h3d2x"
-{"status":"ready"}
-```
-
-## Check Consize workloads
-
-Check the Consize pods:
-
-```sh id="6k7m8p"
-kubectl -n consize-system get pods
-```
-
-You can also check scheduled jobs:
-
-```sh id="8n4q1s"
-kubectl -n consize-system get cronjobs
-```
-
-These commands help confirm that the main Consize components are running.
+If you just completed [Get started](../getting-started/get-started.md#4-verify-the-installation) or [Production Installation](../getting-started/installation.md#7-verify-the-installation), you've already confirmed the API is healthy and the Consize pods and cronjobs are running. Those pages have the exact commands if you need to re-check.
 
 ## Verification is not monitoring
 
@@ -98,22 +73,10 @@ Consize complements these systems by focusing on infrastructure optimization and
 
 ## The feedback loop
 
-The complete workflow is:
+This is the full loop described on the [homepage](../index.md#how-it-works), it doesn't stop at Verify:
 
-```text
-Observe
-   ↓
-Analyze
-   ↓
-Recommend
-   ↓
-Safety checks
-   ↓
-Apply
-   ↓
-Verify
-   ↓
-Observe again
+```
+Observe → Analyze → Recommend → Review → Apply → Verify → Observe again
 ```
 
 This feedback loop helps teams optimize infrastructure without treating resource changes as one-time actions.

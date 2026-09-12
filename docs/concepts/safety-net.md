@@ -40,6 +40,21 @@ These boundaries can include:
 
 This means teams can start with a narrow scope and expand automation gradually.
 
+### How a change is evaluated
+
+Every proposed change is checked against a fixed decision matrix before it's allowed to proceed:
+
+| Condition | Outcome |
+|---|---|
+| Workload is excluded, but change requires auto-apply | **BLOCK** |
+| Step size exceeds 30% of current allocation | **SPLIT** into smaller sub-steps |
+| Target namespace is protected | **BLOCK** |
+| Another apply is already in progress in the namespace | **REJECT** |
+| No approval given, and auto-apply isn't enabled | **WAIT_APPROVAL** |
+| Dry-run mode | No write call is issued |
+
+This is deterministic, not a judgment call the system makes at apply time, the same input always produces the same outcome, which is what makes the safety guarantees testable.
+
 ## Read access and write access
 
 Consize separates observation from modification.
@@ -142,4 +157,3 @@ Start with a small scope, understand the recommendations, and increase automatio
 * [How Consize Works](architecture.md)
 * [Production Installation](../getting-started/installation.md)
 * [Configuration](../reference/configuration.md)
-* [Quickstart](../getting-started/quickstart.md)

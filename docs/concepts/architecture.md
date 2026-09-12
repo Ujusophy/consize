@@ -95,22 +95,23 @@ Learn more in [The Safety Net](safety-net.md).
 
 ## Deployment model
 
-Consize runs inside your Kubernetes environment and uses Kubernetes-native permissions to control access.
+Consize runs inside your Kubernetes environment as one binary family, plus a UI, and uses Kubernetes-native permissions to control access:
 
-A typical deployment includes:
+| Component | What it does |
+|---|---|
+| **Collector** | Pulls telemetry from Prometheus (CPU, memory, throttling, OOM kills), the Kubernetes API (current requests/limits, workload metadata), and cloud provider SDKs (DB metrics, pricing catalogs). Runs as a CronJob, typically every 15 minutes. |
+| **Analysis Engine** | Pure functions over stored telemetry, no I/O, computes percentile-based sizing recommendations (see [Kubernetes Rightsizing](../guides/rightsizing.md)) and evaluates skip conditions. |
+| **Apply Engine** | The safety layer between a recommendation and your cluster, enforces the guardrails described in [The Safety Net](safety-net.md) before any change goes out. |
+| **Verifier** | Compares SLIs (error rate, p99 latency, CPU throttling, OOM kills/evictions) against a pre-apply baseline over a step-scaled window, and triggers automatic rollback on a `FAIL` verdict. |
+| **REST API** | Go, exposes workloads, recommendations, applies, savings, and health endpoints. |
+| **UI** | Savings overview, recommendations, per-workload usage charts, and the apply audit trail. |
+| **Scheduler** | CronJobs for collection, cloud-waste scanning, analysis, verification, and a weekly savings digest. |
 
-* A collector that gathers infrastructure and workload information
-* An analysis and recommendation layer
-* An API for interacting with Consize
-* Scheduled jobs for recurring analysis
-* Kubernetes RBAC for controlling access
-* Optional integrations for notifications and external workflows
-
-For installation details, see [Production Installation](../getting-started/installation.md).
+For installation details, see [Production Installation](../getting-started/installation.md). For the full system design, including the read/write data flow, see the [architecture reference](https://github.com/consize-oss/consize/blob/main/docs/architecture.md).
 
 ## Next steps
 
 * [The Safety Net](safety-net.md)
 * [Production Installation](../getting-started/installation.md)
 * [Configuration](../reference/configuration.md)
-* [Quickstart](../getting-started/quickstart.md)
+* [Try it in the Interactive Sandbox](../getting-started/sandbox.md)

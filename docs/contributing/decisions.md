@@ -2,7 +2,9 @@
 
 Consize makes technical decisions that affect its architecture, safety model, and developer experience.
 
-This page explains how contributors should think about those decisions and where to document them.
+The existing decisions, roughly 40 of them, covering everything from why sizing uses percentiles instead of averages to why v1 only downsizes, are recorded in the [decision log](https://github.com/consize-oss/consize/blob/main/docs/reference.md). Read it before proposing a change to the safety engine, sizing policy, or permissions model, it will often already explain why something works the way it does.
+
+This page explains how contributors should think about *new* decisions and where to document them.
 
 ## Why document decisions?
 

@@ -1,4 +1,3 @@
-````markdown
 # Production Installation
 
 This guide walks you through installing Consize on a Kubernetes cluster using Helm.
@@ -16,7 +15,7 @@ Before installing Consize, make sure you have:
 
 ```sh
 kubectl create namespace consize-system
-````
+```
 
 ## 2. Configure your metrics connection
 
@@ -55,7 +54,7 @@ kubectl -n consize-system create secret generic consize-github \
 
 Consize can also use cloud provider credentials when required.
 
-See the configuration reference for provider-specific settings.
+See the [configuration reference](../reference/configuration.md) for provider-specific settings.
 
 ## 4. Configure collection scope
 
@@ -167,7 +166,21 @@ kubectl label namespace boutique consize.savings.dev/auto-apply=enabled
 
 ## 6. Install Consize with Helm
 
-From the Consize repository:
+Install directly from the published chart on GitHub Container Registry (GHCR), no need to clone the repository:
+
+```sh
+# Export the default values to customize your installation
+helm show values oci://ghcr.io/consize-oss/charts/consize > values.yaml
+
+# Install using your customized values
+helm install consize oci://ghcr.io/consize-oss/charts/consize \
+  --version 0.2.0 \
+  --namespace consize-system \
+  --create-namespace \
+  -f values.yaml
+```
+
+**Building from source instead?** If you've cloned the repository and want to install from your local checkout:
 
 ```sh
 helm upgrade --install consize ./charts/consize \
@@ -212,18 +225,7 @@ Expected response:
 
 ## Next steps
 
-* [Quickstart](quickstart.md)
 * [Interactive Sandbox](sandbox.md)
 * [Configuration](../reference/configuration.md)
 * [How Consize Works](../concepts/architecture.md)
 * [The Safety Net](../concepts/safety-net.md)
-
-````
-
-### Then do this
-
-Save the file and run:
-
-```bash
-mkdocs serve
-````

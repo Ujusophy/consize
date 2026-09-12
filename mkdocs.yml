@@ -4,6 +4,7 @@ site_description: Safe, Automated Action for Kubernetes
 site_author: Consize OSS
 repo_url: https://github.com/consize-oss/consize
 repo_name: consize-oss/consize
+edit_uri: edit/main/docs/
 
 theme:
   name: material
@@ -49,7 +50,6 @@ nav:
 
   - Get started:
       - Get started: getting-started/get-started.md
-      - Quickstart: getting-started/quickstart.md
       - Interactive Sandbox: getting-started/sandbox.md
       - Production Installation: getting-started/installation.md
 
@@ -78,6 +78,9 @@ markdown_extensions:
   - attr_list        # required for grid cards / button styling
   - md_in_html        # required for grid cards
   - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid

@@ -21,6 +21,78 @@
 }
 
 /* --------------------------------------------------------------------------
+   1b. Logo — Material's default header logo is quite small, size it up
+   -------------------------------------------------------------------------- */
+
+.md-header__button.md-logo {
+  padding: 0.4rem;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 2.5rem;
+  width: auto;
+}
+
+/* Sidebar/nav title logo, if your theme shows one there too */
+.md-nav__title .md-logo img,
+.md-nav__title .md-logo svg {
+  height: 1.8rem;
+  width: auto;
+}
+
+/* --------------------------------------------------------------------------
+   1c. Search bar — Material's default is a flat, muted pill. Give it
+       definition: a real border, a focus state, and a nicer dropdown.
+   -------------------------------------------------------------------------- */
+
+.md-search__form {
+  border-radius: 999px;
+  background-color: transparent;
+  transition: border-color var(--consize-transition), box-shadow var(--consize-transition);
+}
+
+.md-search__form:hover {
+  border-color: var(--md-default-fg-color--lighter);
+}
+
+/* Focus state — when the input inside is focused, light up the pill */
+.md-search__input:focus ~ .md-search__form,
+.md-search__form:focus-within {
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-accent-fg-color) 18%, transparent);
+}
+
+.md-search__input {
+  font-size: 0.85rem;
+}
+
+.md-search__input::placeholder {
+  opacity: 0.7;
+}
+
+.md-search__icon svg {
+  opacity: 0.6;
+}
+
+/* Results dropdown */
+.md-search__output {
+  border-radius: var(--consize-radius);
+  box-shadow: var(--consize-shadow-hover);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  overflow: hidden;
+}
+
+.md-search-result__item {
+  border-radius: var(--consize-radius-sm);
+}
+
+.md-search-result__link:hover,
+.md-search-result__link[data-md-state="active"] {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* --------------------------------------------------------------------------
    2b. Full-width layout — sidebars pushed toward the viewport edges,
        body expands to fill the middle. Overrides Material's default
        centered, capped-width grid.
@@ -240,14 +312,15 @@
   box-shadow: var(--consize-shadow);
 }
 
+/* Moderate code font size, not too large, not too cramped */
 .md-typeset code {
+  font-size: 0.78rem;
   border-radius: 4px;
 }
 
-/* Slightly larger, more legible code font in blocks */
 .md-typeset pre code {
-  font-size: 0.82rem;
-  line-height: 1.65;
+  font-size: 0.78rem;
+  line-height: 1.6;
 }
 
 /* Make the copy-to-clipboard button easier to spot without hunting */
