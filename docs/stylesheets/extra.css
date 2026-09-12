@@ -21,6 +21,26 @@
 }
 
 /* --------------------------------------------------------------------------
+   1a. Dark mode background — matched to the real product UI.
+       Material's default "slate" scheme is a blue-grey (~#292d3e), which
+       clashes with the actual Consize dashboard, whose background is a
+       near-neutral black (#101110, sampled from img/demo-dashboard.png).
+       Overriding the base surface tokens here keeps that same near-black
+       feel in the docs instead of the generic Material slate tint.
+   -------------------------------------------------------------------------- */
+
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #101110;
+  --md-default-bg-color--light: hsla(0, 0%, 100%, 0.7);
+  --md-default-bg-color--lighter: hsla(0, 0%, 100%, 0.3);
+  --md-default-bg-color--lightest: hsla(0, 0%, 100%, 0.12);
+
+  /* Code blocks and cards sit one step lighter than the page background
+     so they still read as distinct surfaces against the near-black base. */
+  --md-code-bg-color: #1a1b1a;
+}
+
+/* --------------------------------------------------------------------------
    1b. Logo — Material's default header logo is quite small, size it up
    -------------------------------------------------------------------------- */
 

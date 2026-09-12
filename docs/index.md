@@ -96,7 +96,7 @@ The fastest way to get started is to install Consize and run it against a Kubern
 
 <div class="grid cards" markdown>
 
--   [:material-rocket-launch: **Quickstart**](getting-started/quickstart.md)
+-   [:material-rocket-launch: **Quickstart**](getting-started/get-started.md)
 -   [:material-package-down: **Production Installation**](getting-started/installation.md)
 -   [:material-sitemap: **How Consize Works**](concepts/architecture.md)
 -   [:material-shield-lock: **The Safety Net**](concepts/safety-net.md)
