@@ -41,18 +41,10 @@
 }
 
 /* --------------------------------------------------------------------------
-   1b. Logo — Material's default header logo is quite small, size it up
+   1b. Logo — Material's default header logo is quite small, size it up.
+   (Header-bar-specific padding/sizing now lives in section 17, since the
+   flat header redesign wraps the logo as a small square tile.)
    -------------------------------------------------------------------------- */
-
-.md-header__button.md-logo {
-  padding: 0.4rem;
-}
-
-.md-header__button.md-logo img,
-.md-header__button.md-logo svg {
-  height: 2.5rem;
-  width: auto;
-}
 
 /* Sidebar/nav title logo, if your theme shows one there too */
 .md-nav__title .md-logo img,
@@ -198,39 +190,47 @@
 
 /* --------------------------------------------------------------------------
    2c. Sidebars & three-column dividers
+   Desktop-only: the off-canvas mobile drawer relies on Material's own
+   `position: fixed` + `transform: translateX()` to slide in/out. Applying
+   `position: sticky` / `height: 100vh` without a media guard here overrode
+   that on small screens and broke the collapsible mobile nav, so these
+   rules are now scoped to the same desktop breakpoint used elsewhere in
+   this file (76.25em, matching Material's own tablet/desktop split).
    -------------------------------------------------------------------------- */
 
-.md-sidebar--primary {
-  padding-top: 1rem;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-}
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary {
+    padding-top: 1rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
 
-.md-sidebar--primary::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100vh;
-  background-color: var(--md-default-fg-color--lightest);
-}
+  .md-sidebar--primary::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100vh;
+    background-color: var(--md-default-fg-color--lightest);
+  }
 
-.md-sidebar--secondary {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-}
+  .md-sidebar--secondary {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
 
-.md-sidebar--secondary::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 100vh;
-  background-color: var(--md-default-fg-color--lightest);
+  .md-sidebar--secondary::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 100vh;
+    background-color: var(--md-default-fg-color--lightest);
+  }
 }
 
 /* Push the body content away from both dividers so the gap reads
@@ -351,12 +351,42 @@
    -------------------------------------------------------------------------- */
 
 .md-typeset .grid.cards > ul > li {
+  position: relative;
   border-radius: var(--consize-radius);
   border: 1px solid var(--md-default-fg-color--lightest);
   box-shadow: var(--consize-shadow);
   transition: transform var(--consize-transition),
               box-shadow var(--consize-transition),
               border-color var(--consize-transition);
+}
+
+/* Stretch the title's <a> to cover the whole card, so clicking anywhere
+   on the card — the description text, the empty padding, not just the
+   title line — navigates to that link. Standard "stretched link"
+   technique: the pseudo-element positions against the nearest
+   positioned ancestor (the li above), not just its own anchor box. */
+.md-typeset .grid.cards > ul > li > p:first-child > a {
+  position: static;
+}
+
+.md-typeset .grid.cards > ul > li > p:first-child > a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  cursor: pointer;
+}
+
+/* Focus ring on the real anchor only spans its own text by default —
+   extend it to the whole card when that link is keyboard-focused, so
+   keyboard users get the same "this whole tile is the target" cue. */
+.md-typeset .grid.cards > ul > li:has(> p:first-child > a:focus-visible) {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
 }
 
 .md-typeset .grid.cards > ul > li:hover {
@@ -581,6 +611,7 @@ html {
 .consize-page-feedback__links {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -705,4 +736,173 @@ html {
 .md-typeset .grid.cards > ul > li a {
   text-decoration: none;
   color: inherit;
+}
+
+/* ==========================================================================
+   17. Header — flat, body-matched surface with a divider line
+       (Infracost-docs style: no colored header bar, header background
+       matches the page background, separated only by a hairline border.
+       The logo mark keeps its brand color so it reads as the one "colored
+       square" accent at the very top of the page.)
+   ========================================================================== */
+
+.md-header {
+  background-color: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+  box-shadow: none;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Kill the "hide on scroll down, show on scroll up" color transition
+   Material applies to md-header--shadow, so the flat look holds at
+   every scroll position instead of gaining a shadow once you scroll. */
+.md-header--shadow {
+  box-shadow: none;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Header controls (search icon, repo link, theme toggle, hamburger) were
+   styled for a colored bar (white icons). On a body-matched header they
+   need to use the normal foreground color instead. */
+.md-header__button,
+.md-header__title,
+.md-header__topic {
+  color: var(--md-default-fg-color);
+}
+
+.md-header__button:hover {
+  opacity: 0.75;
+}
+
+/* Site title next to the logo is now an <a> (see overrides/partials/
+   header.html) so it also navigates home — strip default link styling
+   so it still just looks like text, with a hover cue to signal it's
+   clickable. */
+.md-header__title {
+  text-decoration: none;
+  color: inherit;
+}
+
+.md-header__title:hover {
+  opacity: 0.75;
+}
+
+/* Logo mark — mkdocs.yml now points theme.logo at logo-mark.svg (the
+   hexagon icon on its own, no wordmark), so it's naturally square and
+   safe to size uniformly. It reads as the one small colored square at
+   the top-left of the page, no extra wrapper box needed. */
+.md-header__button.md-logo {
+  padding: 0.3rem;
+  margin-right: 0.2rem;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.9rem;
+  width: 1.9rem;
+}
+
+/* --------------------------------------------------------------------------
+   17a. Search — Material's placeholder/icon colors default to
+   --md-primary-bg-color(--light), tuned for light text on a colored
+   header bar. On this flat, body-matched header that's near-white text
+   on a near-white box, i.e. invisible. Override explicitly, scoped to
+   the header so specificity reliably beats the unscoped defaults.
+   -------------------------------------------------------------------------- */
+
+.md-header .md-search__input {
+  color: var(--md-default-fg-color);
+}
+
+.md-header .md-search__input::placeholder {
+  color: var(--md-default-fg-color--light);
+}
+
+.md-header .md-search__input + .md-search__icon,
+.md-header .md-search__icon {
+  color: var(--md-default-fg-color--light);
+}
+
+/* If navigation.tabs is enabled, the secondary tab strip under the header
+   is also colored via the primary color by default — flatten it to match
+   and let the divider under it (not a fill color) do the separating. */
+.md-tabs {
+  background-color: var(--md-default-bg-color);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Material dims inactive tabs to 0.7 opacity by design — fine when the
+   base color was white-on-teal, but with a flat white/near-black
+   background the dimmed state needs a stronger resting color or it
+   reads as "disappearing" rather than "de-emphasized". Use the full
+   foreground color at a gentler opacity instead of the already-lighter
+   variant, so the swing between resting and hover/active is subtle
+   rather than a legibility cliff. */
+.md-tabs__link {
+  color: var(--md-default-fg-color);
+  opacity: 0.75;
+}
+
+.md-tabs__item--active .md-tabs__link,
+.md-tabs__link:hover,
+.md-tabs__link:focus {
+  color: var(--md-default-fg-color);
+  opacity: 1;
+}
+
+/* Give the active section a clear anchor beyond just full-opacity text,
+   so wayfinding doesn't rely on the hover-dimming effect at all. */
+.md-tabs__item--active .md-tabs__link {
+  box-shadow: 0 -2px 0 var(--md-accent-fg-color) inset;
+}
+
+/* ==========================================================================
+   18. Mobile navigation — larger touch targets, calmer collapse animation,
+       and a slightly wider drawer so section labels don't wrap awkwardly.
+   ========================================================================== */
+
+@media screen and (max-width: 76.234375em) {
+  .md-nav--primary .md-nav__title {
+    font-size: 0.95rem;
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+  }
+
+  /* Every collapsible row (sections and pages) gets a bigger tap target */
+  .md-nav__item .md-nav__link {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+    min-height: 2.25rem;
+    display: flex;
+    align-items: center;
+  }
+
+  /* The little chevron that expands/collapses a section — make it obviously
+     tappable and give the rotation a smooth, deliberate transition rather
+     than Material's snappier desktop default. */
+  .md-nav__icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .md-nav__toggle ~ .md-nav {
+    transition: max-height 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  /* Widen the drawer itself so nav labels have more room before wrapping */
+  .md-sidebar--primary,
+  .md-nav--primary {
+    width: 15rem;
+  }
+
+  [dir="ltr"] .md-sidebar--primary {
+    left: -15rem;
+  }
+
+  /* Comfortable resting space below the last nav item so the drawer
+     doesn't end abruptly against the viewport edge on short screens. */
+  .md-nav--primary > .md-nav__list {
+    padding-bottom: 2rem;
+  }
 }
