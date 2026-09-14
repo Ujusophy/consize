@@ -868,7 +868,7 @@ html {
    ========================================================================== */
 
 @media screen and (max-width: 76.234375em) {
-  .md-nav--primary .md-nav__title {
+  .md-nav--primary .md-nav__title:not([for="__drawer"]) {
     font-size: 0.95rem;
     padding-top: 0.9rem;
     padding-bottom: 0.9rem;
