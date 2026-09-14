@@ -1,0 +1,20 @@
+{% if page and page.edit_url %}
+<div class="consize-page-feedback">
+  <div class="consize-page-feedback__question" data-consize-feedback>
+    <span>Was this page helpful?</span>
+    <div class="consize-page-feedback__buttons">
+      <button type="button" class="consize-page-feedback__btn" data-feedback="yes">Yes</button>
+      <button type="button" class="consize-page-feedback__btn" data-feedback="no">No</button>
+    </div>
+  </div>
+
+  <div class="consize-page-feedback__links">
+    <a class="consize-page-feedback__chip" href="https://github.com/consize-oss/consize/discussions/new/choose" target="_blank" rel="noopener">
+      <span aria-hidden="true">✏️</span> Suggest edits
+    </a>
+    <a class="consize-page-feedback__chip" href="https://github.com/consize-oss/consize/issues/new?title={{ 'Issue on docs' | urlencode }}&amp;body={{ ('Path: /' ~ page.url) | urlencode }}" target="_blank" rel="noopener">
+      <span aria-hidden="true">⚠️</span> Raise issue
+    </a>
+  </div>
+</div>
+{% endif %}

@@ -1,0 +1,1331 @@
+/* ==========================================================================
+   Consize Docs — Design System
+   Builds on Material for MkDocs defaults. Organized by component.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Design tokens
+   -------------------------------------------------------------------------- */
+
+:root {
+  --consize-radius: 10px;
+  --consize-radius-sm: 6px;
+  --consize-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --consize-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --consize-transition: 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+[data-md-color-scheme="slate"] {
+  --consize-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --consize-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* --------------------------------------------------------------------------
+   1a. Dark mode background — matched to the real product UI.
+       Material's default "slate" scheme is a blue-grey (~#292d3e), which
+       clashes with the actual Consize dashboard, whose background is a
+       near-neutral black (#101110, sampled from img/demo-dashboard.png).
+       Overriding the base surface tokens here keeps that same near-black
+       feel in the docs instead of the generic Material slate tint.
+   -------------------------------------------------------------------------- */
+
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #101110;
+  --md-default-bg-color--light: hsla(0, 0%, 100%, 0.7);
+  --md-default-bg-color--lighter: hsla(0, 0%, 100%, 0.3);
+  --md-default-bg-color--lightest: hsla(0, 0%, 100%, 0.12);
+
+  /* Code blocks and cards sit one step lighter than the page background
+     so they still read as distinct surfaces against the near-black base. */
+  --md-code-bg-color: #1a1b1a;
+}
+
+/* --------------------------------------------------------------------------
+   1b. Logo — Material's default header logo is quite small, size it up.
+   (Header-bar-specific padding/sizing now lives in section 17, since the
+   flat header redesign wraps the logo as a small square tile.)
+   -------------------------------------------------------------------------- */
+
+/* Sidebar/nav title logo, if your theme shows one there too */
+.md-nav__title .md-logo img,
+.md-nav__title .md-logo svg {
+  height: 1.8rem;
+  width: auto;
+}
+
+/* Site title text in the header, next to the logo — Material's default
+   weight and size read thin/small next to a bold icon mark. */
+.md-header__title .md-header__topic:first-child {
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   1d. Hero screenshot — frames the dashboard image on the homepage so the
+       page isn't pure text above the fold.
+   -------------------------------------------------------------------------- */
+
+.md-typeset img.consize-hero-shot {
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  margin: 1.25rem auto;
+  border-radius: var(--consize-radius);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: var(--consize-shadow-hover);
+}
+
+/* --------------------------------------------------------------------------
+   1c. Search bar — classic bordered box: solid fill, modest corner
+       radius, visible border at rest (not just on hover/focus).
+   -------------------------------------------------------------------------- */
+
+.md-search__form {
+  border-radius: var(--consize-radius-sm);
+  background-color: var(--md-default-fg-color--lightest);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  height: 1.6rem;
+  transition: border-color var(--consize-transition), box-shadow var(--consize-transition);
+}
+
+.md-search__form:hover {
+  border-color: var(--md-accent-fg-color);
+}
+
+/* Focus state — when the input inside is focused, light up the pill */
+.md-search__input:focus ~ .md-search__form,
+.md-search__form:focus-within {
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-accent-fg-color) 18%, transparent);
+}
+
+.md-search__input {
+  font-size: 0.75rem;
+}
+
+.md-search__input::placeholder {
+  opacity: 0.7;
+}
+
+.md-search__icon svg {
+  opacity: 0.6;
+}
+
+/* Results dropdown */
+.md-search__output {
+  border-radius: var(--consize-radius);
+  box-shadow: var(--consize-shadow-hover);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  overflow: hidden;
+}
+
+.md-search-result__item {
+  border-radius: var(--consize-radius-sm);
+}
+
+.md-search-result__link:hover,
+.md-search-result__link[data-md-state="active"] {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* --------------------------------------------------------------------------
+   1e. GitHub repo link — classic bordered button (icon + "owner/repo"
+       text) instead of a bare, borderless icon floating in the header.
+   -------------------------------------------------------------------------- */
+ 
+.md-header__source {
+  margin-left: 0.4rem;
+}
+ 
+.md-header__source .md-source {
+  height: 2.4rem;
+  padding: 0 0.15rem;
+  border-radius: var(--consize-radius-sm);
+  background-color: var(--md-default-fg-color--lightest);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  transition: border-color var(--consize-transition), background-color var(--consize-transition);
+}
+ 
+.md-header__source .md-source:hover {
+  border-color: var(--md-accent-fg-color);
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 8%, transparent);
+}
+ 
+.md-header__source .md-source__repository {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   2b. Full-width layout — sidebars pushed toward the viewport edges,
+       body expands to fill the middle. Overrides Material's default
+       centered, capped-width grid.
+   -------------------------------------------------------------------------- */
+
+.md-grid {
+  max-width: 100%;
+}
+
+/* Keep prose readable even though the content column is now much wider —
+   cap and center the actual text, while the column itself (and its
+   whitespace gutters) can stretch toward the sidebars. */
+@media screen and (min-width: 76.25em) {
+  .md-content__inner {
+    max-width: 50rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Give the far outer edges (outside the sidebars) a little breathing
+   room too, so sidebars sit near — not flush against — the edge */
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary {
+    margin-left: 1rem;
+  }
+  .md-sidebar--secondary {
+    margin-right: 1rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2c. Sidebars & three-column dividers
+   Desktop-only: the off-canvas mobile drawer relies on Material's own
+   `position: fixed` + `transform: translateX()` to slide in/out. Applying
+   `position: sticky` / `height: 100vh` without a media guard here overrode
+   that on small screens and broke the collapsible mobile nav, so these
+   rules are now scoped to the same desktop breakpoint used elsewhere in
+   this file (76.25em, matching Material's own tablet/desktop split).
+   -------------------------------------------------------------------------- */
+
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary {
+    padding-top: 1rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .md-sidebar--primary::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100vh;
+    background-color: var(--md-default-fg-color--lightest);
+  }
+
+  .md-sidebar--secondary {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .md-sidebar--secondary::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 100vh;
+    background-color: var(--md-default-fg-color--lightest);
+  }
+}
+
+/* Push the body content away from both dividers so the gap reads
+   as intentional, not just "text near a line" — wider gutter,
+   Merge/Fern-docs style spacing rather than a tight margin */
+@media screen and (min-width: 76.25em) {
+  .md-content {
+    margin-left: clamp(3rem, 6vw, 6rem);
+  }
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--secondary {
+    margin-left: clamp(3rem, 6vw, 6rem);
+  }
+}
+
+.md-nav--primary > .md-nav__list > .md-nav__item {
+  margin-bottom: 0.35rem;
+}
+
+.md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link {
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 1.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.md-nav--primary .md-nav__item .md-nav__item .md-nav__link {
+  font-size: 0.82rem;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  border-radius: var(--consize-radius-sm);
+  transition: background-color var(--consize-transition);
+}
+
+.md-nav--primary .md-nav__item .md-nav__item .md-nav__link:hover {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+.md-nav__link--active {
+  font-weight: 700 !important;
+}
+
+.md-nav--primary > .md-nav__list > .md-nav__item + .md-nav__item {
+  margin-top: 0.6rem;
+}
+
+/* --------------------------------------------------------------------------
+   3. Typography rhythm
+   -------------------------------------------------------------------------- */
+
+.md-typeset {
+  line-height: 1.7;
+}
+
+.md-typeset h1 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5em;
+}
+
+.md-typeset h2 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 2.2em;
+  padding-top: 0.4em;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+}
+
+/* Show anchor link icon only on hover, without layout shift */
+.md-typeset .headerlink {
+  opacity: 0;
+  transition: opacity var(--consize-transition);
+}
+
+.md-typeset h1:hover .headerlink,
+.md-typeset h2:hover .headerlink,
+.md-typeset h3:hover .headerlink {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   4. Buttons
+   -------------------------------------------------------------------------- */
+
+.md-typeset .md-button {
+  border-radius: 999px;
+  font-weight: 600;
+  padding: 0.6em 1.4em;
+  transition: transform var(--consize-transition), box-shadow var(--consize-transition);
+  border-width: 1.5px;
+}
+
+.md-typeset .md-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--consize-shadow-hover);
+}
+
+.md-typeset .md-button--primary {
+  box-shadow: var(--consize-shadow);
+}
+
+/* --------------------------------------------------------------------------
+   5. Grid cards (feature cards, "Learn more" links, Next Steps)
+   -------------------------------------------------------------------------- */
+
+.md-typeset .grid.cards > ul > li {
+  position: relative;
+  border-radius: var(--consize-radius);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: var(--consize-shadow);
+  transition: transform var(--consize-transition),
+              box-shadow var(--consize-transition),
+              border-color var(--consize-transition);
+}
+
+/* Stretch the title's <a> to cover the whole card, so clicking anywhere
+   on the card — the description text, the empty padding, not just the
+   title line — navigates to that link. Standard "stretched link"
+   technique: the pseudo-element positions against the nearest
+   positioned ancestor (the li above), not just its own anchor box. */
+.md-typeset .grid.cards > ul > li > p:first-child > a {
+  position: static;
+}
+
+.md-typeset .grid.cards > ul > li > p:first-child > a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  cursor: pointer;
+}
+
+/* Focus ring on the real anchor only spans its own text by default —
+   extend it to the whole card when that link is keyboard-focused, so
+   keyboard users get the same "this whole tile is the target" cue. */
+.md-typeset .grid.cards > ul > li:has(> p:first-child > a:focus-visible) {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--consize-shadow-hover);
+  border-color: var(--md-accent-fg-color);
+}
+
+.md-typeset .grid.cards > ul > li > hr {
+  margin: 0.6em 0;
+  border-color: var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .grid.cards > ul > li .twemoji,
+.md-typeset .grid.cards svg[class*="mdi"] {
+  color: var(--md-accent-fg-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 8%, transparent);
+  margin-bottom: 0.15rem;
+}
+
+.md-typeset .grid.cards > ul > li .twemoji svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+/* --------------------------------------------------------------------------
+   6. Code blocks — the thing developers stare at most
+   -------------------------------------------------------------------------- */
+
+.md-typeset code {
+  font-size: 0.7rem;
+  border-radius: 4px;
+}
+
+.md-typeset pre code {
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+/* Every fenced code block gets a small, neutral header bar — no
+   traffic-light dots, just a plain strip to separate it from the box. */
+.md-typeset .highlight {
+  position: relative;
+  border-radius: var(--consize-radius-sm);
+  overflow: hidden;
+  box-shadow: var(--consize-shadow);
+  border: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .highlight pre {
+  margin: 0;
+  padding-top: 1.8rem;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.md-typeset .highlight::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5rem;
+  background-color: color-mix(in srgb, var(--md-default-fg-color) 5%, transparent);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Fallback for any bare <pre> not wrapped in .highlight */
+.md-typeset pre {
+  border-radius: var(--consize-radius-sm);
+  box-shadow: var(--consize-shadow);
+}
+
+/* Make the copy-to-clipboard button easier to spot without hunting */
+.md-clipboard {
+  opacity: 0.55;
+  transition: opacity var(--consize-transition);
+}
+
+.md-typeset .highlight:hover .md-clipboard {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   7. Admonitions (notes, tips, warnings) — give each type a clear identity
+   -------------------------------------------------------------------------- */
+
+.md-typeset .admonition {
+  border-radius: var(--consize-radius-sm);
+  box-shadow: var(--consize-shadow);
+  border-width: 0;
+  border-left-width: 4px;
+}
+
+.md-typeset .admonition-title {
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   8. Tables — common in Reference/Configuration pages
+   -------------------------------------------------------------------------- */
+
+.md-typeset table:not([class]) {
+  border-radius: var(--consize-radius-sm);
+  overflow: hidden;
+  box-shadow: var(--consize-shadow);
+  border: none;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-default-fg-color--lightest);
+  font-weight: 700;
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background-color: color-mix(in srgb, var(--md-default-fg-color) 2%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   9. Mermaid diagrams — center and contain them
+   -------------------------------------------------------------------------- */
+
+.md-typeset .mermaid {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+/* --------------------------------------------------------------------------
+   10. Accessibility — keyboard users are developers too
+   -------------------------------------------------------------------------- */
+
+.md-typeset a:focus-visible,
+.md-nav__link:focus-visible,
+.md-button:focus-visible {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   11. Smooth scrolling for in-page TOC / anchor jumps
+   -------------------------------------------------------------------------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .md-typeset .md-button,
+  .md-typeset .grid.cards > ul > li {
+    transition: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   12. Page feedback strip — "Was this page helpful?" with Yes/No, plus
+       explicit Suggest edits / Raise issue links. Replaces the default
+       Material edit-pencil icon (content.action.edit), which is now off.
+   -------------------------------------------------------------------------- */
+
+.consize-page-feedback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 3rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  font-size: 0.72rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.consize-page-feedback__question {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.consize-page-feedback__buttons {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.consize-page-feedback__btn {
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: transparent;
+  color: var(--md-default-fg-color--light);
+  cursor: pointer;
+  transition: background-color var(--consize-transition),
+              color var(--consize-transition),
+              border-color var(--consize-transition);
+}
+
+.consize-page-feedback__btn:hover {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-accent-fg-color);
+}
+
+.consize-page-feedback__thanks {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--md-accent-fg-color);
+}
+
+.consize-page-feedback__links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* "Suggest edits" / "Raise issue" — transparent squares with a border,
+   emoji + label, sized down to match Infisical's compact footer links. */
+.consize-page-feedback__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--consize-radius-sm);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: transparent;
+  color: var(--md-default-fg-color--light);
+  text-decoration: none;
+  transition: border-color var(--consize-transition), color var(--consize-transition);
+}
+
+.consize-page-feedback__chip:hover {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-accent-fg-color);
+}
+
+@media screen and (max-width: 44.9375em) {
+  .consize-page-feedback {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   13. Per-page footer link grid (Product / Use cases / Developers / Others)
+       Injected at the end of every page's content by overrides/main.html.
+   -------------------------------------------------------------------------- */
+
+.consize-footer-links {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1.5rem 1rem;
+}
+
+@media screen and (max-width: 61.9375em) {
+  .consize-footer-links {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 44.9375em) {
+  .consize-footer-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.consize-footer-links__col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.consize-footer-links__heading {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-default-fg-color--light);
+  margin-bottom: 0.1rem;
+}
+
+.consize-footer-links__col a {
+  font-size: 0.72rem;
+  color: var(--md-default-fg-color--light);
+  text-decoration: none;
+  transition: color var(--consize-transition);
+}
+
+.consize-footer-links__col a:hover {
+  color: var(--md-accent-fg-color);
+}
+
+/* --------------------------------------------------------------------------
+   14. Site-wide footer wrapper — the link grid now renders once, as real
+       page chrome via {% block footer %} in overrides/main.html, instead
+       of being injected into every page's scrollable content column.
+   -------------------------------------------------------------------------- */
+
+.consize-site-footer {
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  background-color: var(--md-default-bg-color);
+}
+
+.consize-site-footer__inner {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 2rem;
+}
+
+/* --------------------------------------------------------------------------
+   15. Homepage kicker pill — small colored tag above the H1, in the
+       brand accent green. Same idea as Merge's "Unified" pill above
+       their homepage title.
+   -------------------------------------------------------------------------- */
+
+.consize-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  color: var(--md-accent-fg-color);
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-accent-fg-color) 30%, transparent);
+  margin-bottom: 0.75rem;
+}
+
+/* --------------------------------------------------------------------------
+   16. "Explore the platform" cards — same grid.cards styling, but used
+       here as real navigation (each card links to its own page) rather
+       than static feature bullets, mirroring Merge's "Explore by
+       category" section.
+   -------------------------------------------------------------------------- */
+
+.md-typeset .grid.cards > ul > li a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ==========================================================================
+   17. Header — flat, body-matched surface with a divider line
+       (Infracost-docs style: no colored header bar, header background
+       matches the page background, separated only by a hairline border.
+       The logo mark keeps its brand color so it reads as the one "colored
+       square" accent at the very top of the page.)
+   ========================================================================== */
+
+.md-header {
+  background-color: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+  box-shadow: none;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Kill the "hide on scroll down, show on scroll up" color transition
+   Material applies to md-header--shadow, so the flat look holds at
+   every scroll position instead of gaining a shadow once you scroll. */
+.md-header--shadow {
+  box-shadow: none;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Header controls (search icon, repo link, theme toggle, hamburger) were
+   styled for a colored bar (white icons). On a body-matched header they
+   need to use the normal foreground color instead. */
+.md-header__button,
+.md-header__title,
+.md-header__topic {
+  color: var(--md-default-fg-color);
+}
+
+.md-header__button:hover {
+  opacity: 0.75;
+}
+
+/* Site title next to the logo is now an <a> (see overrides/partials/
+   header.html) so it also navigates home — strip default link styling
+   so it still just looks like text, with a hover cue to signal it's
+   clickable. */
+.md-header__title {
+  text-decoration: none;
+  color: inherit;
+}
+
+.md-header__title:hover {
+  opacity: 0.75;
+}
+
+/* Logo mark — mkdocs.yml now points theme.logo at logo-mark.svg (the
+   hexagon icon on its own, no wordmark), so it's naturally square and
+   safe to size uniformly. It reads as the one small colored square at
+   the top-left of the page, no extra wrapper box needed. */
+.md-header__button.md-logo {
+  padding: 0.3rem;
+  margin-right: 0.2rem;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.9rem;
+  width: 1.9rem;
+}
+
+/* --------------------------------------------------------------------------
+   17a. Search — Material's placeholder/icon colors default to
+   --md-primary-bg-color(--light), tuned for light text on a colored
+   header bar. On this flat, body-matched header that's near-white text
+   on a near-white box, i.e. invisible. Override explicitly, scoped to
+   the header so specificity reliably beats the unscoped defaults.
+   -------------------------------------------------------------------------- */
+
+.md-header .md-search__input {
+  color: var(--md-default-fg-color);
+}
+
+.md-header .md-search__input::placeholder {
+  color: var(--md-default-fg-color--light);
+}
+
+.md-header .md-search__input + .md-search__icon,
+.md-header .md-search__icon {
+  color: var(--md-default-fg-color--light);
+}
+
+/* If navigation.tabs is enabled, the secondary tab strip under the header
+   is also colored via the primary color by default — flatten it to match
+   and let the divider under it (not a fill color) do the separating. */
+.md-tabs {
+  background-color: var(--md-default-bg-color);
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Material dims inactive tabs to 0.7 opacity by design — fine when the
+   base color was white-on-teal, but with a flat white/near-black
+   background the dimmed state needs a stronger resting color or it
+   reads as "disappearing" rather than "de-emphasized". Use the full
+   foreground color at a gentler opacity instead of the already-lighter
+   variant, so the swing between resting and hover/active is subtle
+   rather than a legibility cliff. */
+.md-tabs__link {
+  color: var(--md-default-fg-color);
+  opacity: 0.75;
+}
+
+.md-tabs__item--active .md-tabs__link,
+.md-tabs__link:hover,
+.md-tabs__link:focus {
+  color: var(--md-default-fg-color);
+  opacity: 1;
+}
+
+/* Give the active section a clear anchor beyond just full-opacity text,
+   so wayfinding doesn't rely on the hover-dimming effect at all. */
+.md-tabs__item--active .md-tabs__link {
+  box-shadow: 0 -2px 0 var(--md-accent-fg-color) inset;
+}
+
+/* ==========================================================================
+   18. Mobile navigation — larger touch targets, calmer collapse animation,
+       and a slightly wider drawer so section labels don't wrap awkwardly.
+   ========================================================================== */
+
+@media screen and (max-width: 76.234375em) {
+  .md-nav--primary .md-nav__title:not([for="__drawer"]) {
+    font-size: 0.95rem;
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+  }
+
+  /* Every collapsible row (sections and pages) gets a bigger tap target */
+  .md-nav__item .md-nav__link {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+    min-height: 2.25rem;
+    display: flex;
+    align-items: center;
+  }
+
+  /* The little chevron that expands/collapses a section — make it obviously
+     tappable and give the rotation a smooth, deliberate transition rather
+     than Material's snappier desktop default. */
+  .md-nav__icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .md-nav__toggle ~ .md-nav {
+    transition: max-height 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  /* Widen the drawer itself so nav labels have more room before wrapping */
+  .md-sidebar--primary,
+  .md-nav--primary {
+    width: 16.5rem;
+  }
+
+  [dir="ltr"] .md-sidebar--primary {
+    left: -16.5rem;
+  }
+
+  /* Comfortable resting space below the last nav item so the drawer
+     doesn't end abruptly against the viewport edge on short screens. */
+  .md-nav--primary > .md-nav__list {
+    padding-bottom: 2rem;
+  }
+
+  /* Material truncates nav labels with the shared .md-ellipsis utility
+     (white-space: nowrap + text-overflow: ellipsis). On mobile the drawer
+     is narrower and nested items are further indented, so longer labels
+     ("Production Installation", "Kubernetes Rightsizing") were getting
+     cut off with "…" instead of showing in full. Let them wrap onto a
+     second line instead of truncating.
+
+     min-width: 0 is the actual fix, not just the white-space/overflow
+     properties: .md-nav__link is a flex row, and without min-width: 0 a
+     flex child defaults to a minimum width equal to its full UNWRAPPED
+     content size — so even with white-space: normal telling it to wrap,
+     the browser still reserves (and can overflow) the full-width box
+     instead of actually shrinking it down to wrap. This is the standard
+     "flex child won't shrink" gotcha (sometimes called flexbug #1). */
+  .md-nav--primary .md-nav__link .md-ellipsis {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: break-word;
+    line-height: 1.3;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  /* The flex row + min-height above assumed single-line labels; let rows
+     with a wrapped, two-line label grow instead of centering text into
+     a cramped fixed-height box. min-width: 0 here too, for the same
+     flexbug reason — .md-nav__link itself is a flex child of .md-nav__item
+     in some nesting contexts, so it can spill horizontally as well. */
+  .md-nav__item .md-nav__link {
+    min-height: 2.25rem;
+    height: auto;
+    min-width: 0;
+  }
+
+  [data-md-toggle="drawer"]:checked ~ .md-container .md-sidebar--primary {
+    transform: translateX(16.5rem);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   18. Blog — magazine-style grid, modeled on merge.dev/blog: image-led
+       cards in a multi-column grid, category chips + date pinned to the
+       card footer, hero banner intro. Scoped with :has() so none of this
+       touches normal docs pages, only the blog index/category/archive
+       listings (which render one or more <article class="md-post"> as
+       direct children of .md-content__inner) and the excerpt card itself
+       (.md-post--excerpt, only present on listing pages, not the full
+       single-post page).
+   -------------------------------------------------------------------------- */
+
+/* --- Hero header (index/category/archive intro) ------------------------- */
+
+.md-content__inner:has(> article.md-post) > header {
+  padding: 2.5rem 2rem;
+  margin: 0 0 2rem;
+  border-radius: var(--consize-radius);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--md-accent-fg-color) 10%, transparent),
+    color-mix(in srgb, var(--md-primary-fg-color) 6%, transparent));
+  border: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-content__inner:has(> article.md-post) > header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.md-content__inner:has(> article.md-post) > header .consize-kicker {
+  margin-top: 0;
+}
+
+.md-content__inner:has(> article.md-post) > header p:last-child {
+  max-width: 40rem;
+  font-size: 1rem;
+  color: var(--md-default-fg-color--light);
+}
+
+/* --- Card grid ------------------------------------------------------------
+   .md-content__inner normally holds prose (single column), so this only
+   switches to a grid when it directly contains post cards. Header and
+   pagination span the full width; the cards themselves flow into columns. */
+
+.md-content__inner:has(> article.md-post) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.md-content__inner:has(> article.md-post) > header,
+.md-content__inner:has(> article.md-post) > nav.md-pagination {
+  grid-column: 1 / -1;
+}
+
+/* --- Card shell ------------------------------------------------------------
+   padding: 0 so the featured image can bleed edge-to-edge; overflow:
+   hidden clips that image to the card's own rounded corners for free. */
+
+.md-typeset article.md-post.md-post--excerpt {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--consize-radius);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: var(--consize-shadow);
+  transition: transform var(--consize-transition),
+              box-shadow var(--consize-transition),
+              border-color var(--consize-transition);
+}
+
+.md-typeset article.md-post.md-post--excerpt:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--consize-shadow-hover);
+  border-color: var(--md-accent-fg-color);
+}
+
+/* Whole card is clickable, same stretched-link technique used on the
+   homepage grid.cards (section 5), targeting the title link specifically. */
+.md-typeset article.md-post.md-post--excerpt {
+  position: relative;
+}
+
+.md-typeset article.md-post.md-post--excerpt .md-post__content > h2 > a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.md-typeset article.md-post.md-post--excerpt:hover {
+  cursor: pointer;
+}
+
+/* --- Content reorder: image → title → excerpt → footer meta ------------- */
+
+.md-typeset article.md-post.md-post--excerpt {
+  /* header (byline/date/categories) and content (title/image/excerpt)
+     are siblings in that DOM order by default; flip so content's image
+     leads, and pin header to the bottom as a footer strip. */
+}
+
+.md-typeset article.md-post.md-post--excerpt > .md-post__content {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0 1.35rem;
+}
+
+.md-typeset article.md-post.md-post--excerpt > .md-post__header {
+  order: 2;
+}
+
+/* Hide the author avatar on cards entirely, Merge-style, it's a distraction
+   in a dense grid. The avatar still shows in full on the single-post page,
+   this rule only fires inside the excerpt card. */
+.md-typeset article.md-post.md-post--excerpt .md-post__authors {
+  display: none;
+}
+
+/* Featured image — the paragraph that wraps it bleeds to the card edges
+   and jumps to the very top of the content block, ahead of the title. */
+.md-typeset article.md-post.md-post--excerpt .md-post__content > p:has(> img:only-child) {
+  order: -1;
+  margin: 0 -1.35rem 1rem;
+}
+
+.md-typeset article.md-post.md-post--excerpt .md-post__content > p:has(> img:only-child) img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+/* No image on a post? Give the title breathing room instead of sitting
+   flush against the card's top edge. */
+.md-typeset article.md-post.md-post--excerpt .md-post__content:not(:has(> p:has(> img:only-child))) > h2 {
+  margin-top: 1.35rem;
+}
+
+.md-typeset article.md-post.md-post--excerpt .md-post__content > h2 {
+  order: 0;
+  font-size: 1.2rem;
+  line-height: 1.3;
+  margin-top: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.md-typeset article.md-post.md-post--excerpt .md-post__content > h2 a {
+  position: relative;
+  z-index: 2;
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset article.md-post.md-post--excerpt:hover .md-post__content > h2 a {
+  color: var(--md-accent-fg-color);
+}
+
+/* Excerpt paragraph — clamp to three lines so cards in the same row stay
+   roughly the same height regardless of how long each teaser runs. */
+.md-typeset article.md-post.md-post--excerpt .md-post__content > p:not(:has(> img:only-child)) {
+  order: 2;
+  margin: 0 0 1.1rem;
+  font-size: 0.85rem;
+  color: var(--md-default-fg-color--light);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* "Continue reading" text link is redundant once the whole card is
+   clickable, and it duplicates the title link, drop it from the grid. */
+.md-typeset article.md-post.md-post--excerpt .md-post__action {
+  display: none;
+}
+
+/* --- Footer meta strip: category chips + date -------------------------- */
+
+.md-typeset article.md-post.md-post--excerpt > .md-post__header {
+  padding: 0.9rem 1.35rem;
+  margin: auto 0 0;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset article.md-post.md-post--excerpt .md-post__meta {
+  font-size: 0.68rem;
+  color: var(--md-default-fg-color--light);
+}
+
+/* Category chips wrap onto their own full-width row above; date and
+   read-time share the row underneath. */
+.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+
+.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__item:has(a) {
+  order: -1;
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.15rem;
+}
+
+.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__item:not(:has(a)) {
+  display: flex;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__item::after {
+  content: none;
+}
+
+/* Categories get the same pill treatment as the homepage kicker. */
+.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__link {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 14%, transparent);
+  color: var(--md-accent-fg-color);
+  font-weight: 700;
+  font-size: 0.68rem;
+  text-transform: none;
+  letter-spacing: normal;
+  text-decoration: none;
+  transition: background-color var(--consize-transition);
+}
+
+.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__link:hover {
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 26%, transparent);
+  text-decoration: none;
+}
+
+/* --- Single post page: real hero weight, unaffected by the card rules -- */
+
+article[class="md-content__inner md-typeset"] > h1 {
+  font-size: 2rem;
+}
+
+article[class="md-content__inner md-typeset"] > p:first-of-type:has(> img:only-child) img {
+  width: 100%;
+  border-radius: var(--consize-radius);
+  box-shadow: var(--consize-shadow-hover);
+  margin: 0.5rem 0 1.5rem;
+}
+
+/* --- Pagination — bordered pill buttons instead of bare arrows --------- */
+
+.md-typeset .md-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.md-typeset .md-pagination a,
+.md-typeset .md-pagination span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border-radius: var(--consize-radius-sm);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.md-typeset .md-pagination a:hover {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .md-pagination .md-pagination__current {
+  background-color: var(--md-accent-fg-color);
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 700;
+}
+
+/* --- End-of-post CTA panel (single post page) --------------------------- */
+
+.md-typeset .consize-post-cta {
+  margin-top: 2rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--consize-radius);
+  border: 1px solid color-mix(in srgb, var(--md-accent-fg-color) 25%, var(--md-default-fg-color--lightest));
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 6%, transparent);
+}
+
+.md-typeset .consize-post-cta > p {
+  margin: 0 0 0.85rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .consize-post-cta .md-button {
+  padding: 0.25rem 0.8rem;
+  font-size: 0.7rem;
+}
+
+.md-typeset .consize-post-cta .md-button:not(.md-button--primary) {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .consize-post-cta .md-button:not(.md-button--primary):hover {
+  background-color: var(--md-accent-fg-color);
+  color: var(--md-primary-bg-color);
+}
+
+/* --------------------------------------------------------------------------
+   19. Search — "Suggested" panel shown before the user types, Merge-docs
+       style. Sits as a sibling of .md-search-result so it never fights
+       Material's own reactive search rendering.
+   -------------------------------------------------------------------------- */
+
+.consize-search-suggestions {
+  padding: 0.6rem 0.8rem;
+}
+
+.consize-search-suggestions__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-default-fg-color--light);
+  padding: 0.4rem 0.4rem 0.2rem;
+}
+
+.consize-search-suggestions__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.consize-search-suggestions__link {
+  display: block;
+  padding: 0.5rem 0.4rem;
+  border-radius: var(--consize-radius-sm);
+  text-decoration: none;
+  color: var(--md-default-fg-color);
+  transition: background-color var(--consize-transition);
+}
+
+.consize-search-suggestions__link:hover,
+.consize-search-suggestions__link:focus-visible {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+.consize-search-suggestions__title {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.consize-search-suggestions__desc {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--md-default-fg-color--light);
+  margin-top: 0.1rem;
+}

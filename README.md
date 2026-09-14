@@ -82,13 +82,13 @@ For detailed instructions on configuring Helm values, setting up Service Account
 
 ## Documentation
 
-For a deeper dive into how Consize works under the hood, explore our documentation:
+The full docs, including guides, configuration reference, and troubleshooting, live at **[docs.consizehq.com](https://docs.consizehq.com)**. A few starting points:
 
-- **[Vision & The Safety Net](VISION.md)**
-- **[Customer Guide & Operating Model](docs/customer-guide.md)**
-- **[Architecture & Data Flow](docs/architecture.md)**
+- **[Vision & The Safety Net](VISION.md)** — why Consize exists and the safety principle it's built around
+- **[Get Started](https://docs.consizehq.com/getting-started/get-started/)** — install it and run your first rightsizing change
+- **[How Consize Works](https://docs.consizehq.com/concepts/architecture/)** — architecture and data flow
 - **[Security & Least Privilege](SECURITY.md)**
-- **[Decisions & ADR Log](docs/decisions.md)**
+- **[Decisions & ADR Log](https://docs.consizehq.com/contributing/decisions/)**
 
 ---
 

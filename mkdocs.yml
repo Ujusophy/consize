@@ -4,21 +4,30 @@ site_description: Safe, Automated Action for Kubernetes
 site_author: Consize OSS
 repo_url: https://github.com/consize-oss/consize
 repo_name: consize-oss/consize
+edit_uri: edit/main/docs/
 
 theme:
   name: material
+  custom_dir: overrides
+  logo: assets/logo-mark.png
+  favicon: assets/favicon.png
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: teal
-      accent: teal
+      accent: green
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: teal
-      accent: teal
+      accent: green
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -26,34 +35,100 @@ theme:
     - navigation.tabs
     - navigation.sections
     - navigation.top
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
     - search.suggest
     - search.highlight
     - content.code.copy
+    - content.tabs.link
+
+plugins:
+  - search
+  - blog:
+      blog_dir: blog
+      blog_toc: true
+      post_date_format: long
+      post_url_format: "{slug}"
+      post_readtime: true
+      pagination_per_page: 10
+      categories: true
+      categories_allowed:
+        - Announcements
+        - Engineering
+        - Guides
+        - Comparisons
+      archive: true
+      archive_date_format: yyyy
+      authors: true
 
 nav:
-  - Welcome: index.md
-  - The Safety Net: THE_SAFETY_NET.md
-  - Architecture: architecture.md
-  - Features: features.md
-  - Interactive Demo: demo.md
+  - Get started:
+      - Get started: getting-started/get-started.md
+      - Interactive Sandbox: getting-started/sandbox.md
+      - Production Installation: getting-started/installation.md
+
+  - Blog: blog/index.md
+
   - Guides:
-    - Customer Guide: customer-guide.md
-    - Observability: observability.md
-    - Environments: environments.md
-  - Internal / Dev:
-    - Testing: testing.md
-    - E2E Tests: e2e.md
-    - Decisions: decisions.md
-    - Reference: reference.md
-    - Plan: plan.md
+      - Kubernetes Rightsizing: guides/rightsizing.md
+      - Observability: guides/observability.md
+      - Environments: guides/environments.md
+      - How Consize Works: concepts/architecture.md
+      - The Safety Net: concepts/safety-net.md
+
+  - Reference:
+      - Configuration: reference/configuration.md
+      - Supported Platforms: reference/supported-platforms.md
+      - API Reference: reference/api.md
+
+  - Resources:
+      - Contributing: contributing/index.md
+      - Testing: contributing/testing.md
+      - E2E Tests: contributing/e2e.md
+      - Decisions: contributing/decisions.md
+      - Roadmap: resources/roadmap.md
+      - FAQ: resources/faq.md
+      - Troubleshooting: resources/troubleshooting.md
+      - Support: resources/support.md
 
 markdown_extensions:
   - admonition
+  - attr_list        # required for grid cards / button styling
+  - md_in_html        # required for grid cards
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path: [_snippets]
+      check_paths: true
   - pymdownx.tabbed:
       alternate_style: true
+
+extra_javascript:
+  - javascripts/mermaid-init.js
+  - javascripts/page-feedback.js
+  - javascripts/search-suggestions.js
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/consize-oss/consize
+    # Discord icon removed until a real invite link exists — a dead invite
+    # is worse than no invite. Add back:
+    # - icon: fontawesome/brands/discord
+    #   link: <real invite link>
+
+extra_css:
+  - stylesheets/extra.css
