@@ -899,11 +899,11 @@ html {
   /* Widen the drawer itself so nav labels have more room before wrapping */
   .md-sidebar--primary,
   .md-nav--primary {
-    width: 15rem;
+    width: 16.5rem;
   }
 
   [dir="ltr"] .md-sidebar--primary {
-    left: -15rem;
+    left: -16.5rem;
   }
 
   /* Comfortable resting space below the last nav item so the drawer
@@ -917,20 +917,33 @@ html {
      is narrower and nested items are further indented, so longer labels
      ("Production Installation", "Kubernetes Rightsizing") were getting
      cut off with "…" instead of showing in full. Let them wrap onto a
-     second line instead of truncating. */
+     second line instead of truncating.
+
+     min-width: 0 is the actual fix, not just the white-space/overflow
+     properties: .md-nav__link is a flex row, and without min-width: 0 a
+     flex child defaults to a minimum width equal to its full UNWRAPPED
+     content size — so even with white-space: normal telling it to wrap,
+     the browser still reserves (and can overflow) the full-width box
+     instead of actually shrinking it down to wrap. This is the standard
+     "flex child won't shrink" gotcha (sometimes called flexbug #1). */
   .md-nav--primary .md-nav__link .md-ellipsis {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
     word-break: break-word;
     line-height: 1.3;
+    min-width: 0;
+    flex: 1 1 auto;
   }
 
   /* The flex row + min-height above assumed single-line labels; let rows
      with a wrapped, two-line label grow instead of centering text into
-     a cramped fixed-height box. */
+     a cramped fixed-height box. min-width: 0 here too, for the same
+     flexbug reason — .md-nav__link itself is a flex child of .md-nav__item
+     in some nesting contexts, so it can spill horizontally as well. */
   .md-nav__item .md-nav__link {
     min-height: 2.25rem;
     height: auto;
+    min-width: 0;
   }
 }

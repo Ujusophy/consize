@@ -8,7 +8,7 @@ It analyzes Kubernetes workloads and cloud resources, recommends safer changes, 
 
 === "I want to see it work first"
 
-    No cluster, no cloud account, just Docker. This is the fastest way to understand the Observe → Analyze → Recommend → Review → Apply → Verify loop, including watching an automatic rollback happen.
+    No cluster, no cloud account, just Docker. This is the fastest way to understand the `Observe` → `Analyze` → `Recommend` → `Review` → `Apply` → `Verify loop`, including watching an automatic rollback happen.
 
     [Try the Interactive Sandbox](sandbox.md){ .md-button .md-button--primary }
 
