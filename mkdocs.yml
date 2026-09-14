@@ -98,6 +98,7 @@ markdown_extensions:
 extra_javascript:
   - javascripts/mermaid-init.js
   - javascripts/page-feedback.js
+  - javascripts/search-suggestions.js
 
 extra:
   social:

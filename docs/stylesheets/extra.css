@@ -946,4 +946,60 @@ html {
     height: auto;
     min-width: 0;
   }
+
+  [data-md-toggle="drawer"]:checked ~ .md-container .md-sidebar--primary {
+    transform: translateX(16.5rem);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   19. Search — "Suggested" panel shown before the user types, Merge-docs
+       style. Sits as a sibling of .md-search-result so it never fights
+       Material's own reactive search rendering.
+   -------------------------------------------------------------------------- */
+
+.consize-search-suggestions {
+  padding: 0.6rem 0.8rem;
+}
+
+.consize-search-suggestions__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-default-fg-color--light);
+  padding: 0.4rem 0.4rem 0.2rem;
+}
+
+.consize-search-suggestions__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.consize-search-suggestions__link {
+  display: block;
+  padding: 0.5rem 0.4rem;
+  border-radius: var(--consize-radius-sm);
+  text-decoration: none;
+  color: var(--md-default-fg-color);
+  transition: background-color var(--consize-transition);
+}
+
+.consize-search-suggestions__link:hover,
+.consize-search-suggestions__link:focus-visible {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+.consize-search-suggestions__title {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.consize-search-suggestions__desc {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--md-default-fg-color--light);
+  margin-top: 0.1rem;
 }
