@@ -14,7 +14,7 @@ Before installing Consize, make sure you have:
 ## 1. Create the Consize namespace
 
 ```sh
-kubectl create namespace consize-system
+--8<-- "create-namespace.sh"
 ```
 
 ## 2. Configure your metrics connection
@@ -24,8 +24,7 @@ Consize needs access to your Prometheus metrics endpoint.
 Create the required secret:
 
 ```sh
-kubectl -n consize-system create secret generic consize-store \
-  --from-literal=prometheus-url='http://prometheus-operated.monitoring:9090'
+--8<-- "create-metrics-secret.sh"
 ```
 
 Replace the URL with your Prometheus endpoint if it is different.
@@ -52,9 +51,70 @@ kubectl -n consize-system create secret generic consize-github \
 
 ### Cloud provider credentials
 
-Consize can also use cloud provider credentials when required.
+Consize only calls cloud provider APIs when you turn on cloud database metrics (`CONSIZE_DBMETRICS`) or cloud waste scanning. Both are opt-in, see [Configuration](../reference/configuration.md#cloud-database-metrics) for the switches. If you don't need either, skip this section.
 
-See the [configuration reference](../reference/configuration.md) for provider-specific settings.
+=== "AWS"
+
+    Grant the collector's IAM role (via IRSA, or an access key in a secret if you're not using IRSA) a policy scoped to exactly what it reads and, only if you enable it, what it's allowed to clean up:
+
+```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "ConsizeReadOnly",
+          "Effect": "Allow",
+          "Action": [
+            "rds:DescribeDBInstances",
+            "cloudwatch:GetMetricStatistics",
+            "ec2:DescribeVolumes",
+            "ec2:DescribeInstances"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Sid": "ConsizeWasteCleanupOptIn",
+          "Effect": "Allow",
+          "Action": [
+            "ec2:DeleteVolume",
+            "ec2:TerminateInstances"
+          ],
+          "Resource": "*"
+        }
+      ]
+    }
+```
+
+    The `ConsizeWasteCleanupOptIn` statement is only needed if you let Consize apply cloud-waste cleanups directly rather than just reporting them, see [Kubernetes Rightsizing](../guides/rightsizing.md) for the review-vs-direct-apply distinction, which applies to cloud waste the same way it applies to Kubernetes rightsizing. Leave it out if you only want recommendations.
+
+    Set the region with:
+
+```yaml
+    env:
+      CONSIZE_AWS_REGION: us-east-1
+```
+
+=== "GCP"
+
+    Grant the collector's service account these predefined roles, scoped to the project:
+
+    | Role | Why |
+    |---|---|
+    | `roles/cloudsql.viewer` | Lists Cloud SQL instances (`sqladmin.googleapis.com`) |
+    | `roles/monitoring.viewer` | Reads Cloud SQL metrics (`monitoring.googleapis.com`) |
+    | `roles/compute.viewer` | Lists disks and instances for waste scanning (`compute.googleapis.com`) |
+
+    If you let Consize clean up detected waste directly, it also needs delete permission on disks and instances, for example a custom role granting `compute.disks.delete` and `compute.instances.delete`, scoped to the same project, instead of the broader `roles/compute.admin`. As with AWS, this is only required if you enable direct cleanup rather than review-only recommendations.
+
+    Set the project (or let it infer from the service account key):
+
+```yaml
+    env:
+      CONSIZE_GCP_PROJECT: my-project-id
+```
+
+!!! note
+    These are the API calls Consize's collector and cost-scanner currently make. Treat this as a starting point for writing your own least-privilege policy, not a guarantee against a specific release, if in doubt, check [SECURITY.md](https://github.com/consize-oss/consize/blob/main/SECURITY.md) or open a [Support](../resources/support.md) request and we'll confirm against the version you're running.
 
 ## 4. Configure collection scope
 
@@ -166,66 +226,33 @@ kubectl label namespace boutique consize.savings.dev/auto-apply=enabled
 
 ## 6. Install Consize with Helm
 
-Install directly from the published chart on GitHub Container Registry (GHCR), no need to clone the repository:
+=== "From the published chart (recommended)"
+
+    Install directly from the OCI chart on GitHub Container Registry (GHCR), no need to clone the repository:
 
 ```sh
-# Export the default values to customize your installation
-helm show values oci://ghcr.io/consize-oss/charts/consize > values.yaml
-
-# Install using your customized values
-helm install consize oci://ghcr.io/consize-oss/charts/consize \
-  --version 0.2.0 \
-  --namespace consize-system \
-  --create-namespace \
-  -f values.yaml
+    --8<-- "helm-install-oci.sh"
 ```
 
-**Building from source instead?** If you've cloned the repository and want to install from your local checkout:
+=== "From a local checkout"
+
+    If you've cloned the repository and want to install from your local checkout instead:
 
 ```sh
-helm upgrade --install consize ./charts/consize \
-  --namespace consize-system \
-  --create-namespace \
-  -f ./charts/consize/examples/values-prod.yaml
+    --8<-- "helm-install-source.sh"
 ```
 
 For more advanced deployments, configure the Helm values for your environment.
 
 ## 7. Verify the installation
 
-Check the Consize pods:
-
-```sh
-kubectl -n consize-system get pods
-```
-
-Check the scheduled jobs:
-
-```sh
-kubectl -n consize-system get cronjobs
-```
-
-Then check the API health endpoint:
-
-```sh
-kubectl -n consize-system port-forward svc/consize-api 18099:8080
-```
-
-In another terminal:
-
-```sh
-curl http://127.0.0.1:18099/readyz
-```
-
-Expected response:
-
-```json
-{"status":"ready"}
-```
+--8<-- "verify-install.md"
 
 ## Next steps
 
 * [Interactive Sandbox](sandbox.md)
 * [Configuration](../reference/configuration.md)
+* [Supported Platforms](../reference/supported-platforms.md)
 * [How Consize Works](../concepts/architecture.md)
 * [The Safety Net](../concepts/safety-net.md)
+* [Troubleshooting](../resources/troubleshooting.md) if something didn't come up healthy

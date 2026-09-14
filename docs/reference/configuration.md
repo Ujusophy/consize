@@ -30,6 +30,8 @@ Without zero-instrumentation SLIs (restarts, OOM kills, evictions, CPU throttlin
 | `CONSIZE_GCP_PROJECT` | inferred from service account key | GCP project, used when `CONSIZE_DBMETRICS=cloudmonitoring` |
 | `CONSIZE_DB_FILTER` | unset | Optional filter limiting which DB instances are collected |
 
+For the exact IAM permissions these require, see [Production Installation](../getting-started/installation.md#cloud-provider-credentials). For which providers and services are supported at all, see [Supported Platforms](supported-platforms.md).
+
 ## Recommendation retention
 
 | Variable | Default | Description |
@@ -58,6 +60,8 @@ Production installations use Helm values to configure Consize. See [Production I
 ## Next steps
 
 * [Production Installation](../getting-started/installation.md)
+* [Supported Platforms](supported-platforms.md)
+* [API Reference](api.md)
 * [The Safety Net](../concepts/safety-net.md)
 * [Environments](../guides/environments.md)
 * [Kubernetes Rightsizing](../guides/rightsizing.md)

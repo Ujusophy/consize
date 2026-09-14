@@ -60,6 +60,8 @@ nav:
 
   - Reference:
       - Configuration: reference/configuration.md
+      - Supported Platforms: reference/supported-platforms.md
+      - API Reference: reference/api.md
 
   - Resources:
       - Contributing: contributing/index.md
@@ -67,6 +69,9 @@ nav:
       - E2E Tests: contributing/e2e.md
       - Decisions: contributing/decisions.md
       - Roadmap: resources/roadmap.md
+      - FAQ: resources/faq.md
+      - Troubleshooting: resources/troubleshooting.md
+      - Support: resources/support.md
 
 markdown_extensions:
   - admonition
@@ -84,7 +89,9 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path: [_snippets]
+      check_paths: true
   - pymdownx.tabbed:
       alternate_style: true
 

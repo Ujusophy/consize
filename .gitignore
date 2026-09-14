@@ -31,3 +31,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# MkDocs build output — deploy-docs.yml builds this fresh via `mkdocs build`
+# on every push to main and deploys it to GitHub Pages. Committing it here
+# too just duplicates it and lets it drift out of sync with docs/ (it
+# already had at least one stale page from a since-renamed source file).
+site/

@@ -36,42 +36,44 @@ For example, you can allow Consize to:
 
 This gives teams a way to use broad visibility while keeping modification permissions narrow.
 
-## Production example
+## Example configurations
 
-A production setup might look like:
+=== "Production: cluster-wide visibility"
 
-```yaml
-collector:
-  namespaces: []
-
-rbac:
-  writer:
-    namespaces:
-      - boutique
-```
-
-In this example:
-
-* The collector can observe the cluster
-* Direct changes are restricted to `boutique`
-
-## Team-scoped example
-
-For a smaller environment, you can restrict collection as well:
+    A production setup might look like:
 
 ```yaml
-collector:
-  namespaces:
-    - boutique
-    - checkout
+    collector:
+      namespaces: []
 
-rbac:
-  writer:
-    namespaces:
-      - boutique
+    rbac:
+      writer:
+        namespaces:
+          - boutique
 ```
 
-Now Consize only observes `boutique` and `checkout`, while direct changes are limited to `boutique`.
+    In this example:
+
+    * The collector can observe the cluster
+    * Direct changes are restricted to `boutique`
+
+=== "Team-scoped: narrow visibility"
+
+    For a smaller environment, you can restrict collection as well:
+
+```yaml
+    collector:
+      namespaces:
+        - boutique
+        - checkout
+
+    rbac:
+      writer:
+        namespaces:
+          - boutique
+```
+
+    Now Consize only observes `boutique` and `checkout`, while direct changes are limited to `boutique`.
 
 ## Automatic application
 

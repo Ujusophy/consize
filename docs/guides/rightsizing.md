@@ -49,10 +49,10 @@ Instead of immediately changing the workload, the recommendation can go through 
 ## The rightsizing workflow
 
 Consize follows the same core loop described on the [homepage](../index.md#how-it-works):
-
 ```
 Observe → Analyze → Recommend → Review → Apply → Verify
 ```
+
 
 ## Recommendations
 
@@ -75,37 +75,41 @@ The recommendation is based on observed resource usage (p95/p99 over a 14-day wi
 
 Consize evaluates the proposed change against its configured safety boundaries before it can be applied automatically.
 
-## Review before applying
+## Applying the change
 
-You can keep rightsizing inside your existing Infrastructure-as-Code workflow.
+Consize supports two ways to apply a recommendation. You don't have to pick one globally, either can be used per namespace, see [Environments](environments.md).
 
-A typical workflow is:
+=== "Review before applying"
+
+    Keep rightsizing inside your existing Infrastructure-as-Code workflow.
+
+    A typical workflow is:
 
 ```text
-Consize
-   ↓
-Recommendation
-   ↓
-Infrastructure-as-Code change
-   ↓
-Pull request
-   ↓
-Review
-   ↓
-Merge
-   ↓
-Deploy
+    Consize
+       ↓
+    Recommendation
+       ↓
+    Infrastructure-as-Code change
+       ↓
+    Pull request
+       ↓
+    Review
+       ↓
+    Merge
+       ↓
+    Deploy
 ```
 
-This is useful for teams that want optimization recommendations without giving an automated system direct write access to production.
+    This is useful for teams that want optimization recommendations without giving an automated system direct write access to production.
 
-## Direct runtime changes
+=== "Direct runtime changes"
 
-Teams that enable direct application can allow Consize to update supported workloads directly.
+    Teams that enable direct application can allow Consize to update supported workloads directly.
 
-Write access should be limited to the namespaces and resources where runtime optimization is allowed.
+    Write access should be limited to the namespaces and resources where runtime optimization is allowed.
 
-See [The Safety Net](../concepts/safety-net.md) for more information about permissions and guardrails.
+    See [The Safety Net](../concepts/safety-net.md) for more information about permissions and guardrails.
 
 ## Start with a small scope
 
@@ -143,3 +147,4 @@ Consize's verification workflow helps close this loop.
 * [How Consize Works](../concepts/architecture.md)
 * [Production Installation](../getting-started/installation.md)
 * [Configuration](../reference/configuration.md)
+* [FAQ](../resources/faq.md) for questions about how recommendations are computed

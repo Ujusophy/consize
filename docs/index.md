@@ -11,6 +11,8 @@ It analyzes your infrastructure, identifies optimization opportunities, and help
 [Get started](getting-started/get-started.md){ .md-button .md-button--primary }
 [Try the Interactive Sandbox](getting-started/sandbox.md){ .md-button }
 
+If you get stuck at any point, [Troubleshooting](resources/troubleshooting.md), the [FAQ](resources/faq.md), and [Support](resources/support.md) are one click away from every page in the footer.
+
 ![The Consize dashboard showing a rightsizing recommendation and its safety verification status](assets/demo-dashboard.png){ .consize-hero-shot }
 
 ---
@@ -96,5 +98,11 @@ Consize continuously evaluates your infrastructure and turns resource usage data
     ---
 
     The full reference for controlling what Consize observes, what it can change, and how it operates in your environment.
+
+-   [:material-check-decagram:{ .lg .middle } **Supported Platforms**](reference/supported-platforms.md)
+
+    ---
+
+    Which cloud providers, IaC targets, and integrations Consize supports today.
 
 </div>
