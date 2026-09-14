@@ -45,11 +45,32 @@ theme:
     - content.code.copy
     - content.tabs.link
 
+plugins:
+  - search
+  - blog:
+      blog_dir: blog
+      blog_toc: true
+      post_date_format: long
+      post_url_format: "{slug}"
+      post_readtime: true
+      pagination_per_page: 10
+      categories: true
+      categories_allowed:
+        - Announcements
+        - Engineering
+        - Guides
+        - Comparisons
+      archive: true
+      archive_date_format: yyyy
+      authors: true
+
 nav:
   - Get started:
       - Get started: getting-started/get-started.md
       - Interactive Sandbox: getting-started/sandbox.md
       - Production Installation: getting-started/installation.md
+
+  - Blog: blog/index.md
 
   - Guides:
       - Kubernetes Rightsizing: guides/rightsizing.md

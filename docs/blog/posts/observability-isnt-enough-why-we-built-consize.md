@@ -14,8 +14,6 @@ description: >
 
 # Observability isn't enough: why we built Consize
 
-![The Consize dashboard showing a rightsizing recommendation and its safety verification status](../../assets/demo-dashboard.png)
-
 Most Kubernetes cost tools stop at the dashboard. They'll tell you, correctly,
 that a service is requesting 4 vCPUs and using 400m. What they won't do is
 change it, because changing it safely in a live production cluster is a
