@@ -83,13 +83,13 @@
 .md-search__form {
   border-radius: var(--consize-radius-sm);
   background-color: var(--md-default-fg-color--lightest);
-  border: 1px solid var(--md-default-fg-color--lighter);
+  border: 1px solid transparent;
   height: 1.6rem;
   transition: border-color var(--consize-transition), box-shadow var(--consize-transition);
 }
 
 .md-search__form:hover {
-  border-color: var(--md-accent-fg-color);
+  border-color: var(--md-default-fg-color--lighter);
 }
 
 /* Focus state — when the input inside is focused, light up the pill */
@@ -133,27 +133,28 @@
        text) instead of a bare, borderless icon floating in the header.
    -------------------------------------------------------------------------- */
  
-.md-header__source {
-  margin-left: 0.4rem;
-}
- 
 .md-header__source .md-source {
-  height: 2.4rem;
-  padding: 0 0.15rem;
+  height: 2.2rem;
+  padding: 0 0.65rem;
   border-radius: var(--consize-radius-sm);
-  background-color: var(--md-default-fg-color--lightest);
-  border: 1px solid var(--md-default-fg-color--lighter);
-  transition: border-color var(--consize-transition), background-color var(--consize-transition);
+  background-color: #16181a;
+  border: 1px solid transparent;
+  color: #fff;
+  transition: background-color var(--consize-transition);
 }
- 
+
 .md-header__source .md-source:hover {
-  border-color: var(--md-accent-fg-color);
-  background-color: color-mix(in srgb, var(--md-accent-fg-color) 8%, transparent);
+  background-color: #000;
 }
- 
+
+.md-header__source .md-source .md-source__icon svg {
+  fill: #fff;
+}
+
 .md-header__source .md-source__repository {
   font-size: 0.75rem;
   font-weight: 600;
+  color: #fff;
 }
 
 /* --------------------------------------------------------------------------
@@ -1329,3 +1330,111 @@ article[class="md-content__inner md-typeset"] > p:first-of-type:has(> img:only-c
   color: var(--md-default-fg-color--light);
   margin-top: 0.1rem;
 }
+
+/* -----------------------------------------------------------------------
+   20. Top tabs dropdown — pairs with overrides/partials/tabs-item.html
+   -------------------------------------------------------------------------- */
+
+.consize-tabs__item--has-menu {
+  position: relative;
+}
+
+.consize-tabs__chevron {
+  margin-left: 0.15rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.consize-tabs__item--has-menu:hover .consize-tabs__chevron,
+.consize-tabs__item--has-menu:focus-within .consize-tabs__chevron {
+  transform: rotate(180deg);
+}
+
+.consize-tabs__menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  min-width: 12rem;
+  margin: 0.4rem 0 0;
+  padding: 0.4rem;
+  list-style: none;
+  background: var(--md-default-bg-color);
+  border-radius: var(--consize-radius-sm);
+  box-shadow: var(--consize-shadow-hover);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+}
+
+.consize-tabs__item--has-menu::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 0.4rem;
+}
+
+.consize-tabs__item--has-menu:hover .consize-tabs__menu,
+.consize-tabs__item--has-menu:focus-within .consize-tabs__menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.consize-tabs__menu-item a {
+  display: block;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--consize-radius-sm);
+  font-size: 0.7rem;
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+}
+
+.consize-tabs__menu-item a:hover {
+  background: var(--md-default-fg-color--lightest);
+  color: var(--md-accent-fg-color);
+}
+
+.consize-tabs__menu-item--active a {
+  color: var(--md-accent-fg-color);
+  font-weight: 600;
+}
+
+@media screen and (max-width: 76.234375em) {
+  .consize-tabs__menu {
+    display: none;
+  }
+}
+
+/* -----------------------------------------------------------------------
+   21. Let the tab dropdown escape the tabs bar's own clipping box.
+       Material sets overflow: auto + contain: content on .md-tabs and
+       .md-tabs__list so a long row of tabs can scroll horizontally —
+       but that same overflow/containment clips anything that pokes
+       outside the bar, including our dropdown menu, which is nested
+       inside .md-tabs__list. Since Consize only has 4 top-level tabs
+       (never enough to need horizontal scrolling), it's safe to trade
+       that scroll behavior away in exchange for the dropdown actually
+       being visible.
+   -------------------------------------------------------------------------- */
+
+.md-tabs,
+.md-tabs__list {
+  overflow: visible;
+  contain: none;
+}
+
+/* Material scales html font-size up on wider screens (125% → 137.5% →
+   150%), which combined with .md-typeset's 0.8rem body copy works out
+   to ~19px body text on desktop — noticeably larger than typical docs
+   sites (Merge/Fern-style docs run body copy around 14-15px). Pin the
+   root size instead of letting it escalate, since every other rem value
+   in this file scales off this one number. */
+html {
+  font-size: 120% !important;
+}
+
