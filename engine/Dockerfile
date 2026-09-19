@@ -7,7 +7,7 @@
 # verifier writes nothing to disk — the audit trail lives in Postgres.
 ARG BIN
 
-FROM golang:1.26-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
 ARG BIN
 WORKDIR /src
 COPY go.mod go.sum ./
