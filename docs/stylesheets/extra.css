@@ -1022,3 +1022,598 @@ html {
   font-size: 120% !important;
 }
 
+
+
+/* ==========================================================================
+   22. REDESIGN LAYER
+   Appended last on purpose: everything below overrides earlier sections.
+   Brand: emerald #0B8961 (sampled from the logo) on near-black #101110,
+   matching the real product UI instead of Material's stock teal/white.
+   ========================================================================== */
+
+/* --- 22a. Colour tokens ------------------------------------------------ */
+
+:root {
+  --consize-green: #0b8961;
+  --consize-green-deep: #06694a;
+  --consize-green-bright: #34d399;
+  --consize-radius: 14px;
+  --consize-radius-sm: 8px;
+}
+
+[data-md-color-scheme="default"] {
+  --md-default-bg-color: #fbfcfb;
+  --md-default-fg-color: #101512;
+  --md-default-fg-color--light: #56635c;
+  --md-default-fg-color--lighter: rgba(16, 21, 18, 0.28);
+  --md-default-fg-color--lightest: rgba(16, 40, 28, 0.09);
+  --md-typeset-color: #1d2621;
+  --md-code-bg-color: #f1f5f3;
+
+  --md-primary-fg-color: var(--consize-green);
+  --md-primary-fg-color--light: #2fb58a;
+  --md-primary-fg-color--dark: var(--consize-green-deep);
+  --md-primary-bg-color: #ffffff;
+  --md-accent-fg-color: var(--consize-green);
+  --md-accent-fg-color--transparent: rgba(11, 137, 97, 0.09);
+  --md-typeset-a-color: var(--consize-green-deep);
+
+  --consize-surface: #ffffff;
+  --consize-surface-2: #f4f8f6;
+  --consize-border: rgba(16, 40, 28, 0.10);
+  --consize-glow: rgba(11, 137, 97, 0.16);
+  --consize-shadow: 0 1px 2px rgba(16, 40, 28, 0.05), 0 4px 14px rgba(16, 40, 28, 0.04);
+  --consize-shadow-hover: 0 12px 32px rgba(11, 137, 97, 0.14), 0 2px 8px rgba(16, 40, 28, 0.06);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #0c0e0d;
+  --md-default-fg-color: rgba(255, 255, 255, 0.94);
+  --md-default-fg-color--light: rgba(226, 238, 231, 0.62);
+  --md-default-fg-color--lighter: rgba(255, 255, 255, 0.22);
+  --md-default-fg-color--lightest: rgba(255, 255, 255, 0.08);
+  --md-typeset-color: #d6ded9;
+  --md-code-bg-color: #131716;
+
+  --md-primary-fg-color: var(--consize-green-bright);
+  --md-primary-fg-color--light: #6ee7b7;
+  --md-primary-fg-color--dark: var(--consize-green);
+  --md-primary-bg-color: #04150e;
+  --md-accent-fg-color: var(--consize-green-bright);
+  --md-accent-fg-color--transparent: rgba(52, 211, 153, 0.12);
+  --md-typeset-a-color: var(--consize-green-bright);
+
+  --consize-surface: #121514;
+  --consize-surface-2: #171b19;
+  --consize-border: rgba(255, 255, 255, 0.09);
+  --consize-glow: rgba(52, 211, 153, 0.16);
+  --consize-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --consize-shadow-hover: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(52, 211, 153, 0.25);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--md-accent-fg-color) 28%, transparent);
+}
+
+/* Lets decorative glows bleed past the content column without causing
+   sideways scroll (clip, unlike hidden, keeps sticky sidebars working). */
+.md-container {
+  overflow-x: clip;
+}
+
+/* --- 22b. Header: translucent, blurred, with a soft brand cue ---------- */
+
+.md-header,
+.md-tabs {
+  background-color: color-mix(in srgb, var(--md-default-bg-color) 82%, transparent);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  backdrop-filter: saturate(160%) blur(14px);
+}
+
+.md-header__source .md-source {
+  border: 1px solid var(--consize-border);
+}
+
+[data-md-color-scheme="slate"] .md-header__source .md-source {
+  background-color: var(--consize-surface-2);
+}
+
+.md-tabs__link {
+  font-weight: 500;
+  font-size: 0.68rem;
+}
+
+.md-tabs__item--active .md-tabs__link {
+  font-weight: 700;
+  box-shadow: 0 -2px 0 var(--consize-green) inset;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__item--active .md-tabs__link {
+  box-shadow: 0 -2px 0 var(--consize-green-bright) inset;
+}
+
+/* --- 22c. Sidebar: quieter labels, clear active pill ------------------- */
+
+.md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: var(--md-default-fg-color--light);
+  margin-top: 1.4rem;
+}
+
+.md-nav--primary .md-nav__item .md-nav__item .md-nav__link {
+  font-size: 0.76rem;
+  padding: 0.4rem 0.7rem;
+  margin: 1px 0;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-nav--primary .md-nav__item .md-nav__item .md-nav__link:hover {
+  color: var(--md-default-fg-color);
+}
+
+.md-nav--primary .md-nav__link--active {
+  color: var(--md-accent-fg-color) !important;
+  background-color: var(--md-accent-fg-color--transparent);
+  box-shadow: inset 2px 0 0 var(--md-accent-fg-color);
+}
+
+/* --- 22d. Typography --------------------------------------------------- */
+
+.md-typeset {
+  color: var(--md-typeset-color);
+}
+
+.md-typeset h1 {
+  color: var(--md-default-fg-color);
+  font-size: 2.1em;
+  line-height: 1.15;
+}
+
+.md-typeset h2 {
+  color: var(--md-default-fg-color);
+  font-size: 1.55em;
+  margin-top: 2.8em;
+  padding-top: 0;
+  border-top: none;
+}
+
+.md-typeset h3 {
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset hr {
+  border-bottom: 1px solid var(--consize-border);
+  margin: 2.2em 0;
+}
+
+.md-typeset a:not(.md-button):not(.headerlink) {
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in srgb, var(--md-accent-fg-color) 35%, transparent);
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color var(--consize-transition);
+}
+
+.md-typeset a:not(.md-button):not(.headerlink):hover {
+  text-decoration-color: var(--md-accent-fg-color);
+}
+
+.md-typeset .grid.cards a,
+.md-typeset .md-button,
+.md-typeset .tabbed-labels a,
+.md-typeset .tabbed-labels label a {
+  text-decoration: none !important;
+}
+
+.md-typeset code {
+  color: var(--md-accent-fg-color);
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 8%, transparent);
+}
+
+.md-typeset pre code,
+.md-typeset .highlight code {
+  color: inherit;
+  background: transparent;
+}
+
+/* --- 22e. Buttons ------------------------------------------------------ */
+
+.md-typeset .md-button {
+  border: 1.5px solid var(--consize-border);
+  color: var(--md-default-fg-color);
+  background: var(--consize-surface);
+  padding: 0.65em 1.5em;
+}
+
+.md-typeset .md-button:hover {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-accent-fg-color);
+  background: var(--consize-surface);
+}
+
+.md-typeset .md-button--primary {
+  background: linear-gradient(135deg, #12a978 0%, var(--consize-green) 55%, var(--consize-green-deep) 100%);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(11, 137, 97, 0.35);
+}
+
+.md-typeset .md-button--primary:hover {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #16b985 0%, #0b9a6d 55%, var(--consize-green) 100%);
+  box-shadow: 0 10px 26px rgba(11, 137, 97, 0.45);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary {
+  background: linear-gradient(135deg, #5eead4 0%, var(--consize-green-bright) 55%, #10b981 100%);
+  color: #04150e;
+  box-shadow: 0 6px 22px rgba(52, 211, 153, 0.28);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary:hover {
+  color: #04150e;
+  box-shadow: 0 10px 30px rgba(52, 211, 153, 0.4);
+}
+
+/* --- 22f. Homepage hero ------------------------------------------------ */
+
+.md-content__inner:has(.consize-hero) {
+  max-width: 54rem;
+}
+
+.consize-hero {
+  position: relative;
+  text-align: center;
+  padding: 1.5rem 0 1rem;
+}
+
+/* Soft brand glow behind the headline + a faint dot grid fading out */
+.consize-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -6rem -14rem 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 18%, var(--consize-glow), transparent 70%),
+    radial-gradient(circle at 1px 1px, var(--consize-border) 1px, transparent 0) 0 0 / 22px 22px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+}
+
+.consize-hero .consize-kicker {
+  margin: 0 auto 1rem;
+}
+
+.md-typeset .consize-hero h1 {
+  font-size: clamp(2rem, 4.6vw, 3.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  margin: 0 auto 0.6em;
+  max-width: 16em;
+}
+
+.consize-gradient {
+  background: linear-gradient(100deg, var(--consize-green-deep) 0%, var(--consize-green) 45%, #14a877 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-md-color-scheme="slate"] .consize-gradient {
+  background-image: linear-gradient(100deg, #34d399 0%, #6ee7b7 55%, #b7f7d8 100%);
+}
+
+.consize-hero > p {
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 0.85rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.consize-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0 1.1rem;
+}
+
+.consize-hero__actions p {
+  display: contents;
+}
+
+.consize-hero__actions .md-button {
+  margin: 0;
+}
+
+/* One-line install command, styled as a compact terminal chip */
+.consize-hero__cmd {
+  max-width: 40rem;
+  margin: 0 auto 2.5rem;
+  text-align: left;
+}
+
+.consize-hero__cmd .highlight {
+  margin: 0;
+  border-radius: 999px;
+  border: 1px solid var(--consize-border);
+  background: var(--consize-surface);
+  box-shadow: var(--consize-shadow);
+}
+
+.consize-hero__cmd .highlight::before {
+  display: none;
+}
+
+.consize-hero__cmd .highlight pre {
+  padding: 0;
+  background: transparent;
+}
+
+.consize-hero__cmd .highlight pre code {
+  display: block;
+  padding: 0.8rem 3rem 0.8rem 1.3rem;
+  font-size: 0.66rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.consize-hero__cmd .highlight pre code::before {
+  content: "$ ";
+  color: var(--md-accent-fg-color);
+  font-weight: 700;
+}
+
+.consize-hero__cmd .md-clipboard {
+  top: 50%;
+  right: 0.9rem;
+  transform: translateY(-50%);
+  opacity: 0.8;
+}
+
+/* Screenshot in a browser-style frame with a green under-glow */
+.consize-shot {
+  position: relative;
+  max-width: 56rem;
+  margin: 0 auto;
+  border-radius: 16px;
+  border: 1px solid var(--consize-border);
+  background: var(--consize-surface);
+  box-shadow: 0 30px 70px -20px var(--consize-glow), 0 12px 30px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+  text-align: left;
+}
+
+.consize-shot::before {
+  content: "";
+  display: block;
+  height: 1.7rem;
+  background:
+    radial-gradient(circle 4px at 1.1rem 50%, #ff5f57 98%, transparent) ,
+    radial-gradient(circle 4px at 1.95rem 50%, #febc2e 98%, transparent),
+    radial-gradient(circle 4px at 2.8rem 50%, #28c840 98%, transparent),
+    var(--consize-surface-2);
+  border-bottom: 1px solid var(--consize-border);
+}
+
+.consize-shot p {
+  margin: 0;
+}
+
+.md-typeset .consize-shot img.consize-hero-shot {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Highlights strip under the hero */
+.consize-highlights {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 3rem 0 1.2rem;
+  border: 1px solid var(--consize-border);
+  border-radius: var(--consize-radius);
+  background: var(--consize-surface);
+  box-shadow: var(--consize-shadow);
+  overflow: hidden;
+}
+
+.consize-highlights > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1.1rem 1.2rem;
+  border-left: 1px solid var(--consize-border);
+}
+
+.consize-highlights > div:first-child {
+  border-left: 0;
+}
+
+.consize-highlights strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--md-accent-fg-color);
+}
+
+.consize-highlights span {
+  font-size: 0.66rem;
+  line-height: 1.45;
+  color: var(--md-default-fg-color--light);
+}
+
+@media screen and (max-width: 59.9375em) {
+  .consize-highlights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .consize-highlights > div:nth-child(3) {
+    border-left: 0;
+  }
+  .consize-highlights > div:nth-child(n + 3) {
+    border-top: 1px solid var(--consize-border);
+  }
+}
+
+.consize-note {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--md-default-fg-color--light);
+}
+
+/* --- 22g. Cards: real surfaces, tinted icon tiles, lively hover -------- */
+
+.md-typeset .grid.cards {
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+}
+
+.md-typeset .grid.cards > ul > li {
+  background: var(--consize-surface);
+  border: 1px solid var(--consize-border);
+  border-radius: var(--consize-radius);
+  box-shadow: var(--consize-shadow);
+  padding: 1.1rem 1.2rem;
+  overflow: hidden;
+}
+
+/* thin brand line that draws in along the top edge on hover */
+.md-typeset .grid.cards > ul > li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--consize-green), var(--consize-green-bright));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 260ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.md-typeset .grid.cards > ul > li:hover::before {
+  transform: scaleX(1);
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--consize-shadow-hover);
+  border-color: color-mix(in srgb, var(--md-accent-fg-color) 45%, transparent);
+}
+
+.md-typeset .grid.cards > ul > li .twemoji,
+.md-typeset .grid.cards svg[class*="mdi"] {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 11px;
+  margin-bottom: 0.5rem;
+  color: var(--md-accent-fg-color);
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--md-accent-fg-color) 16%, transparent),
+      color-mix(in srgb, var(--md-accent-fg-color) 6%, transparent));
+  border: 1px solid color-mix(in srgb, var(--md-accent-fg-color) 22%, transparent);
+}
+
+.md-typeset .grid.cards > ul > li .twemoji svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.md-typeset .grid.cards > ul > li > p:first-child {
+  margin-bottom: 0.2rem;
+}
+
+.md-typeset .grid.cards > ul > li > p:first-child strong {
+  font-size: 0.9rem;
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset .grid.cards > ul > li > hr {
+  border-color: var(--consize-border);
+}
+
+.md-typeset .grid.cards > ul > li > p:last-child {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+/* --- 22h. Code, admonitions, tables, diagrams -------------------------- */
+
+.md-typeset .highlight {
+  border-color: var(--consize-border);
+  border-radius: var(--consize-radius-sm);
+}
+
+.md-typeset .highlight::before {
+  background-color: var(--consize-surface-2);
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: var(--consize-radius-sm);
+  background: var(--consize-surface);
+  border: 1px solid var(--consize-border);
+  border-left-width: 4px;
+}
+
+.md-typeset table:not([class]) {
+  border: 1px solid var(--consize-border);
+  border-radius: var(--consize-radius-sm);
+  background: var(--consize-surface);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 8%, var(--consize-surface));
+  color: var(--md-default-fg-color);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.md-typeset table:not([class]) td,
+.md-typeset table:not([class]) th {
+  border-top: 1px solid var(--consize-border);
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background-color: transparent;
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* Diagrams sit on a panel instead of floating on the page */
+.md-typeset .mermaid {
+  padding: 1.6rem 1rem;
+  border: 1px solid var(--consize-border);
+  border-radius: var(--consize-radius);
+  background: var(--consize-surface);
+  box-shadow: var(--consize-shadow);
+  overflow-x: auto;
+}
+
+/* --- 22i. Footer, feedback -------------------------------------------- */
+
+.consize-site-footer {
+  background-color: var(--consize-surface-2);
+}
+
+.consize-page-feedback {
+  border-color: var(--consize-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-typeset .grid.cards > ul > li::before {
+    transition: none;
+  }
+}

@@ -17,20 +17,21 @@ theme:
   icon:
     repo: fontawesome/brands/github
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: teal
-      accent: green
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: teal
-      accent: green
+    # Dark is listed first and has no `media` query, so it is the default for
+    # every visitor regardless of OS setting. The toggle still lets people
+    # switch to light, and their choice is remembered.
+    - scheme: slate
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
   features:
     - navigation.tabs
     - navigation.sections
@@ -133,4 +134,4 @@ extra:
 extra_css:
   - stylesheets/extra.css
   - stylesheets/blog.css
-  - stylesheets/blog-post.css 
+  - stylesheets/blog-post.css

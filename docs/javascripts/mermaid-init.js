@@ -8,23 +8,25 @@ function consizeMermaidTheme() {
 
   return isDark
     ? {
-        background: "#101110",
-        primaryColor: "#14532d",
+        background: "#0c0e0d",
+        primaryColor: "#0f3d2e",
         primaryTextColor: "#e8fdf1",
-        primaryBorderColor: "#4ade80",
-        lineColor: "#4ade80",
-        secondaryColor: "#1a1b1a",
-        tertiaryColor: "#101110",
+        primaryBorderColor: "#34d399",
+        lineColor: "#34d399",
+        secondaryColor: "#131615",
+        tertiaryColor: "#0c0e0d",
         fontFamily: "Inter, sans-serif",
+        fontSize: "15px",
       }
     : {
-        primaryColor: "#dcfce7",
-        primaryTextColor: "#14532d",
-        primaryBorderColor: "#16a34a",
-        lineColor: "#16a34a",
-        secondaryColor: "#f0fdf4",
+        primaryColor: "#e3f5ed",
+        primaryTextColor: "#06382a",
+        primaryBorderColor: "#0b8961",
+        lineColor: "#0b8961",
+        secondaryColor: "#f2faf6",
         tertiaryColor: "#ffffff",
         fontFamily: "Inter, sans-serif",
+        fontSize: "15px",
       };
 }
 

@@ -1,21 +1,42 @@
-# Overview
+---
+title: Overview
+---
+
+<div class="consize-hero" markdown>
 
 <p class="consize-kicker">Open Source · Kubernetes &amp; Cloud Cost Optimization</p>
 
-## Safe, automated infrastructure optimization
+# <span class="consize-gradient">Safe, automated</span> infrastructure optimization
 
 Consize helps engineering teams reduce Kubernetes and cloud waste without turning cost optimization into a production risk.
 
 It analyzes your infrastructure, identifies optimization opportunities, and helps you apply safer changes with built-in guardrails.
 
+<div class="consize-hero__actions" markdown>
 [Get started](getting-started/get-started.md){ .md-button .md-button--primary }
 [Try the Interactive Sandbox](getting-started/sandbox.md){ .md-button }
+</div>
 
-If you get stuck at any point, [Troubleshooting](resources/troubleshooting.md), the [FAQ](resources/faq.md), and [Support](resources/support.md) are one click away from every page in the footer.
+<div class="consize-hero__cmd" markdown>
+```bash
+docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:latest
+```
+</div>
 
+<div class="consize-shot" markdown>
 ![The Consize dashboard showing a rightsizing recommendation and its safety verification status](assets/demo-dashboard.png){ .consize-hero-shot }
+</div>
 
----
+</div>
+
+<div class="consize-highlights">
+  <div><strong>14-day</strong><span>p95 / p99 usage analysis</span></div>
+  <div><strong>Step-wise</strong><span>Small increments, never one big change</span></div>
+  <div><strong>SLI-verified</strong><span>OOM kills, throttling and restarts checked</span></div>
+  <div><strong>Byte-identical</strong><span>Automatic rollback on regression</span></div>
+</div>
+
+<p class="consize-note">Stuck at any point? <a href="resources/troubleshooting/">Troubleshooting</a>, the <a href="resources/faq/">FAQ</a>, and <a href="resources/support/">Support</a> are one click away from every page in the footer.</p>
 
 ## Get started in three steps
 
@@ -56,8 +77,6 @@ flowchart LR
 ```
 
 Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied — through reviewable pull requests against your existing Infrastructure-as-Code workflow, or as guarded runtime changes within configured boundaries.
-
----
 
 ## Explore the platform
 
