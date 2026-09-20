@@ -6,13 +6,13 @@
    blog.css and the rest of the docs are untouched.
 
    Type scale (desktop)
-     title        Inter 700   42 / 52   -0.022em
+     title        Inter 700   34 / 42   -0.022em
      byline name  Inter 500   16 / 20
      byline meta  Inter 400   14 / 20   muted
-     h2           Inter 700   28 / 34   -0.019em
-     h3           Inter 700   22 / 28   -0.016em
-     body         Source Serif 4  400   19.2 / 1.6 (18 / 30 on phones)
-     code         JetBrains Mono  15px
+     h2           Inter 700   24 / 30   -0.019em
+     h3           Inter 700   19 / 25   -0.016em
+     body         Source Serif 4  400   17 / 1.6 (16 / 26 on phones)
+     code         JetBrains Mono  14px
    Column width is 680px, same as Medium. Body size is --post-body-size below.
 
    Sizes are in px on purpose: Material scales `rem` up on wide screens
@@ -35,7 +35,7 @@
     Menlo, Consolas, monospace;
 
   --post-width: 680px;
-  --post-body-size: 19.2px; /* body text size. Change this one value to resize the article. */
+  --post-body-size: 17px; /* body text size. Change this one value to resize the article. */
 }
 
 /* --------------------------------------------------------------------------
@@ -101,9 +101,9 @@
   margin: 0;
   padding: 0;
   font-family: var(--post-sans);
-  font-size: 42px;
+  font-size: 34px;
   font-weight: 700;
-  line-height: 52px;
+  line-height: 42px;
   letter-spacing: -0.022em;
   color: var(--post-ink);
   text-wrap: balance;
@@ -305,22 +305,22 @@
 }
 
 .consize-post .consize-article h2 {
-  font-size: 28px;
-  line-height: 34px;
+  font-size: 24px;
+  line-height: 30px;
   letter-spacing: -0.019em;
 }
 
 .consize-post .consize-article h3 {
   margin-top: 40px;
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 19px;
+  line-height: 25px;
   letter-spacing: -0.016em;
 }
 
 .consize-post .consize-article h4 {
   margin-top: 32px;
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 16px;
+  line-height: 22px;
   letter-spacing: -0.01em;
 }
 
@@ -447,7 +447,7 @@
   padding: 20px 52px 20px 24px; /* right side clears the copy button */
   border-radius: 0;
   background: transparent;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.6;
   letter-spacing: 0;
 }
@@ -481,7 +481,7 @@
   background: transparent;
   box-shadow: none;
   font-family: var(--post-sans);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 22px;
   letter-spacing: 0;
 }
@@ -496,7 +496,7 @@
 .consize-post .consize-article table:not([class]) th {
   border-bottom: 1px solid var(--post-ink);
   background: transparent;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--post-muted);
 }
@@ -539,7 +539,7 @@
 .consize-post .consize-article figcaption {
   margin-top: 12px;
   font-family: var(--post-sans);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
   text-align: center;
   color: var(--post-muted);
@@ -674,25 +674,25 @@
 @media screen and (max-width: 40em) {
   .consize-post .consize-article {
     padding: 32px 20px 80px;
-    font-size: 18px;
-    line-height: 30px;
+    font-size: 16px;
+    line-height: 26px;
   }
 
   .consize-post .consize-article h1 {
-    font-size: 32px;
-    line-height: 40px;
+    font-size: 28px;
+    line-height: 36px;
   }
 
   .consize-post .consize-article h2 {
     margin-top: 44px;
-    font-size: 24px;
-    line-height: 30px;
+    font-size: 21px;
+    line-height: 27px;
   }
 
   .consize-post .consize-article h3 {
     margin-top: 36px;
-    font-size: 20px;
-    line-height: 26px;
+    font-size: 18px;
+    line-height: 24px;
   }
 
   .consize-post .consize-article p {
@@ -724,7 +724,7 @@
   .consize-post .consize-article pre > code,
   .consize-post .consize-article .highlight pre code {
     padding: 16px 18px;
-    font-size: 14px;
+    font-size: 13px;
   }
 
     }
