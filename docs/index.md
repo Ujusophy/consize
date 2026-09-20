@@ -4,13 +4,10 @@ title: Overview
 
 <div class="consize-hero" markdown>
 
-<p class="consize-kicker">Open Source · Kubernetes &amp; Cloud Cost Optimization</p>
 
-# <span class="consize-gradient">Safe, automated</span> infrastructure optimization
+# <span class="consize-gradient">Welcome to</span> Consize Documentation
 
-Consize helps engineering teams reduce Kubernetes and cloud waste without turning cost optimization into a production risk.
-
-It analyzes your infrastructure, identifies optimization opportunities, and helps you apply safer changes with built-in guardrails.
+Learn how to use consize to analyzes your infrastructure, identifies optimization opportunities, and you apply safer changes with built-in guardrails without turning cost optimization into a production risk.
 
 <div class="consize-hero__actions" markdown>
 [Get started](getting-started/get-started.md){ .md-button .md-button--primary }
@@ -29,13 +26,6 @@ docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:lat
 
 </div>
 
-<div class="consize-highlights">
-  <div><strong>14-day</strong><span>p95 / p99 usage analysis</span></div>
-  <div><strong>Step-wise</strong><span>Small increments, never one big change</span></div>
-  <div><strong>SLI-verified</strong><span>OOM kills, throttling and restarts checked</span></div>
-  <div><strong>Byte-identical</strong><span>Automatic rollback on regression</span></div>
-</div>
-
 <p class="consize-note">Stuck at any point? <a href="resources/troubleshooting/">Troubleshooting</a>, the <a href="resources/faq/">FAQ</a>, and <a href="resources/support/">Support</a> are one click away from every page in the footer.</p>
 
 ## Get started in three steps
@@ -48,7 +38,7 @@ Go from zero to a verified rightsizing change against a real workload.
 
     ---
 
-    Point Consize at a cluster. It profiles real CPU and memory usage over a rolling window — no guesswork, no assumed sizing.
+    Point Consize at a cluster. It profiles real CPU and memory usage over a rolling window: no guesswork, no assumed sizing.
 
 -   [:material-source-pull:{ .lg .middle } **2. Review**](guides/rightsizing.md)
 
@@ -76,7 +66,7 @@ flowchart LR
     F -.->|regression detected| A
 ```
 
-Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied — through reviewable pull requests against your existing Infrastructure-as-Code workflow, or as guarded runtime changes within configured boundaries.
+Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied through reviewable pull requests against your existing Infrastructure-as-Code workflow, or as guarded runtime changes within configured boundaries.
 
 ## Explore the platform
 
@@ -92,7 +82,7 @@ Consize continuously evaluates your infrastructure and turns resource usage data
 
     ---
 
-    How the Observe → Change → Verify loop uses SLIs to confirm a change was actually safe.
+    How the `Observe` → `Change` → `Verify` loop uses SLIs to confirm a change was actually safe.
 
 -   [:material-layers-outline:{ .lg .middle } **Environments**](guides/environments.md)
 
@@ -104,13 +94,13 @@ Consize continuously evaluates your infrastructure and turns resource usage data
 
     ---
 
-    The full Observe → Analyze → Recommend → Review → Apply → Verify architecture, end to end.
+    The full `Observe` → `Analyze` → `Recommend` → `Review` → `Apply` → `Verify` architecture, end to end.
 
 -   [:material-shield-lock:{ .lg .middle } **The Safety Net**](concepts/safety-net.md)
 
     ---
 
-    Optimize infrastructure without turning cost savings into production risk — the principle the whole system is built around.
+    Optimize infrastructure without turning cost savings into production risk, the principle the whole system is built around.
 
 -   [:material-cog:{ .lg .middle } **Configuration**](reference/configuration.md)
 
