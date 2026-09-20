@@ -1847,3 +1847,68 @@ body:has(.consize-hero) .md-footer {
     transition: none;
   }
 }
+
+/* --- 24. Search bar — centred, long, page-background box with a stroke ---
+   APPEND THIS TO THE VERY END of docs/stylesheets/extra.css.
+   It overrides sections 1c and 17a, so leave those in place.
+   Desktop only (>= 60em); below that Material's own mobile search
+   (icon that opens a full-screen search) is left untouched.
+   ------------------------------------------------------------------------ */
+
+:root {
+  --consize-search-max-width: 42rem;
+  /* stroke colour — bump to --md-default-fg-color--light for a stronger line */
+  --consize-search-stroke: var(--md-default-fg-color--lighter);
+}
+
+@media screen and (min-width: 60em) {
+
+  /* .md-grid is full-width (section 2b), so the header row spans the
+     viewport and centring inside it = centring on the page. */
+  .md-header__inner {
+    position: relative;
+  }
+
+  .md-search {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    /* long, but always clear of logo/title (left) and repo button + toggle (right) */
+    width: clamp(16rem, calc(100% - 40rem), var(--consize-search-max-width));
+  }
+
+  /* Fixed width: no shrinking at rest, no growing on focus */
+  .md-search__inner,
+  [data-md-toggle="search"]:checked ~ .md-header .md-search__inner {
+    float: none;
+    width: 100%;
+  }
+
+  /* The box itself: same colour as the page, with a visible stroke */
+  .md-search__form,
+  .md-search__form:hover,
+  [data-md-toggle="search"]:checked ~ .md-header .md-search__form {
+    height: 2rem;
+    background-color: var(--md-default-bg-color);
+    border: 1px solid var(--consize-search-stroke);
+    border-radius: var(--consize-radius-sm);
+    box-shadow: none;
+  }
+
+  .md-search__form:hover {
+    border-color: var(--md-default-fg-color--light);
+  }
+
+  /* keep the accent focus ring from section 1c (must come after :hover) */
+  .md-search__form:focus-within,
+  [data-md-toggle="search"]:checked ~ .md-header .md-search__form:focus-within {
+    border-color: var(--md-accent-fg-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-accent-fg-color) 18%, transparent);
+  }
+}
