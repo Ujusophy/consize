@@ -132,3 +132,4 @@ extra:
 
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/blog.css
