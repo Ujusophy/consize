@@ -1617,3 +1617,13 @@ html {
     transition: none;
   }
 }
+
+/* --- 22j. Homepage: no footer -------------------------------------------
+   Hides the link-grid footer and Material's bottom bar, on the homepage
+   only. Detected via the hero block, so every other page keeps its footer.
+   ------------------------------------------------------------------------ */
+
+body:has(.consize-hero) .consize-site-footer,
+body:has(.consize-hero) .md-footer {
+  display: none;
+}
