@@ -74,7 +74,7 @@ Consize continuously evaluates your infrastructure and turns resource usage data
 
 <div class="grid cards" markdown>
 
--   [:material-resize:{ .lg .middle } **Kubernetes Rightsizing**](guides/rightsizing.md)
+-   [:material-resize:{ .lg .middle } **Rightsizing**](guides/rightsizing.md)
 
     ---
 
@@ -90,13 +90,7 @@ Consize continuously evaluates your infrastructure and turns resource usage data
 
     ---
 
-    Control the scope of what Consize can observe and modify — start small and expand automation gradually.
-
--   [:material-sitemap:{ .lg .middle } **How Consize Works**](concepts/architecture.md)
-
-    ---
-
-    The full `Observe` → `Analyze` → `Recommend` → `Review` → `Apply` → `Verify` architecture, end to end.
+    Control the scope of what Consize can observe and modify, start small and expand automation gradually.
 
 -   [:material-shield-lock:{ .lg .middle } **The Safety Net**](concepts/safety-net.md)
 
@@ -110,7 +104,7 @@ Consize continuously evaluates your infrastructure and turns resource usage data
 
     The full reference for controlling what Consize observes, what it can change, and how it operates in your environment.
 
--   [:material-check-decagram:{ .lg .middle } **Supported Platforms**](reference/supported-platforms.md)
+-   [:material-check-decagram:{ .lg .middle } **Supported**](reference/supported-platforms.md)
 
     ---
 
