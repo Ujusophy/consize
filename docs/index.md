@@ -30,7 +30,9 @@ docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:lat
 
 <p class="consize-note">Stuck at any point? <a href="resources/troubleshooting/">Troubleshooting</a>, the <a href="resources/faq/">FAQ</a>, and <a href="resources/support/">Support</a> are one click away from every page in the footer.</p>
 
-## Get started in three steps
+Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied through reviewable pull requests against your existing Infrastructure-as-Code workflow, or as guarded runtime changes within configured boundaries.
+
+## Explore the Platform
 
 Go from zero to a verified rightsizing change against a real workload.
 
@@ -91,17 +93,3 @@ SLIs are watched after every change. If something regresses, Consize triggers an
 </div>
 
 </div>
-
-## How it works
-
-```mermaid
-flowchart LR
-    A[Observe] --> B[Analyze]
-    B --> C[Recommend]
-    C --> D[Review]
-    D --> E[Apply]
-    E --> F[Verify]
-    F -.->|regression detected| A
-```
-
-Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied through reviewable pull requests against your existing Infrastructure-as-Code workflow, or as guarded runtime changes within configured boundaries.
