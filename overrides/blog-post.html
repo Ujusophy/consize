@@ -1,0 +1,158 @@
+{#-
+  Consize blog post layout, modelled on a Medium article.
+
+  Replaces Material's default post template (a left "metadata" sidebar, the
+  article, and a right-hand table of contents) with ONE centred reading column:
+
+      title
+      byline  (avatar, author, read time · date)
+      share bar
+      article body
+      topic tags
+      back link
+
+  Styling lives in docs/stylesheets/blog-post.css.
+
+  Notes
+  - Extends main.html (not base.html) so the site footer and any other blocks
+    defined there keep working.
+  - Material's `links:` front-matter ("References" sidebar) is not rendered by
+    this layout. Nothing in the current posts uses it.
+-#}
+{% extends "main.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  {#- Inter 500/600 (Material only loads 400/700) for names and headings, and
+      Source Serif 4 for the article body. -#}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&display=swap"
+  >
+{% endblock %}
+
+{% block container %}
+
+  {#- ---- Read time -------------------------------------------------------- -#}
+  {% set readtime %}
+    {%- if page.config.readtime -%}
+      {%- set time = page.config.readtime -%}
+      {%- if time == 1 -%}
+        {{ lang.t("readtime.one") }}
+      {%- else -%}
+        {{ lang.t("readtime.other") | replace("#", time) }}
+      {%- endif -%}
+    {%- endif -%}
+  {% endset %}
+
+  {#- ---- Byline: goes directly under the <h1> ----------------------------- -#}
+  {% set byline %}
+    <div class="consize-byline">
+      {% if page.authors %}
+        <div class="consize-byline__avatars">
+          {% for author in page.authors %}
+            <span class="consize-byline__avatar">
+              <img src="{{ author.avatar | url }}" alt="" width="48" height="48">
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <div class="consize-byline__text">
+        {% if page.authors %}
+          <div class="consize-byline__author">
+            {%- for author in page.authors -%}
+              {%- if author.url -%}
+                <a href="{{ author.url | url }}">{{ author.name }}</a>
+              {%- else -%}
+                {{ author.name }}
+              {%- endif -%}
+              {%- if not loop.last %}, {% endif -%}
+            {%- endfor -%}
+          </div>
+        {% endif %}
+        <div class="consize-byline__meta">
+          {%- if readtime | trim -%}
+            <span>{{ readtime | trim }}</span>
+            <span class="consize-dot" aria-hidden="true">·</span>
+          {%- endif -%}
+          <time datetime="{{ page.config.date.created }}">
+            {{- page.config.date.created | date -}}
+          </time>
+          {%- if page.config.date.updated -%}
+            <span class="consize-dot" aria-hidden="true">·</span>
+            <span>Updated
+              <time datetime="{{ page.config.date.updated }}">
+                {{- page.config.date.updated | date -}}
+              </time>
+            </span>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+
+    {#- Share bar: plain links, no JavaScript needed apart from "copy link" -#}
+    <div class="consize-share" role="group" aria-label="Share this post">
+      <a
+        class="consize-share__btn"
+        href="https://twitter.com/intent/tweet?text={{ page.title | urlencode }}&amp;url={{ page.canonical_url | urlencode }}"
+        target="_blank" rel="noopener noreferrer"
+        title="Share on X" aria-label="Share on X"
+      >{% include ".icons/fontawesome/brands/x-twitter.svg" %}</a>
+      <a
+        class="consize-share__btn"
+        href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.canonical_url | urlencode }}"
+        target="_blank" rel="noopener noreferrer"
+        title="Share on LinkedIn" aria-label="Share on LinkedIn"
+      >{% include ".icons/fontawesome/brands/linkedin-in.svg" %}</a>
+      <button
+        type="button"
+        class="consize-share__btn consize-share__copy"
+        data-url="{{ page.canonical_url }}"
+        onclick="if(navigator.clipboard){navigator.clipboard.writeText(this.dataset.url);this.classList.add('is-copied');var b=this;setTimeout(function(){b.classList.remove('is-copied')},1800)}"
+        title="Copy link" aria-label="Copy link"
+      >
+        <span class="consize-share__icon consize-share__icon--link">{% include ".icons/material/link-variant.svg" %}</span>
+        <span class="consize-share__icon consize-share__icon--done">{% include ".icons/material/check.svg" %}</span>
+        <span class="consize-share__toast" aria-live="polite">Link copied</span>
+      </button>
+    </div>
+  {% endset %}
+
+  <div class="md-content consize-post" data-md-component="content">
+    <article class="md-content__inner md-typeset consize-article">
+
+      {#- Render the normal content partial (edit button, <h1>, body, comments,
+          etc.) into a variable, then slot the byline in after the first </h1>.
+          (Not wrapped in a nested {% block %}: Jinja blocks cannot see the
+          `byline` variable set above.) -#}
+      {% set rendered %}
+        {% include "partials/content.html" %}
+      {% endset %}
+      {% if "</h1>" in rendered %}
+        {{ rendered | replace("</h1>", "</h1>" ~ byline, 1) }}
+      {% else %}
+        {{ rendered }}
+      {% endif %}
+
+      {#- ---- End of article ------------------------------------------------ -#}
+      <footer class="consize-post-end">
+
+        {% if page.categories %}
+          <ul class="consize-tags" aria-label="Topics">
+            {% for category in page.categories %}
+              <li><a href="{{ category.url | url }}">{{ category.title }}</a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <a class="consize-back" href="{{ page.parent.url | url }}">
+          {% include ".icons/material/arrow-left.svg" %}
+          <span>All posts</span>
+        </a>
+      </footer>
+
+    </article>
+  </div>
+{% endblock %}
