@@ -34,25 +34,61 @@ docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:lat
 
 Go from zero to a verified rightsizing change against a real workload.
 
-<div class="grid cards" markdown>
+<div class="consize-steps" markdown>
 
--   [:material-magnify:{ .lg .middle } **1. Analyze**](getting-started/get-started.md)
+<div class="consize-step" markdown>
 
-    ---
+<div class="consize-step__icon" markdown>:material-magnify:</div>
 
-    Point Consize at a cluster. It profiles real CPU and memory usage over a rolling window: no guesswork, no assumed sizing.
+<div class="consize-step__title" markdown>[1. Analyze](getting-started/get-started.md)</div>
 
--   [:material-source-pull:{ .lg .middle } **2. Review**](guides/rightsizing.md)
+Point Consize at a cluster. It profiles real CPU and memory usage over a rolling window: no guesswork, no assumed sizing.
 
-    ---
+<div class="consize-step__links" markdown>
 
-    Get a rightsizing pull request against your IaC repo, or apply approved changes directly through the UI within configured boundaries.
+- [Get started](getting-started/get-started.md)
+- [Interactive Sandbox](getting-started/sandbox.md)
+- [Production Installation](getting-started/installation.md)
 
--   [:material-shield-check:{ .lg .middle } **3. Verify**](concepts/safety-net.md)
+</div>
 
-    ---
+</div>
 
-    SLIs are watched after every change. If something regresses, Consize triggers an automatic, byte-identical rollback.
+<div class="consize-step" markdown>
+
+<div class="consize-step__icon" markdown>:material-source-pull:</div>
+
+<div class="consize-step__title" markdown>[2. Review](guides/rightsizing.md)</div>
+
+Get a rightsizing pull request against your IaC repo, or apply approved changes directly through the UI within configured boundaries.
+
+<div class="consize-step__links" markdown>
+
+- [Kubernetes Rightsizing](guides/rightsizing.md)
+- [Environments](guides/environments.md)
+- [Configuration](reference/configuration.md)
+
+</div>
+
+</div>
+
+<div class="consize-step" markdown>
+
+<div class="consize-step__icon" markdown>:material-shield-check:</div>
+
+<div class="consize-step__title" markdown>[3. Verify](concepts/safety-net.md)</div>
+
+SLIs are watched after every change. If something regresses, Consize triggers an automatic, byte-identical rollback.
+
+<div class="consize-step__links" markdown>
+
+- [The Safety Net](concepts/safety-net.md)
+- [Observability](guides/observability.md)
+- [How Consize Works](concepts/architecture.md)
+
+</div>
+
+</div>
 
 </div>
 
@@ -69,45 +105,3 @@ flowchart LR
 ```
 
 Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied through reviewable pull requests against your existing Infrastructure-as-Code workflow, or as guarded runtime changes within configured boundaries.
-
-## Explore the platform
-
-<div class="grid cards" markdown>
-
--   [:material-resize:{ .lg .middle } **Rightsizing**](guides/rightsizing.md)
-
-    ---
-
-    Reduce over-provisioned CPU and memory by adjusting requests and limits based on observed, not assumed, usage.
-
--   [:material-chart-line:{ .lg .middle } **Observability**](guides/observability.md)
-
-    ---
-
-    How the `Observe` → `Change` → `Verify` loop uses SLIs to confirm a change was actually safe.
-
--   [:material-layers-outline:{ .lg .middle } **Environments**](guides/environments.md)
-
-    ---
-
-    Control the scope of what Consize can observe and modify, start small and expand automation gradually.
-
--   [:material-shield-lock:{ .lg .middle } **The Safety Net**](concepts/safety-net.md)
-
-    ---
-
-    Optimize infrastructure without turning cost savings into production risk, the principle the whole system is built around.
-
--   [:material-cog:{ .lg .middle } **Configuration**](reference/configuration.md)
-
-    ---
-
-    The full reference for controlling what Consize observes, what it can change, and how it operates in your environment.
-
--   [:material-check-decagram:{ .lg .middle } **Supported**](reference/supported-platforms.md)
-
-    ---
-
-    Which cloud providers, IaC targets, and integrations Consize supports today.
-
-</div>
