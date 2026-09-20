@@ -1912,3 +1912,25 @@ body:has(.consize-hero) .md-footer {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-accent-fg-color) 18%, transparent);
   }
 }
+
+/* --- 25. Slack icon in the header (full-colour logo) ---
+   Replaces any earlier section 25. The SVG carries its own brand
+   colours, so no fill is set here. */
+
+.consize-header-slack {
+  display: flex !important;
+  align-items: center;
+  opacity: 0.9;
+  transition: opacity var(--consize-transition), transform var(--consize-transition);
+}
+
+.consize-header-slack svg {
+  display: block;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.consize-header-slack:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
