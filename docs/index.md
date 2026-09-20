@@ -1,5 +1,7 @@
 ---
 title: Overview
+hide:
+  - toc
 ---
 
 <div class="consize-hero" markdown>

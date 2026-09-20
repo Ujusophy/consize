@@ -1627,3 +1627,22 @@ body:has(.consize-hero) .consize-site-footer,
 body:has(.consize-hero) .md-footer {
   display: none;
 }
+
+/* --- 22k. Homepage: no side navigation, centred content --- */
+
+@media screen and (min-width: 76.25em) {
+  body:has(.consize-hero) .md-sidebar--primary,
+  body:has(.consize-hero) .md-sidebar--secondary {
+    display: none;
+  }
+
+  body:has(.consize-hero) .md-content {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  body:has(.consize-hero) .md-content__inner {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
