@@ -9,7 +9,7 @@ hide:
 
 # <span class="consize-gradient">Welcome to</span> Consize Documentation
 
-Learn how to use consize to analyzes your infrastructure, identifies optimization opportunities, and you apply safer changes with built-in guardrails without turning cost optimization into a production risk.
+Learn how to use consize to analyze your infrastructure, identify optimization opportunities, and apply safer changes with built-in guardrails without turning cost optimization into a production risk.
 
 <div class="consize-hero__actions" markdown>
 [Get started](getting-started/get-started.md){ .md-button .md-button--primary }
@@ -42,7 +42,7 @@ Go from zero to a verified rightsizing change against a real workload.
 
 <div class="consize-step__icon" markdown>:material-magnify:</div>
 
-<div class="consize-step__title" markdown>[1. Analyze](getting-started/get-started.md)</div>
+<div class="consize-step__title" markdown>1\. Analyze</div>
 
 Point Consize at a cluster. It profiles real CPU and memory usage over a rolling window: no guesswork, no assumed sizing.
 
@@ -60,7 +60,7 @@ Point Consize at a cluster. It profiles real CPU and memory usage over a rolling
 
 <div class="consize-step__icon" markdown>:material-source-pull:</div>
 
-<div class="consize-step__title" markdown>[2. Review](guides/rightsizing.md)</div>
+<div class="consize-step__title" markdown>2\. Review</div>
 
 Get a rightsizing pull request against your IaC repo, or apply approved changes directly through the UI within configured boundaries.
 
@@ -78,7 +78,7 @@ Get a rightsizing pull request against your IaC repo, or apply approved changes 
 
 <div class="consize-step__icon" markdown>:material-shield-check:</div>
 
-<div class="consize-step__title" markdown>[3. Verify](concepts/safety-net.md)</div>
+<div class="consize-step__title" markdown>3\. Verify</div>
 
 SLIs are watched after every change. If something regresses, Consize triggers an automatic, byte-identical rollback.
 
