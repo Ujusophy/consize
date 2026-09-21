@@ -1,0 +1,403 @@
+/* ==========================================================================
+   Consize blog: hero + card grid
+   Applies to any Material blog listing page (index, category, archive).
+   Individual post pages are not affected.
+   ========================================================================== */
+
+:root {
+  --blog-ink: #1f1e1b;
+  --blog-muted: #6b6a66;
+  --blog-line: #e6e4df;
+  --blog-card: #ffffff;
+  --blog-chip: #f7f6f3;
+  --blog-hero: #edece9;
+  --blog-glow: rgba(255, 255, 255, 0.95);
+  --blog-sheen: rgba(255, 255, 255, 0.65);
+  --blog-lift: 0 16px 32px -16px rgba(31, 30, 27, 0.24), 0 2px 6px rgba(31, 30, 27, 0.04);
+
+  /* thumbnail tints, cycled across cards */
+  --blog-thumb-1: #efedf3;
+  --blog-thumb-2: #e7e8e2;
+  --blog-thumb-3: #e4eaf0;
+
+  --blog-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E");
+}
+
+[data-md-color-scheme="slate"] {
+  --blog-ink: #f2f1ee;
+  --blog-muted: #a3a29e;
+  --blog-line: rgba(255, 255, 255, 0.1);
+  --blog-card: rgba(255, 255, 255, 0.03);
+  --blog-chip: rgba(255, 255, 255, 0.06);
+  --blog-hero: #1a1c22;
+  --blog-glow: rgba(255, 255, 255, 0.06);
+  --blog-sheen: rgba(255, 255, 255, 0.05);
+  --blog-lift: 0 16px 32px -16px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.25);
+
+  --blog-thumb-1: #2a2733;
+  --blog-thumb-2: #262a27;
+  --blog-thumb-3: #232a33;
+}
+
+/* --------------------------------------------------------------------------
+   Page layout: hero on top, three-column card grid below
+   -------------------------------------------------------------------------- */
+
+.md-content__inner:has(> .md-post--excerpt) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 4rem;
+}
+
+/* Material adds spacer pseudo-elements that would become grid cells */
+.md-content__inner:has(> .md-post--excerpt)::before,
+.md-content__inner:has(> .md-post--excerpt)::after {
+  display: none;
+}
+
+.md-content__inner:has(> .md-post--excerpt) > .md-pagination {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 62em) {
+  .md-content__inner:has(> .md-post--excerpt) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40em) {
+  .md-content__inner:has(> .md-post--excerpt) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Hero (everything written in blog/index.md)
+   -------------------------------------------------------------------------- */
+
+.md-content__inner:has(> .md-post--excerpt) > header.md-typeset {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: min(46vh, 19rem);
+  margin: 0 0 1rem;
+  padding: 2.5rem 1.25rem 2rem;
+  text-align: center;
+  background: none; /* no box, no panel */
+}
+
+.md-content__inner:has(> .md-post--excerpt) > header.md-typeset h1 {
+  margin: 0;
+  color: var(--blog-ink);
+  font-size: clamp(1.9rem, 4.6vw, 2.7rem);
+  font-weight: 650;
+  letter-spacing: -0.032em;
+  line-height: 1.1;
+}
+
+.md-content__inner:has(> .md-post--excerpt) > header.md-typeset p {
+  margin: 1rem auto 0;
+  max-width: 30rem;
+  color: var(--blog-muted);
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+/* CTA row: the paragraph that holds the .blog-btn links */
+.md-content__inner:has(> .md-post--excerpt) > header.md-typeset p:has(.blog-btn) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1.6rem;
+  max-width: none;
+}
+
+.blog-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.md-typeset .blog-btn--primary {
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  background: var(--blog-ink);
+  color: var(--md-default-bg-color);
+}
+
+.md-typeset .blog-btn--primary:hover,
+.md-typeset .blog-btn--primary:focus-visible {
+  color: var(--md-default-bg-color);
+  opacity: 0.85;
+}
+
+.md-typeset .blog-btn--link {
+  color: var(--blog-ink);
+}
+
+.blog-btn--link::after {
+  content: "";
+  width: 0.9rem;
+  height: 0.9rem;
+  background: var(--md-primary-fg-color);
+  -webkit-mask: var(--blog-arrow) center / contain no-repeat;
+  mask: var(--blog-arrow) center / contain no-repeat;
+}
+
+.md-typeset .blog-btn--link:hover,
+.md-typeset .blog-btn--link:focus-visible {
+  color: var(--blog-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+/* --------------------------------------------------------------------------
+   Card
+   -------------------------------------------------------------------------- */
+
+.md-content__inner:has(> .md-post--excerpt) > .md-post--excerpt {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  margin: 0;
+  padding: 0.6rem 0.6rem 0.9rem;
+  border: 1px solid var(--blog-line);
+  border-radius: 14px;
+  background: var(--blog-card);
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1),
+              box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1),
+              border-color 0.2s ease;
+  animation: blog-rise 0.55s cubic-bezier(0.2, 0, 0, 1) backwards;
+}
+
+.md-content__inner:has(> .md-post--excerpt) > .md-post--excerpt:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--blog-ink) 24%, transparent);
+  box-shadow: var(--blog-lift);
+}
+
+/* soft staggered entrance; `backwards` so it never fights the hover lift */
+@keyframes blog-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.md-content__inner > .md-post--excerpt:nth-of-type(1) { animation-delay: 0.05s; }
+.md-content__inner > .md-post--excerpt:nth-of-type(2) { animation-delay: 0.10s; }
+.md-content__inner > .md-post--excerpt:nth-of-type(3) { animation-delay: 0.15s; }
+.md-content__inner > .md-post--excerpt:nth-of-type(4) { animation-delay: 0.20s; }
+.md-content__inner > .md-post--excerpt:nth-of-type(5) { animation-delay: 0.25s; }
+.md-content__inner > .md-post--excerpt:nth-of-type(n + 6) { animation-delay: 0.30s; }
+
+.md-content__inner:has(> .md-post--excerpt) > .md-post--excerpt:focus-within {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+}
+
+/* Thumbnail: plain tinted panel with the logo mark in the centre */
+.md-post--excerpt::before {
+  content: "";
+  grid-row: 1;
+  aspect-ratio: 16 / 10;
+  border-radius: 9px;
+  background:
+    url("../assets/logo-mark.png") center / 17% no-repeat,
+    linear-gradient(180deg, var(--blog-sheen), transparent 65%),
+    var(--blog-thumb-1);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blog-ink) 5%, transparent);
+  transition: background-size 0.35s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.md-content__inner:has(> .md-post--excerpt) > .md-post--excerpt:hover::before {
+  background-size: 19%, auto;
+}
+
+.md-content__inner > .md-post--excerpt:nth-of-type(3n + 2)::before {
+  background-color: var(--blog-thumb-2);
+}
+
+.md-content__inner > .md-post--excerpt:nth-of-type(3n + 3)::before {
+  background-color: var(--blog-thumb-3);
+}
+
+/* Title */
+.md-post--excerpt .md-post__content {
+  grid-row: 2;
+  padding: 0.95rem 0.3rem 0.5rem;
+}
+
+.md-post--excerpt .md-post__content h2 {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 1.5;
+}
+
+.md-post--excerpt .md-post__content h2 a {
+  color: var(--blog-ink);
+}
+
+/* Make the whole card clickable through the title link */
+.md-post--excerpt .md-post__content h2 a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 14px;
+}
+
+/* Excerpt text is hidden to match the reference. Delete this rule to show it. */
+.md-post--excerpt .md-post__content > p {
+  display: none;
+}
+
+/* "Continue reading" becomes a round arrow button in the card corner */
+.md-post--excerpt .md-post__action {
+  position: absolute;
+  right: 0.85rem;
+  bottom: 0.9rem;
+  margin: 0;
+  pointer-events: none;
+}
+
+.md-post--excerpt .md-post__action a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--blog-line);
+  border-radius: 50%;
+  font-size: 0; /* hide the text, keep it for screen readers */
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.md-post--excerpt .md-post__action a::after {
+  content: "";
+  width: 0.8rem;
+  height: 0.8rem;
+  background: var(--md-primary-fg-color);
+  -webkit-mask: var(--blog-arrow) center / contain no-repeat;
+  mask: var(--blog-arrow) center / contain no-repeat;
+  transition: background-color 0.2s ease, transform 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.md-post--excerpt:hover .md-post__action a {
+  border-color: var(--md-primary-fg-color);
+  background: var(--md-primary-fg-color);
+}
+
+.md-post--excerpt:hover .md-post__action a::after {
+  background: #fff;
+  transform: translateX(1px);
+}
+
+/* Footer row: category chips only */
+.md-post--excerpt .md-post__header {
+  grid-row: 3;
+  min-height: 1.9rem;
+  padding: 0 2.8rem 0 0.3rem;
+}
+
+.md-post--excerpt .md-post__authors {
+  display: none;
+}
+
+.md-post--excerpt .md-post__meta .md-meta__list {
+  display: block;
+  margin: 0;
+}
+
+/* hide date and read time; keep only the item that holds category links */
+.md-post--excerpt .md-meta__item:not(:has(.md-meta__link)) {
+  display: none;
+}
+
+.md-post--excerpt .md-meta__item:has(.md-meta__link) {
+  font-size: 0; /* hides the "in" text and comma separators */
+}
+
+.md-post--excerpt .md-meta__item::after {
+  content: none;
+}
+
+.md-post--excerpt .md-meta__link {
+  position: relative;
+  z-index: 2; /* stays clickable above the card-wide title link */
+  display: inline-block;
+  margin: 0 0.3rem 0.2rem 0;
+  padding: 0.1rem 0.55rem;
+  border: 1px solid var(--blog-line);
+  border-radius: 999px;
+  background: var(--blog-chip);
+  color: var(--blog-muted);
+  font-size: 0.56rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.md-post--excerpt .md-meta__link:hover {
+  color: var(--blog-ink);
+  border-color: color-mix(in srgb, var(--blog-ink) 30%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-content__inner:has(> .md-post--excerpt) > .md-post--excerpt,
+  .md-post--excerpt::before,
+  .md-post--excerpt .md-post__action a,
+  .md-post--excerpt .md-post__action a::after {
+    transition: none;
+    animation: none;
+  }
+
+  .md-content__inner:has(> .md-post--excerpt) > .md-post--excerpt:hover {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Hero safeguards
+   Forces the hero to be un-boxed and centred even if another stylesheet
+   (extra.css, an overrides/ template, a theme rule) styles the header.
+   ========================================================================== */
+
+.md-content__inner:has(> .md-post--excerpt) > header.md-typeset {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  text-align: center !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  float: none !important;
+}
+
+.md-content__inner:has(> .md-post--excerpt) > header.md-typeset > * {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
+}
+
+.md-content__inner:has(> .md-post--excerpt) > header.md-typeset::before,
+.md-content__inner:has(> .md-post--excerpt) > header.md-typeset::after {
+  display: none !important;
+}

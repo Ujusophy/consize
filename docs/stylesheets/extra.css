@@ -83,13 +83,13 @@
 .md-search__form {
   border-radius: var(--consize-radius-sm);
   background-color: var(--md-default-fg-color--lightest);
-  border: 1px solid var(--md-default-fg-color--lighter);
+  border: 1px solid transparent;
   height: 1.6rem;
   transition: border-color var(--consize-transition), box-shadow var(--consize-transition);
 }
 
 .md-search__form:hover {
-  border-color: var(--md-accent-fg-color);
+  border-color: var(--md-default-fg-color--lighter);
 }
 
 /* Focus state — when the input inside is focused, light up the pill */
@@ -133,27 +133,28 @@
        text) instead of a bare, borderless icon floating in the header.
    -------------------------------------------------------------------------- */
  
-.md-header__source {
-  margin-left: 0.4rem;
-}
- 
 .md-header__source .md-source {
-  height: 2.4rem;
-  padding: 0 0.15rem;
+  height: 2.2rem;
+  padding: 0 0.65rem;
   border-radius: var(--consize-radius-sm);
-  background-color: var(--md-default-fg-color--lightest);
-  border: 1px solid var(--md-default-fg-color--lighter);
-  transition: border-color var(--consize-transition), background-color var(--consize-transition);
+  background-color: #16181a;
+  border: 1px solid transparent;
+  color: #fff;
+  transition: background-color var(--consize-transition);
 }
- 
+
 .md-header__source .md-source:hover {
-  border-color: var(--md-accent-fg-color);
-  background-color: color-mix(in srgb, var(--md-accent-fg-color) 8%, transparent);
+  background-color: #000;
 }
- 
+
+.md-header__source .md-source .md-source__icon svg {
+  fill: #fff;
+}
+
 .md-header__source .md-source__repository {
   font-size: 0.75rem;
   font-weight: 600;
+  color: #fff;
 }
 
 /* --------------------------------------------------------------------------
@@ -862,422 +863,6 @@ html {
   box-shadow: 0 -2px 0 var(--md-accent-fg-color) inset;
 }
 
-/* ==========================================================================
-   18. Mobile navigation — larger touch targets, calmer collapse animation,
-       and a slightly wider drawer so section labels don't wrap awkwardly.
-   ========================================================================== */
-
-@media screen and (max-width: 76.234375em) {
-  .md-nav--primary .md-nav__title:not([for="__drawer"]) {
-    font-size: 0.95rem;
-    padding-top: 0.9rem;
-    padding-bottom: 0.9rem;
-  }
-
-  /* Every collapsible row (sections and pages) gets a bigger tap target */
-  .md-nav__item .md-nav__link {
-    padding-top: 0.55rem;
-    padding-bottom: 0.55rem;
-    min-height: 2.25rem;
-    display: flex;
-    align-items: center;
-  }
-
-  /* The little chevron that expands/collapses a section — make it obviously
-     tappable and give the rotation a smooth, deliberate transition rather
-     than Material's snappier desktop default. */
-  .md-nav__icon {
-    width: 1.1rem;
-    height: 1.1rem;
-    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
-  }
-
-  .md-nav__toggle ~ .md-nav {
-    transition: max-height 220ms cubic-bezier(0.2, 0, 0, 1);
-  }
-
-  /* Widen the drawer itself so nav labels have more room before wrapping */
-  .md-sidebar--primary,
-  .md-nav--primary {
-    width: 16.5rem;
-  }
-
-  [dir="ltr"] .md-sidebar--primary {
-    left: -16.5rem;
-  }
-
-  /* Comfortable resting space below the last nav item so the drawer
-     doesn't end abruptly against the viewport edge on short screens. */
-  .md-nav--primary > .md-nav__list {
-    padding-bottom: 2rem;
-  }
-
-  /* Material truncates nav labels with the shared .md-ellipsis utility
-     (white-space: nowrap + text-overflow: ellipsis). On mobile the drawer
-     is narrower and nested items are further indented, so longer labels
-     ("Production Installation", "Kubernetes Rightsizing") were getting
-     cut off with "…" instead of showing in full. Let them wrap onto a
-     second line instead of truncating.
-
-     min-width: 0 is the actual fix, not just the white-space/overflow
-     properties: .md-nav__link is a flex row, and without min-width: 0 a
-     flex child defaults to a minimum width equal to its full UNWRAPPED
-     content size — so even with white-space: normal telling it to wrap,
-     the browser still reserves (and can overflow) the full-width box
-     instead of actually shrinking it down to wrap. This is the standard
-     "flex child won't shrink" gotcha (sometimes called flexbug #1). */
-  .md-nav--primary .md-nav__link .md-ellipsis {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
-    word-break: break-word;
-    line-height: 1.3;
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-
-  /* The flex row + min-height above assumed single-line labels; let rows
-     with a wrapped, two-line label grow instead of centering text into
-     a cramped fixed-height box. min-width: 0 here too, for the same
-     flexbug reason — .md-nav__link itself is a flex child of .md-nav__item
-     in some nesting contexts, so it can spill horizontally as well. */
-  .md-nav__item .md-nav__link {
-    min-height: 2.25rem;
-    height: auto;
-    min-width: 0;
-  }
-
-  [data-md-toggle="drawer"]:checked ~ .md-container .md-sidebar--primary {
-    transform: translateX(16.5rem);
-  }
-}
-
-/* --------------------------------------------------------------------------
-   18. Blog — magazine-style grid, modeled on merge.dev/blog: image-led
-       cards in a multi-column grid, category chips + date pinned to the
-       card footer, hero banner intro. Scoped with :has() so none of this
-       touches normal docs pages, only the blog index/category/archive
-       listings (which render one or more <article class="md-post"> as
-       direct children of .md-content__inner) and the excerpt card itself
-       (.md-post--excerpt, only present on listing pages, not the full
-       single-post page).
-   -------------------------------------------------------------------------- */
-
-/* --- Hero header (index/category/archive intro) ------------------------- */
-
-.md-content__inner:has(> article.md-post) > header {
-  padding: 2.5rem 2rem;
-  margin: 0 0 2rem;
-  border-radius: var(--consize-radius);
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--md-accent-fg-color) 10%, transparent),
-    color-mix(in srgb, var(--md-primary-fg-color) 6%, transparent));
-  border: 1px solid var(--md-default-fg-color--lightest);
-}
-
-.md-content__inner:has(> article.md-post) > header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.4rem;
-}
-
-.md-content__inner:has(> article.md-post) > header .consize-kicker {
-  margin-top: 0;
-}
-
-.md-content__inner:has(> article.md-post) > header p:last-child {
-  max-width: 40rem;
-  font-size: 1rem;
-  color: var(--md-default-fg-color--light);
-}
-
-/* --- Card grid ------------------------------------------------------------
-   .md-content__inner normally holds prose (single column), so this only
-   switches to a grid when it directly contains post cards. Header and
-   pagination span the full width; the cards themselves flow into columns. */
-
-.md-content__inner:has(> article.md-post) {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.75rem;
-  align-items: start;
-}
-
-.md-content__inner:has(> article.md-post) > header,
-.md-content__inner:has(> article.md-post) > nav.md-pagination {
-  grid-column: 1 / -1;
-}
-
-/* --- Card shell ------------------------------------------------------------
-   padding: 0 so the featured image can bleed edge-to-edge; overflow:
-   hidden clips that image to the card's own rounded corners for free. */
-
-.md-typeset article.md-post.md-post--excerpt {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  margin: 0;
-  overflow: hidden;
-  border-radius: var(--consize-radius);
-  border: 1px solid var(--md-default-fg-color--lightest);
-  box-shadow: var(--consize-shadow);
-  transition: transform var(--consize-transition),
-              box-shadow var(--consize-transition),
-              border-color var(--consize-transition);
-}
-
-.md-typeset article.md-post.md-post--excerpt:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--consize-shadow-hover);
-  border-color: var(--md-accent-fg-color);
-}
-
-/* Whole card is clickable, same stretched-link technique used on the
-   homepage grid.cards (section 5), targeting the title link specifically. */
-.md-typeset article.md-post.md-post--excerpt {
-  position: relative;
-}
-
-.md-typeset article.md-post.md-post--excerpt .md-post__content > h2 > a::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
-.md-typeset article.md-post.md-post--excerpt:hover {
-  cursor: pointer;
-}
-
-/* --- Content reorder: image → title → excerpt → footer meta ------------- */
-
-.md-typeset article.md-post.md-post--excerpt {
-  /* header (byline/date/categories) and content (title/image/excerpt)
-     are siblings in that DOM order by default; flip so content's image
-     leads, and pin header to the bottom as a footer strip. */
-}
-
-.md-typeset article.md-post.md-post--excerpt > .md-post__content {
-  order: 1;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  padding: 0 1.35rem;
-}
-
-.md-typeset article.md-post.md-post--excerpt > .md-post__header {
-  order: 2;
-}
-
-/* Hide the author avatar on cards entirely, Merge-style, it's a distraction
-   in a dense grid. The avatar still shows in full on the single-post page,
-   this rule only fires inside the excerpt card. */
-.md-typeset article.md-post.md-post--excerpt .md-post__authors {
-  display: none;
-}
-
-/* Featured image — the paragraph that wraps it bleeds to the card edges
-   and jumps to the very top of the content block, ahead of the title. */
-.md-typeset article.md-post.md-post--excerpt .md-post__content > p:has(> img:only-child) {
-  order: -1;
-  margin: 0 -1.35rem 1rem;
-}
-
-.md-typeset article.md-post.md-post--excerpt .md-post__content > p:has(> img:only-child) img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-}
-
-/* No image on a post? Give the title breathing room instead of sitting
-   flush against the card's top edge. */
-.md-typeset article.md-post.md-post--excerpt .md-post__content:not(:has(> p:has(> img:only-child))) > h2 {
-  margin-top: 1.35rem;
-}
-
-.md-typeset article.md-post.md-post--excerpt .md-post__content > h2 {
-  order: 0;
-  font-size: 1.2rem;
-  line-height: 1.3;
-  margin-top: 1.1rem;
-  margin-bottom: 0.5rem;
-}
-
-.md-typeset article.md-post.md-post--excerpt .md-post__content > h2 a {
-  position: relative;
-  z-index: 2;
-  color: var(--md-default-fg-color);
-}
-
-.md-typeset article.md-post.md-post--excerpt:hover .md-post__content > h2 a {
-  color: var(--md-accent-fg-color);
-}
-
-/* Excerpt paragraph — clamp to three lines so cards in the same row stay
-   roughly the same height regardless of how long each teaser runs. */
-.md-typeset article.md-post.md-post--excerpt .md-post__content > p:not(:has(> img:only-child)) {
-  order: 2;
-  margin: 0 0 1.1rem;
-  font-size: 0.85rem;
-  color: var(--md-default-fg-color--light);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* "Continue reading" text link is redundant once the whole card is
-   clickable, and it duplicates the title link, drop it from the grid. */
-.md-typeset article.md-post.md-post--excerpt .md-post__action {
-  display: none;
-}
-
-/* --- Footer meta strip: category chips + date -------------------------- */
-
-.md-typeset article.md-post.md-post--excerpt > .md-post__header {
-  padding: 0.9rem 1.35rem;
-  margin: auto 0 0;
-  border-top: 1px solid var(--md-default-fg-color--lightest);
-}
-
-.md-typeset article.md-post.md-post--excerpt .md-post__meta {
-  font-size: 0.68rem;
-  color: var(--md-default-fg-color--light);
-}
-
-/* Category chips wrap onto their own full-width row above; date and
-   read-time share the row underneath. */
-.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__list {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 0.6rem;
-}
-
-.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__item:has(a) {
-  order: -1;
-  flex-basis: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-bottom: 0.15rem;
-}
-
-.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__item:not(:has(a)) {
-  display: flex;
-  align-items: center;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__item::after {
-  content: none;
-}
-
-/* Categories get the same pill treatment as the homepage kicker. */
-.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__link {
-  position: relative;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  background-color: color-mix(in srgb, var(--md-accent-fg-color) 14%, transparent);
-  color: var(--md-accent-fg-color);
-  font-weight: 700;
-  font-size: 0.68rem;
-  text-transform: none;
-  letter-spacing: normal;
-  text-decoration: none;
-  transition: background-color var(--consize-transition);
-}
-
-.md-typeset article.md-post.md-post--excerpt .md-post__meta .md-meta__link:hover {
-  background-color: color-mix(in srgb, var(--md-accent-fg-color) 26%, transparent);
-  text-decoration: none;
-}
-
-/* --- Single post page: real hero weight, unaffected by the card rules -- */
-
-article[class="md-content__inner md-typeset"] > h1 {
-  font-size: 2rem;
-}
-
-article[class="md-content__inner md-typeset"] > p:first-of-type:has(> img:only-child) img {
-  width: 100%;
-  border-radius: var(--consize-radius);
-  box-shadow: var(--consize-shadow-hover);
-  margin: 0.5rem 0 1.5rem;
-}
-
-/* --- Pagination — bordered pill buttons instead of bare arrows --------- */
-
-.md-typeset .md-pagination {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.md-typeset .md-pagination a,
-.md-typeset .md-pagination span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2rem;
-  height: 2rem;
-  padding: 0 0.5rem;
-  border-radius: var(--consize-radius-sm);
-  border: 1px solid var(--md-default-fg-color--lightest);
-  font-size: 0.8rem;
-  text-decoration: none;
-}
-
-.md-typeset .md-pagination a:hover {
-  border-color: var(--md-accent-fg-color);
-  color: var(--md-accent-fg-color);
-}
-
-.md-typeset .md-pagination .md-pagination__current {
-  background-color: var(--md-accent-fg-color);
-  border-color: var(--md-accent-fg-color);
-  color: var(--md-primary-bg-color);
-  font-weight: 700;
-}
-
-/* --- End-of-post CTA panel (single post page) --------------------------- */
-
-.md-typeset .consize-post-cta {
-  margin-top: 2rem;
-  padding: 1.25rem 1.5rem;
-  border-radius: var(--consize-radius);
-  border: 1px solid color-mix(in srgb, var(--md-accent-fg-color) 25%, var(--md-default-fg-color--lightest));
-  background-color: color-mix(in srgb, var(--md-accent-fg-color) 6%, transparent);
-}
-
-.md-typeset .consize-post-cta > p {
-  margin: 0 0 0.85rem;
-  font-size: 0.82rem;
-  line-height: 1.5;
-  color: var(--md-default-fg-color--light);
-}
-
-.md-typeset .consize-post-cta .md-button {
-  padding: 0.25rem 0.8rem;
-  font-size: 0.7rem;
-}
-
-.md-typeset .consize-post-cta .md-button:not(.md-button--primary) {
-  border-color: var(--md-accent-fg-color);
-  color: var(--md-accent-fg-color);
-}
-
-.md-typeset .consize-post-cta .md-button:not(.md-button--primary):hover {
-  background-color: var(--md-accent-fg-color);
-  color: var(--md-primary-bg-color);
-}
-
 /* --------------------------------------------------------------------------
    19. Search — "Suggested" panel shown before the user types, Merge-docs
        style. Sits as a sibling of .md-search-result so it never fights
@@ -1328,4 +913,1024 @@ article[class="md-content__inner md-typeset"] > p:first-of-type:has(> img:only-c
   font-size: 0.7rem;
   color: var(--md-default-fg-color--light);
   margin-top: 0.1rem;
+}
+
+/* -----------------------------------------------------------------------
+   20. Top tabs dropdown — pairs with overrides/partials/tabs-item.html
+   -------------------------------------------------------------------------- */
+
+.consize-tabs__item--has-menu {
+  position: relative;
+}
+
+.consize-tabs__chevron {
+  margin-left: 0.15rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.consize-tabs__item--has-menu:hover .consize-tabs__chevron,
+.consize-tabs__item--has-menu:focus-within .consize-tabs__chevron {
+  transform: rotate(180deg);
+}
+
+.consize-tabs__menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  min-width: 12rem;
+  margin: 0.4rem 0 0;
+  padding: 0.4rem;
+  list-style: none;
+  background: var(--md-default-bg-color);
+  border-radius: var(--consize-radius-sm);
+  box-shadow: var(--consize-shadow-hover);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+}
+
+.consize-tabs__item--has-menu::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 0.4rem;
+}
+
+.consize-tabs__item--has-menu:hover .consize-tabs__menu,
+.consize-tabs__item--has-menu:focus-within .consize-tabs__menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.consize-tabs__menu-item a {
+  display: block;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--consize-radius-sm);
+  font-size: 0.7rem;
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+}
+
+.consize-tabs__menu-item a:hover {
+  background: var(--md-default-fg-color--lightest);
+  color: var(--md-accent-fg-color);
+}
+
+.consize-tabs__menu-item--active a {
+  color: var(--md-accent-fg-color);
+  font-weight: 600;
+}
+
+@media screen and (max-width: 76.234375em) {
+  .consize-tabs__menu {
+    display: none;
+  }
+}
+
+/* -----------------------------------------------------------------------
+   21. Let the tab dropdown escape the tabs bar's own clipping box.
+       Material sets overflow: auto + contain: content on .md-tabs and
+       .md-tabs__list so a long row of tabs can scroll horizontally —
+       but that same overflow/containment clips anything that pokes
+       outside the bar, including our dropdown menu, which is nested
+       inside .md-tabs__list. Since Consize only has 4 top-level tabs
+       (never enough to need horizontal scrolling), it's safe to trade
+       that scroll behavior away in exchange for the dropdown actually
+       being visible.
+   -------------------------------------------------------------------------- */
+
+.md-tabs,
+.md-tabs__list {
+  overflow: visible;
+  contain: none;
+}
+
+/* Material scales html font-size up on wider screens (125% → 137.5% →
+   150%), which combined with .md-typeset's 0.8rem body copy works out
+   to ~19px body text on desktop — noticeably larger than typical docs
+   sites (Merge/Fern-style docs run body copy around 14-15px). Pin the
+   root size instead of letting it escalate, since every other rem value
+   in this file scales off this one number. */
+html {
+  font-size: 120% !important;
+}
+
+
+
+/* ==========================================================================
+   22. REDESIGN LAYER
+   Appended last on purpose: everything below overrides earlier sections.
+   Brand: emerald #0B8961 (sampled from the logo) on near-black #101110,
+   matching the real product UI instead of Material's stock teal/white.
+   ========================================================================== */
+
+/* --- 22a. Colour tokens ------------------------------------------------ */
+
+:root {
+  --consize-green: #0b8961;
+  --consize-green-deep: #06694a;
+  --consize-green-bright: #34d399;
+  --consize-radius: 14px;
+  --consize-radius-sm: 8px;
+}
+
+[data-md-color-scheme="default"] {
+  --md-default-bg-color: #fbfcfb;
+  --md-default-fg-color: #101512;
+  --md-default-fg-color--light: #56635c;
+  --md-default-fg-color--lighter: rgba(16, 21, 18, 0.28);
+  --md-default-fg-color--lightest: rgba(16, 40, 28, 0.09);
+  --md-typeset-color: #1d2621;
+  --md-code-bg-color: #f1f5f3;
+
+  --md-primary-fg-color: var(--consize-green);
+  --md-primary-fg-color--light: #2fb58a;
+  --md-primary-fg-color--dark: var(--consize-green-deep);
+  --md-primary-bg-color: #ffffff;
+  --md-accent-fg-color: var(--consize-green);
+  --md-accent-fg-color--transparent: rgba(11, 137, 97, 0.09);
+  --md-typeset-a-color: var(--consize-green-deep);
+
+  --consize-surface: #ffffff;
+  --consize-surface-2: #f4f8f6;
+  --consize-border: rgba(16, 40, 28, 0.10);
+  --consize-glow: rgba(11, 137, 97, 0.16);
+  --consize-shadow: 0 1px 2px rgba(16, 40, 28, 0.05), 0 4px 14px rgba(16, 40, 28, 0.04);
+  --consize-shadow-hover: 0 12px 32px rgba(11, 137, 97, 0.14), 0 2px 8px rgba(16, 40, 28, 0.06);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #0c0e0d;
+  --md-default-fg-color: rgba(255, 255, 255, 0.94);
+  --md-default-fg-color--light: rgba(226, 238, 231, 0.62);
+  --md-default-fg-color--lighter: rgba(255, 255, 255, 0.22);
+  --md-default-fg-color--lightest: rgba(255, 255, 255, 0.08);
+  --md-typeset-color: #d6ded9;
+  --md-code-bg-color: #131716;
+
+  --md-primary-fg-color: var(--consize-green-bright);
+  --md-primary-fg-color--light: #6ee7b7;
+  --md-primary-fg-color--dark: var(--consize-green);
+  --md-primary-bg-color: #04150e;
+  --md-accent-fg-color: var(--consize-green-bright);
+  --md-accent-fg-color--transparent: rgba(52, 211, 153, 0.12);
+  --md-typeset-a-color: var(--consize-green-bright);
+
+  --consize-surface: #121514;
+  --consize-surface-2: #171b19;
+  --consize-border: rgba(255, 255, 255, 0.09);
+  --consize-glow: rgba(52, 211, 153, 0.16);
+  --consize-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --consize-shadow-hover: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(52, 211, 153, 0.25);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--md-accent-fg-color) 28%, transparent);
+}
+
+/* Lets decorative glows bleed past the content column without causing
+   sideways scroll (clip, unlike hidden, keeps sticky sidebars working). */
+.md-container {
+  overflow-x: clip;
+}
+
+/* --- 22b. Header: translucent, blurred, with a soft brand cue ---------- */
+
+.md-header,
+.md-tabs {
+  background-color: color-mix(in srgb, var(--md-default-bg-color) 82%, transparent);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  backdrop-filter: saturate(160%) blur(14px);
+}
+
+.md-header__source .md-source {
+  border: 1px solid var(--consize-border);
+}
+
+[data-md-color-scheme="slate"] .md-header__source .md-source {
+  background-color: var(--consize-surface-2);
+}
+
+.md-tabs__link {
+  font-weight: 500;
+  font-size: 0.68rem;
+}
+
+.md-tabs__item--active .md-tabs__link {
+  font-weight: 700;
+  box-shadow: 0 -2px 0 var(--consize-green) inset;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__item--active .md-tabs__link {
+  box-shadow: 0 -2px 0 var(--consize-green-bright) inset;
+}
+
+/* --- 22c. Sidebar: quieter labels, clear active pill ------------------- */
+
+.md-nav--primary > .md-nav__list > .md-nav__item > .md-nav__link {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: var(--md-default-fg-color--light);
+  margin-top: 1.4rem;
+}
+
+.md-nav--primary .md-nav__item .md-nav__item .md-nav__link {
+  font-size: 0.76rem;
+  padding: 0.4rem 0.7rem;
+  margin: 1px 0;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-nav--primary .md-nav__item .md-nav__item .md-nav__link:hover {
+  color: var(--md-default-fg-color);
+}
+
+.md-nav--primary .md-nav__link--active {
+  color: var(--md-accent-fg-color) !important;
+  background-color: var(--md-accent-fg-color--transparent);
+  box-shadow: inset 2px 0 0 var(--md-accent-fg-color);
+}
+
+/* --- 22d. Typography --------------------------------------------------- */
+
+.md-typeset {
+  color: var(--md-typeset-color);
+}
+
+.md-typeset h1 {
+  color: var(--md-default-fg-color);
+  font-size: 2.1em;
+  line-height: 1.15;
+}
+
+.md-typeset h2 {
+  color: var(--md-default-fg-color);
+  font-size: 1.55em;
+  margin-top: 2.8em;
+  padding-top: 0;
+  border-top: none;
+}
+
+.md-typeset h3 {
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset hr {
+  border-bottom: 1px solid var(--consize-border);
+  margin: 2.2em 0;
+}
+
+.md-typeset a:not(.md-button):not(.headerlink) {
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in srgb, var(--md-accent-fg-color) 35%, transparent);
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color var(--consize-transition);
+}
+
+.md-typeset a:not(.md-button):not(.headerlink):hover {
+  text-decoration-color: var(--md-accent-fg-color);
+}
+
+.md-typeset .grid.cards a,
+.md-typeset .md-button,
+.md-typeset .tabbed-labels a,
+.md-typeset .tabbed-labels label a {
+  text-decoration: none !important;
+}
+
+.md-typeset code {
+  color: var(--md-accent-fg-color);
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 8%, transparent);
+}
+
+.md-typeset pre code,
+.md-typeset .highlight code {
+  color: inherit;
+  background: transparent;
+}
+
+/* --- 22e. Buttons ------------------------------------------------------ */
+
+.md-typeset .md-button {
+  border: 1.5px solid var(--consize-border);
+  color: var(--md-default-fg-color);
+  background: var(--consize-surface);
+  padding: 0.65em 1.5em;
+}
+
+.md-typeset .md-button:hover {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-accent-fg-color);
+  background: var(--consize-surface);
+}
+
+.md-typeset .md-button--primary {
+  background: linear-gradient(135deg, #12a978 0%, var(--consize-green) 55%, var(--consize-green-deep) 100%);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(11, 137, 97, 0.35);
+}
+
+.md-typeset .md-button--primary:hover {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #16b985 0%, #0b9a6d 55%, var(--consize-green) 100%);
+  box-shadow: 0 10px 26px rgba(11, 137, 97, 0.45);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary {
+  background: linear-gradient(135deg, #5eead4 0%, var(--consize-green-bright) 55%, #10b981 100%);
+  color: #04150e;
+  box-shadow: 0 6px 22px rgba(52, 211, 153, 0.28);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary:hover {
+  color: #04150e;
+  box-shadow: 0 10px 30px rgba(52, 211, 153, 0.4);
+}
+
+/* --- 22f. Homepage hero ------------------------------------------------ */
+
+.md-content__inner:has(.consize-hero) {
+  max-width: 54rem;
+}
+
+.consize-hero {
+  position: relative;
+  text-align: center;
+  padding: 1.5rem 0 1rem;
+}
+
+/* Soft brand glow behind the headline + a faint dot grid fading out */
+.consize-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -6rem -14rem 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 18%, var(--consize-glow), transparent 70%),
+    radial-gradient(circle at 1px 1px, var(--consize-border) 1px, transparent 0) 0 0 / 22px 22px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+}
+
+.consize-hero .consize-kicker {
+  margin: 0 auto 1rem;
+}
+
+.md-typeset .consize-hero h1 {
+  font-size: clamp(2rem, 4.6vw, 3.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  margin: 0 auto 0.6em;
+  max-width: 16em;
+}
+
+.consize-gradient {
+  background: linear-gradient(100deg, var(--consize-green-deep) 0%, var(--consize-green) 45%, #14a877 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-md-color-scheme="slate"] .consize-gradient {
+  background-image: linear-gradient(100deg, #34d399 0%, #6ee7b7 55%, #b7f7d8 100%);
+}
+
+.consize-hero > p {
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 0.85rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.consize-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0 1.1rem;
+}
+
+.consize-hero__actions p {
+  display: contents;
+}
+
+.consize-hero__actions .md-button {
+  margin: 0;
+}
+
+/* One-line install command, styled as a compact terminal chip */
+.consize-hero__cmd {
+  max-width: 40rem;
+  margin: 0 auto 2.5rem;
+  text-align: left;
+}
+
+.consize-hero__cmd .highlight {
+  margin: 0;
+  border-radius: 999px;
+  border: 1px solid var(--consize-border);
+  background: var(--consize-surface);
+  box-shadow: var(--consize-shadow);
+}
+
+.consize-hero__cmd .highlight::before {
+  display: none;
+}
+
+.consize-hero__cmd .highlight pre {
+  padding: 0;
+  background: transparent;
+}
+
+.consize-hero__cmd .highlight pre code {
+  display: block;
+  padding: 0.8rem 3rem 0.8rem 1.3rem;
+  font-size: 0.66rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.consize-hero__cmd .highlight pre code::before {
+  content: "$ ";
+  color: var(--md-accent-fg-color);
+  font-weight: 700;
+}
+
+.consize-hero__cmd .md-clipboard {
+  top: 50%;
+  right: 0.9rem;
+  transform: translateY(-50%);
+  opacity: 0.8;
+}
+
+/* Screenshot in a browser-style frame with a green under-glow */
+.consize-shot {
+  position: relative;
+  max-width: 56rem;
+  margin: 0 auto;
+  border-radius: 16px;
+  border: 1px solid var(--consize-border);
+  background: var(--consize-surface);
+  box-shadow: 0 30px 70px -20px var(--consize-glow), 0 12px 30px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+  text-align: left;
+}
+
+.consize-shot::before {
+  content: "";
+  display: block;
+  height: 1.7rem;
+  background:
+    radial-gradient(circle 4px at 1.1rem 50%, #ff5f57 98%, transparent) ,
+    radial-gradient(circle 4px at 1.95rem 50%, #febc2e 98%, transparent),
+    radial-gradient(circle 4px at 2.8rem 50%, #28c840 98%, transparent),
+    var(--consize-surface-2);
+  border-bottom: 1px solid var(--consize-border);
+}
+
+.consize-shot p {
+  margin: 0;
+}
+
+.md-typeset .consize-shot img.consize-hero-shot {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Highlights strip under the hero */
+.consize-highlights {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 3rem 0 1.2rem;
+  border: 1px solid var(--consize-border);
+  border-radius: var(--consize-radius);
+  background: var(--consize-surface);
+  box-shadow: var(--consize-shadow);
+  overflow: hidden;
+}
+
+.consize-highlights > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1.1rem 1.2rem;
+  border-left: 1px solid var(--consize-border);
+}
+
+.consize-highlights > div:first-child {
+  border-left: 0;
+}
+
+.consize-highlights strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--md-accent-fg-color);
+}
+
+.consize-highlights span {
+  font-size: 0.66rem;
+  line-height: 1.45;
+  color: var(--md-default-fg-color--light);
+}
+
+@media screen and (max-width: 59.9375em) {
+  .consize-highlights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .consize-highlights > div:nth-child(3) {
+    border-left: 0;
+  }
+  .consize-highlights > div:nth-child(n + 3) {
+    border-top: 1px solid var(--consize-border);
+  }
+}
+
+.consize-note {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--md-default-fg-color--light);
+}
+
+/* --- 22g. Cards: real surfaces, tinted icon tiles, lively hover -------- */
+
+.md-typeset .grid.cards {
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+}
+
+.md-typeset .grid.cards > ul > li {
+  background: var(--consize-surface);
+  border: 1px solid var(--consize-border);
+  border-radius: var(--consize-radius);
+  box-shadow: var(--consize-shadow);
+  padding: 1.1rem 1.2rem;
+  overflow: hidden;
+}
+
+/* thin brand line that draws in along the top edge on hover */
+.md-typeset .grid.cards > ul > li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--consize-green), var(--consize-green-bright));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 260ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.md-typeset .grid.cards > ul > li:hover::before {
+  transform: scaleX(1);
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--consize-shadow-hover);
+  border-color: color-mix(in srgb, var(--md-accent-fg-color) 45%, transparent);
+}
+
+.md-typeset .grid.cards > ul > li .twemoji,
+.md-typeset .grid.cards svg[class*="mdi"] {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 11px;
+  margin-bottom: 0.5rem;
+  color: var(--md-accent-fg-color);
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--md-accent-fg-color) 16%, transparent),
+      color-mix(in srgb, var(--md-accent-fg-color) 6%, transparent));
+  border: 1px solid color-mix(in srgb, var(--md-accent-fg-color) 22%, transparent);
+}
+
+.md-typeset .grid.cards > ul > li .twemoji svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.md-typeset .grid.cards > ul > li > p:first-child {
+  margin-bottom: 0.2rem;
+}
+
+.md-typeset .grid.cards > ul > li > p:first-child strong {
+  font-size: 0.9rem;
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset .grid.cards > ul > li > hr {
+  border-color: var(--consize-border);
+}
+
+.md-typeset .grid.cards > ul > li > p:last-child {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+/* --- 22h. Code, admonitions, tables, diagrams -------------------------- */
+
+.md-typeset .highlight {
+  border-color: var(--consize-border);
+  border-radius: var(--consize-radius-sm);
+}
+
+.md-typeset .highlight::before {
+  background-color: var(--consize-surface-2);
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: var(--consize-radius-sm);
+  background: var(--consize-surface);
+  border: 1px solid var(--consize-border);
+  border-left-width: 4px;
+}
+
+.md-typeset table:not([class]) {
+  border: 1px solid var(--consize-border);
+  border-radius: var(--consize-radius-sm);
+  background: var(--consize-surface);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 8%, var(--consize-surface));
+  color: var(--md-default-fg-color);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.md-typeset table:not([class]) td,
+.md-typeset table:not([class]) th {
+  border-top: 1px solid var(--consize-border);
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background-color: transparent;
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* Diagrams sit on a panel instead of floating on the page */
+.md-typeset .mermaid {
+  padding: 1.6rem 1rem;
+  border: 1px solid var(--consize-border);
+  border-radius: var(--consize-radius);
+  background: var(--consize-surface);
+  box-shadow: var(--consize-shadow);
+  overflow-x: auto;
+}
+
+/* --- 22i. Footer, feedback -------------------------------------------- */
+
+.consize-site-footer {
+  background-color: var(--consize-surface-2);
+}
+
+.consize-page-feedback {
+  border-color: var(--consize-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-typeset .grid.cards > ul > li::before {
+    transition: none;
+  }
+}
+
+/* --- 22j. Homepage: no footer -------------------------------------------
+   Hides the link-grid footer and Material's bottom bar, on the homepage
+   only. Detected via the hero block, so every other page keeps its footer.
+   ------------------------------------------------------------------------ */
+
+body:has(.consize-hero) .consize-site-footer,
+body:has(.consize-hero) .md-footer {
+  display: none;
+}
+
+/* --- 22k. Homepage: no side navigation, centred content --- */
+
+@media screen and (min-width: 76.25em) {
+  body:has(.consize-hero) .md-sidebar--primary,
+  body:has(.consize-hero) .md-sidebar--secondary {
+    display: none;
+  }
+
+  body:has(.consize-hero) .md-content {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  body:has(.consize-hero) .md-content__inner {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+/* --- 23. Homepage "Get started in three steps" ---------------------------
+   Three equal, centred, tall cards. Each has an icon tile, a title with a
+   chevron, a short description, and a list of page links (label on the
+   left, arrow on the right) pinned to the bottom so the rows line up
+   across all three cards.
+   ------------------------------------------------------------------------ */
+
+.md-typeset .consize-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+  margin: 1.4rem auto 2rem;
+}
+
+.md-typeset .consize-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 22rem;
+  padding: 2.2rem 1.4rem 1rem;
+  background: var(--consize-surface);
+  border: 1px solid var(--consize-border);
+  border-radius: var(--consize-radius);
+  box-shadow: var(--consize-shadow);
+  overflow: hidden;
+  transition: transform var(--consize-transition),
+              box-shadow var(--consize-transition),
+              border-color var(--consize-transition);
+}
+
+/* brand line that draws in along the top edge on hover */
+.md-typeset .consize-step::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--consize-green), var(--consize-green-bright));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 260ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.md-typeset .consize-step:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--consize-shadow-hover);
+  border-color: color-mix(in srgb, var(--md-accent-fg-color) 45%, transparent);
+}
+
+.md-typeset .consize-step:hover::before {
+  transform: scaleX(1);
+}
+
+/* icon tile */
+.md-typeset .consize-step__icon p {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.md-typeset .consize-step__icon .twemoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 13px;
+  color: var(--md-accent-fg-color);
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--md-accent-fg-color) 16%, transparent),
+      color-mix(in srgb, var(--md-accent-fg-color) 6%, transparent));
+  border: 1px solid color-mix(in srgb, var(--md-accent-fg-color) 22%, transparent);
+}
+
+.md-typeset .consize-step__icon .twemoji svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* title + chevron */
+.md-typeset .consize-step__title {
+  margin-top: 1rem;
+}
+
+.md-typeset .consize-step__title p {
+  margin: 0;
+}
+
+.md-typeset .consize-step .consize-step__title a:not(.md-button) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--md-default-fg-color);
+  text-decoration: none !important;
+}
+
+.md-typeset .consize-step__title a::after {
+  content: "";
+  width: 0.9rem;
+  height: 0.9rem;
+  background-color: currentColor;
+  opacity: 0.55;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+  transition: transform var(--consize-transition), opacity var(--consize-transition);
+}
+
+.md-typeset .consize-step__title a:hover::after {
+  transform: translateX(3px);
+  opacity: 1;
+}
+
+/* description */
+.md-typeset .consize-step > p {
+  margin: 0.5rem 0 1.4rem;
+  max-width: 22rem;
+  font-size: 0.72rem;
+  line-height: 1.65;
+  color: var(--md-default-fg-color--light);
+}
+
+/* link rows: label left, arrow right, pinned to the bottom of the card */
+.md-typeset .consize-step__links {
+  width: 100%;
+  margin-top: auto;
+  text-align: left;
+}
+
+.md-typeset .consize-step__links ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.md-typeset .consize-step__links li {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--consize-border);
+}
+
+.md-typeset .consize-step .consize-step__links a:not(.md-button) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.15rem;
+  font-size: 0.74rem;
+  color: var(--md-default-fg-color--light);
+  text-decoration: none !important;
+  transition: color var(--consize-transition);
+}
+
+.md-typeset .consize-step__links a::after {
+  content: "";
+  flex: none;
+  width: 0.95rem;
+  height: 0.95rem;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+  transition: transform var(--consize-transition);
+}
+
+.md-typeset .consize-step .consize-step__links a:not(.md-button):hover {
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .consize-step__links a:hover::after {
+  transform: translateX(4px);
+}
+
+.md-typeset .consize-step a:focus-visible {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* stack the cards on narrow screens */
+@media screen and (max-width: 60em) {
+  .md-typeset .consize-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .md-typeset .consize-step {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-typeset .consize-step,
+  .md-typeset .consize-step::before,
+  .md-typeset .consize-step a::after {
+    transition: none;
+  }
+}
+
+/* --- 24. Search bar — centred, long, page-background box with a stroke ---
+   APPEND THIS TO THE VERY END of docs/stylesheets/extra.css.
+   It overrides sections 1c and 17a, so leave those in place.
+   Desktop only (>= 60em); below that Material's own mobile search
+   (icon that opens a full-screen search) is left untouched.
+   ------------------------------------------------------------------------ */
+
+:root {
+  --consize-search-max-width: 42rem;
+  /* stroke colour — bump to --md-default-fg-color--light for a stronger line */
+  --consize-search-stroke: var(--md-default-fg-color--lighter);
+}
+
+@media screen and (min-width: 60em) {
+
+  /* .md-grid is full-width (section 2b), so the header row spans the
+     viewport and centring inside it = centring on the page. */
+  .md-header__inner {
+    position: relative;
+  }
+
+  .md-search {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    /* long, but always clear of logo/title (left) and repo button + toggle (right) */
+    width: clamp(16rem, calc(100% - 40rem), var(--consize-search-max-width));
+  }
+
+  /* Fixed width: no shrinking at rest, no growing on focus */
+  .md-search__inner,
+  [data-md-toggle="search"]:checked ~ .md-header .md-search__inner {
+    float: none;
+    width: 100%;
+  }
+
+  /* The box itself: same colour as the page, with a visible stroke */
+  .md-search__form,
+  .md-search__form:hover,
+  [data-md-toggle="search"]:checked ~ .md-header .md-search__form {
+    height: 2rem;
+    background-color: var(--md-default-bg-color);
+    border: 1px solid var(--consize-search-stroke);
+    border-radius: var(--consize-radius-sm);
+    box-shadow: none;
+  }
+
+  .md-search__form:hover {
+    border-color: var(--md-default-fg-color--light);
+  }
+
+  /* keep the accent focus ring from section 1c (must come after :hover) */
+  .md-search__form:focus-within,
+  [data-md-toggle="search"]:checked ~ .md-header .md-search__form:focus-within {
+    border-color: var(--md-accent-fg-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-accent-fg-color) 18%, transparent);
+  }
+}
+
+/* --- 25. Slack icon in the header (full-colour logo) ---
+   Replaces any earlier section 25. The SVG carries its own brand
+   colours, so no fill is set here. */
+
+.consize-header-slack {
+  display: flex !important;
+  align-items: center;
+  opacity: 0.9;
+  transition: opacity var(--consize-transition), transform var(--consize-transition);
+}
+
+.consize-header-slack svg {
+  display: block;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.consize-header-slack:hover {
+  opacity: 1;
+  transform: scale(1.08);
 }

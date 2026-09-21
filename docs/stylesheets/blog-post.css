@@ -1,0 +1,752 @@
+/* ==========================================================================
+   Consize blog: article page, modelled on a Medium story.
+
+   Pairs with overrides/blog-post.html. Only affects individual post pages
+   (everything is scoped under .consize-post), so the listing page styled in
+   blog.css and the rest of the docs are untouched.
+
+   Type scale (desktop)
+     title        Inter 700   34 / 42   -0.022em
+     byline name  Inter 500   16 / 20
+     byline meta  Inter 400   14 / 20   muted
+     h2           Inter 700   24 / 30   -0.019em
+     h3           Inter 700   19 / 25   -0.016em
+     body         Source Serif 4  400   17 / 1.6 (16 / 26 on phones)
+     code         JetBrains Mono  14px
+   Column width is 680px, same as Medium. Body size is --post-body-size below.
+
+   Sizes are in px on purpose: Material scales `rem` up on wide screens
+   (html font-size 125% to 150%), which would make a 680px reading column
+   drift wider and the type larger on big monitors.
+   ========================================================================== */
+
+.consize-post {
+  --post-ink: var(--blog-ink, #242424);
+  --post-muted: var(--blog-muted, #6b6b6b);
+  --post-line: var(--blog-line, #e6e6e6);
+  --post-wash: color-mix(in srgb, var(--post-ink) 6%, transparent);
+  --post-wash-strong: color-mix(in srgb, var(--post-ink) 11%, transparent);
+
+  --post-serif: "Source Serif 4", "Source Serif Pro", Charter, "Bitstream Charter",
+    "Sitka Text", Cambria, Georgia, "Times New Roman", serif;
+  --post-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --post-mono: var(--md-code-font, "JetBrains Mono"), ui-monospace, SFMono-Regular,
+    Menlo, Consolas, monospace;
+
+  --post-width: 680px;
+  --post-body-size: 17px; /* body text size. Change this one value to resize the article. */
+}
+
+/* --------------------------------------------------------------------------
+   1. Page shell: one centred column, no side panels
+   -------------------------------------------------------------------------- */
+
+/* The right-hand table of contents goes away. Medium has none, and it is the
+   main thing that makes the default post page feel scattered. */
+.md-main__inner:has(.consize-post) > .md-sidebar--secondary {
+  display: none;
+}
+
+/* The left docs nav is already `hidden` on Blog; make sure it stays gone on
+   desktop. Below 76.25em it is the mobile drawer, so leave that alone. */
+@media screen and (min-width: 76.25em) {
+  .md-main__inner:has(.consize-post) > .md-sidebar--primary {
+    display: none;
+  }
+}
+
+/* extra.css pushes .md-content right to clear the sidebars. Undo that here. */
+.md-content.consize-post {
+  margin: 0;
+  min-width: 0;
+}
+
+/* Material sets side margins on .md-content__inner through sibling selectors
+   like `[dir=ltr] .md-sidebar--secondary:not([hidden]) ~ .md-content >
+   .md-content__inner` (specificity 0,5,0). The extra .md-main__inner ancestor
+   here makes this 0,5,1 so the column centres regardless of sidebar state. */
+.md-main__inner .md-content.consize-post > article.consize-article.md-content__inner {
+  margin: 0 auto;
+}
+
+.consize-post .consize-article {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(var(--post-width) + 48px); /* column + 24px gutters */
+  padding: 56px 24px 112px;
+
+  font-family: var(--post-serif);
+  font-size: var(--post-body-size);
+  line-height: 1.6;
+  letter-spacing: -0.003em;
+  color: var(--post-ink);
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: break-word;
+}
+
+/* Material adds thin spacer pseudo-elements around article content */
+.consize-post .consize-article::before,
+.consize-post .consize-article::after {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   2. Title
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-article h1 {
+  margin: 0;
+  padding: 0;
+  font-family: var(--post-sans);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 42px;
+  letter-spacing: -0.022em;
+  color: var(--post-ink);
+  text-wrap: balance;
+}
+
+/* --------------------------------------------------------------------------
+   3. Byline
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-byline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 32px 0 0;
+  font-family: var(--post-sans);
+  letter-spacing: 0;
+}
+
+.consize-post .consize-byline__avatars {
+  display: flex;
+  flex: none;
+}
+
+.consize-post .consize-byline__avatar {
+  display: block;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--post-wash);
+}
+
+.consize-post .consize-byline__avatar + .consize-byline__avatar {
+  margin-left: -14px;
+  box-shadow: -2px 0 0 var(--md-default-bg-color);
+}
+
+.consize-post .consize-byline__avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+.consize-post .consize-byline__author {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--post-ink);
+}
+
+.consize-post .consize-byline__author a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.consize-post .consize-byline__author a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.consize-post .consize-byline__meta {
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--post-muted);
+}
+
+.consize-post .consize-dot {
+  margin: 0 6px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Share bar: hairline above and below, like Medium's action row
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-share {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 32px 0 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--post-line);
+  border-bottom: 1px solid var(--post-line);
+}
+
+.consize-post .consize-share__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--post-muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.consize-post .consize-share__btn:hover,
+.consize-post .consize-share__btn:focus-visible {
+  background: var(--post-wash);
+  color: var(--post-ink);
+}
+
+.consize-post .consize-share__btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.consize-post .consize-share__icon {
+  display: inline-flex;
+}
+
+.consize-post .consize-share__icon--done,
+.consize-post .consize-share__toast {
+  display: none;
+}
+
+.consize-post .consize-share__copy.is-copied .consize-share__icon--link {
+  display: none;
+}
+
+.consize-post .consize-share__copy.is-copied .consize-share__icon--done {
+  display: inline-flex;
+  color: var(--md-primary-fg-color);
+}
+
+.consize-post .consize-share__copy.is-copied .consize-share__toast {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  display: block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--post-ink);
+  color: var(--md-default-bg-color);
+  font: 500 12px/1.4 var(--post-sans);
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   5. Body copy
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-article p {
+  margin: 29px 0 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* first paragraph after the share bar */
+.consize-post .consize-share + p {
+  margin-top: 40px;
+}
+
+.consize-post .consize-article strong {
+  font-weight: 700;
+  color: inherit;
+}
+
+/* Links: Medium underlines inline links in the text colour */
+.consize-post .consize-article :is(p, li, td, blockquote, figcaption) a:where(:not(.md-button, .headerlink)) {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
+  transition: text-decoration-color 120ms ease;
+}
+
+.consize-post .consize-article :is(p, li, td, blockquote, figcaption) a:where(:not(.md-button, .headerlink)):hover {
+  color: inherit;
+  text-decoration-color: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   6. Headings inside the article
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-article :is(h2, h3, h4) {
+  margin: 56px 0 0;
+  padding: 0;
+  border: 0;
+  font-family: var(--post-sans);
+  font-weight: 700;
+  color: var(--post-ink);
+  text-wrap: balance;
+}
+
+.consize-post .consize-article h2 {
+  font-size: 24px;
+  line-height: 30px;
+  letter-spacing: -0.019em;
+}
+
+.consize-post .consize-article h3 {
+  margin-top: 40px;
+  font-size: 19px;
+  line-height: 25px;
+  letter-spacing: -0.016em;
+}
+
+.consize-post .consize-article h4 {
+  margin-top: 32px;
+  font-size: 16px;
+  line-height: 22px;
+  letter-spacing: -0.01em;
+}
+
+/* Medium keeps a heading tight to the text it introduces */
+.consize-post .consize-article :is(h2, h3, h4) + :is(p, ul, ol) {
+  margin-top: 14px;
+}
+
+/* Anchor icon only on hover, tucked into the left margin on wide screens */
+.consize-post .consize-article .headerlink {
+  font-family: var(--post-sans);
+  font-weight: 400;
+  color: var(--post-muted);
+  text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+   7. Lists
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-article :is(ul, ol) {
+  margin: 29px 0 0;
+  padding: 0 0 0 30px;
+}
+
+.consize-post .consize-article :is(ul, ol) li {
+  margin: 14px 0 0;
+  padding: 0;
+  padding-left: 4px;
+}
+
+.consize-post .consize-article :is(ul, ol) > li:first-child {
+  margin-top: 0;
+}
+
+.consize-post .consize-article li > :is(ul, ol) {
+  margin-top: 14px;
+}
+
+.consize-post .consize-article li > p {
+  margin-top: 14px;
+}
+
+.consize-post .consize-article li::marker {
+  color: var(--post-ink);
+}
+
+/* --------------------------------------------------------------------------
+   8. Blockquote and divider
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-article blockquote {
+  margin: 32px 0 0;
+  padding: 0 0 0 23px;
+  border-left: 3px solid var(--post-ink);
+  color: inherit;
+  font-style: italic;
+}
+
+.consize-post .consize-article blockquote > :first-child {
+  margin-top: 0;
+}
+
+/* Medium's section break: three dots instead of a rule */
+.consize-post .consize-article hr {
+  height: auto;
+  margin: 56px 0 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+
+.consize-post .consize-article hr::before {
+  content: "...";
+  display: block;
+  padding-left: 0.6em; /* balances the trailing letter-spacing so it centres */
+  font: 400 30px/1 var(--post-sans);
+  letter-spacing: 0.6em;
+  color: var(--post-ink);
+}
+
+/* --------------------------------------------------------------------------
+   9. Code
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-article code {
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--post-wash);
+  color: var(--post-ink);
+  font-family: var(--post-mono);
+  font-size: 0.8em;
+  letter-spacing: 0;
+  word-break: normal;
+}
+
+/* fenced blocks: flat grey panel, no window chrome, no drop shadow */
+.consize-post .consize-article .highlight {
+  margin: 32px 0 0;
+  border: 0;
+  border-radius: 6px;
+  background: var(--post-wash);
+  box-shadow: none;
+}
+
+.consize-post .consize-article .highlight::before {
+  display: none;
+}
+
+.consize-post .consize-article .highlight pre,
+.consize-post .consize-article > pre {
+  margin: 0;
+  padding: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.consize-post .consize-article pre > code,
+.consize-post .consize-article .highlight pre code {
+  display: block;
+  padding: 20px 52px 20px 24px; /* right side clears the copy button */
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: 0;
+}
+
+.consize-post .consize-article .highlight .md-clipboard {
+  top: 6px;
+  right: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   10. Tables (Medium has none, so keep them quiet)
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-article .md-typeset__scrollwrap {
+  margin: 32px 0 0;
+  padding: 0;
+}
+
+.consize-post .consize-article .md-typeset__table {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0; /* Material insets the table by 0.8rem; align it with the text */
+}
+
+.consize-post .consize-article table:not([class]) {
+  display: table;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--post-sans);
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: 0;
+}
+
+.consize-post .consize-article table:not([class]) :is(th, td) {
+  min-width: 0;
+  padding: 12px 16px 12px 0;
+  vertical-align: top;
+  text-align: left;
+}
+
+.consize-post .consize-article table:not([class]) th {
+  border-bottom: 1px solid var(--post-ink);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--post-muted);
+}
+
+.consize-post .consize-article table:not([class]) td {
+  border-top: 1px solid var(--post-line);
+}
+
+.consize-post .consize-article table:not([class]) tbody tr:first-child td {
+  border-top: 0;
+}
+
+.consize-post .consize-article table:not([class]) tr:nth-child(even) {
+  background: transparent;
+}
+
+.consize-post .consize-article table:not([class]) tbody tr:hover {
+  background: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   11. Images, figures, diagrams
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-article :is(img, svg.mermaid) {
+  max-width: 100%;
+  height: auto;
+}
+
+.consize-post .consize-article > p > img,
+.consize-post .consize-article figure img {
+  display: block;
+  margin: 40px auto 0;
+}
+
+.consize-post .consize-article figure {
+  margin: 0;
+}
+
+.consize-post .consize-article figcaption {
+  margin-top: 12px;
+  font-family: var(--post-sans);
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+  color: var(--post-muted);
+}
+
+.consize-post .consize-article .mermaid {
+  margin: 32px 0 0;
+  padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+   12. Call-to-action buttons (.md-button links written in markdown)
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-article p:has(> .md-button) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.consize-post .consize-article .md-button {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 11px 22px;
+  border: 1px solid var(--post-ink);
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--post-ink);
+  font-family: var(--post-sans);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0;
+  text-decoration: none;
+  transform: none;
+  transition: background-color 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+
+.consize-post .consize-article .md-button:hover,
+.consize-post .consize-article .md-button:focus-visible {
+  border-color: var(--post-ink);
+  background: var(--post-wash);
+  color: var(--post-ink);
+  box-shadow: none;
+  transform: none;
+}
+
+.consize-post .consize-article .md-button--primary {
+  background: var(--post-ink);
+  color: var(--md-default-bg-color);
+}
+
+.consize-post .consize-article .md-button--primary:hover,
+.consize-post .consize-article .md-button--primary:focus-visible {
+  background: var(--post-ink);
+  color: var(--md-default-bg-color);
+  opacity: 0.85;
+}
+
+/* --------------------------------------------------------------------------
+   13. End of article: tags, author card, back link
+   -------------------------------------------------------------------------- */
+
+.consize-post .consize-post-end {
+  margin-top: 72px;
+  font-family: var(--post-sans);
+  letter-spacing: 0;
+}
+
+.consize-post .consize-post-end .consize-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consize-post .consize-post-end .consize-tags li {
+  margin: 0;
+  padding: 0;
+}
+
+.consize-post .consize-post-end .consize-tags a {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--post-wash);
+  color: var(--post-ink);
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+  transition: background-color 120ms ease;
+}
+
+.consize-post .consize-post-end .consize-tags a:hover,
+.consize-post .consize-post-end .consize-tags a:focus-visible {
+  background: var(--post-wash-strong);
+  color: var(--post-ink);
+}
+
+.consize-post .consize-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 32px;
+  color: var(--post-muted);
+  font-size: 15px;
+  line-height: 20px;
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+
+.consize-post .consize-back:hover,
+.consize-post .consize-back:focus-visible {
+  color: var(--post-ink);
+}
+
+.consize-post .consize-back svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   14. Phones and small tablets
+   -------------------------------------------------------------------------- */
+
+@media screen and (max-width: 40em) {
+  .consize-post .consize-article {
+    padding: 32px 20px 80px;
+    font-size: 16px;
+    line-height: 26px;
+  }
+
+  .consize-post .consize-article h1 {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .consize-post .consize-article h2 {
+    margin-top: 44px;
+    font-size: 21px;
+    line-height: 27px;
+  }
+
+  .consize-post .consize-article h3 {
+    margin-top: 36px;
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  .consize-post .consize-article p {
+    margin-top: 26px;
+  }
+
+  .consize-post .consize-byline {
+    margin-top: 24px;
+    gap: 12px;
+  }
+
+  .consize-post .consize-byline__avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .consize-post .consize-share {
+    margin-top: 24px;
+  }
+
+  .consize-post .consize-share + p {
+    margin-top: 32px;
+  }
+
+  .consize-post .consize-article :is(ul, ol) {
+    padding-left: 24px;
+  }
+
+  .consize-post .consize-article pre > code,
+  .consize-post .consize-article .highlight pre code {
+    padding: 16px 18px;
+    font-size: 13px;
+  }
+
+    }
+
+/* --------------------------------------------------------------------------
+   15. Motion and print
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .consize-post * {
+    transition: none !important;
+  }
+}
+
+@media print {
+  .consize-post .consize-share,
+  .consize-post .consize-back {
+    display: none;
+  }
+
+  .consize-post .consize-article {
+    max-width: none;
+    padding: 0;
+  }
+}

@@ -17,15 +17,13 @@ theme:
   icon:
     repo: fontawesome/brands/github
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
+    - scheme: default          # light, this is now the default
       primary: teal
       accent: green
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
+    - scheme: slate            # dark
       primary: teal
       accent: green
       toggle:
@@ -125,10 +123,10 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/consize-oss/consize
-    # Discord icon removed until a real invite link exists — a dead invite
-    # is worse than no invite. Add back:
-    # - icon: fontawesome/brands/discord
-    #   link: <real invite link>
+    - icon: fontawesome/brands/slack
+      link: https://consizetownhall.slack.com/
 
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/blog.css
+  - stylesheets/blog-post.css

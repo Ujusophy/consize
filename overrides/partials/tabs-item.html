@@ -1,0 +1,68 @@
+{#-
+  Consize override of Material's partials/tabs-item.html.
+
+  Stock Material's top tabs only ever link to a section's FIRST page — if
+  "Guides" has 5 pages, the tab just opens the first one, and the other 4
+  are only reachable once you're already on a page in that section, via
+  the left sidebar. There's no dropdown on the tab bar itself.
+
+  This adds one: any top-level tab with more than one page gets a
+  hover/focus dropdown listing all of them. A tab with exactly one page,
+  or a deeper nested structure, falls back to stock behavior unchanged.
+-#}
+{% macro render_content(nav_item, ref) %}
+  {% set ref = ref or nav_item %}
+  {% if nav_item == ref or "navigation.indexes" in features %}
+    {% if nav_item.is_index and nav_item.meta.icon %}
+      {% include ".icons/" ~ nav_item.meta.icon ~ ".svg" %}
+    {% endif %}
+  {% endif %}
+  {{ ref.title }}
+{% endmacro %}
+
+{% macro render(nav_item, ref) %}
+  {% set ref = ref or nav_item %}
+  {% set class = "md-tabs__item" %}
+  {% if ref.active %}
+    {% set class = class ~ " md-tabs__item--active" %}
+  {% endif %}
+
+  {% if nav_item.children %}
+    {% set first = nav_item.children | first %}
+
+    {% if first.children %}
+      {#- Deeper nesting: keep Material's original recursive behavior. -#}
+      {{ render(first, ref) }}
+    {% elif nav_item.children | length > 1 %}
+      {#- Flat section with multiple pages: render the dropdown. -#}
+      <li class="{{ class }} consize-tabs__item--has-menu">
+        <a href="{{ first.url | url }}" class="md-tabs__link">
+          {{ render_content(first, ref) }}
+          <svg class="consize-tabs__chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path d="M7 10l5 5 5-5z" fill="currentColor" />
+          </svg>
+        </a>
+        <ul class="consize-tabs__menu">
+          {% for child in nav_item.children %}
+            <li class="consize-tabs__menu-item{% if child.active %} consize-tabs__menu-item--active{% endif %}">
+              <a href="{{ child.url | url }}">{{ child.title }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      </li>
+    {% else %}
+      {#- Section with exactly one page: no dropdown needed. -#}
+      <li class="{{ class }}">
+        <a href="{{ first.url | url }}" class="md-tabs__link">
+          {{ render_content(first, ref) }}
+        </a>
+      </li>
+    {% endif %}
+  {% else %}
+    <li class="{{ class }}">
+      <a href="{{ nav_item.url | url }}" class="md-tabs__link">
+        {{ render_content(nav_item) }}
+      </a>
+    </li>
+  {% endif %}
+{% endmacro %}

@@ -1,8 +1,13 @@
-# Blog
+---
+title: Blog
+hide:
+  - navigation
+  - toc
+---
 
-<p class="consize-kicker">Notes from the team</p>
+# The Consize Blog
 
-## Building a safety net for Kubernetes cost optimization
+Engineering write-ups, product updates, and honest takes on making Kubernetes cost optimization safe enough to actually turn on.
 
-Product updates, engineering writeups, and honest takes on the Kubernetes
-cost problem, straight from the people building Consize.
+[Try the sandbox](../getting-started/sandbox.md){ .md-button .md-button--primary }
+[Documentation](../getting-started/get-started.md){ .md-button }

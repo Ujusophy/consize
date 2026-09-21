@@ -103,15 +103,3 @@ Open `http://localhost:3000` and you can watch the Verifier catch an
 intentional regression on a seeded `checkout-api` workload and trigger an
 automatic rollback in real time: the exact loop described above, start to
 finish.
-
-[Try the Interactive Sandbox](../../getting-started/sandbox.md){ .md-button .md-button--primary }
-[Read the architecture](../../concepts/architecture.md){ .md-button }
-
-<div class="consize-post-cta" markdown>
-Consize is Apache 2.0 licensed and open for contribution. If you're
-wrestling with the same observability-vs-action gap, we'd like to hear
-about it.
-
-[Start a Discussion](https://github.com/consize-oss/consize/discussions){ .md-button }
-[Browse good first issues](https://github.com/consize-oss/consize/labels/good%20first%20issue){ .md-button }
-</div>

@@ -1,108 +1,95 @@
-# Overview
-
-<p class="consize-kicker">Open Source · Kubernetes &amp; Cloud Cost Optimization</p>
-
-## Safe, automated infrastructure optimization
-
-Consize helps engineering teams reduce Kubernetes and cloud waste without turning cost optimization into a production risk.
-
-It analyzes your infrastructure, identifies optimization opportunities, and helps you apply safer changes with built-in guardrails.
-
-[Get started](getting-started/get-started.md){ .md-button .md-button--primary }
-[Try the Interactive Sandbox](getting-started/sandbox.md){ .md-button }
-
-If you get stuck at any point, [Troubleshooting](resources/troubleshooting.md), the [FAQ](resources/faq.md), and [Support](resources/support.md) are one click away from every page in the footer.
-
-![The Consize dashboard showing a rightsizing recommendation and its safety verification status](assets/demo-dashboard.png){ .consize-hero-shot }
-
+---
+title: Overview
+hide:
+  - toc
 ---
 
-## Get started in three steps
+<div class="consize-hero" markdown>
 
-Go from zero to a verified rightsizing change against a real workload.
 
-<div class="grid cards" markdown>
+# <span class="consize-gradient">Welcome to</span> Consize Documentation
 
--   [:material-magnify:{ .lg .middle } **1. Analyze**](getting-started/get-started.md)
+Learn how to use consize to analyzes your infrastructure, identifies optimization opportunities, and you apply safer changes with built-in guardrails without turning cost optimization into a production risk.
 
-    ---
+<div class="consize-hero__actions" markdown>
+[Get started](getting-started/get-started.md){ .md-button .md-button--primary }
+[Try the Interactive Sandbox](getting-started/sandbox.md){ .md-button }
+</div>
 
-    Point Consize at a cluster. It profiles real CPU and memory usage over a rolling window — no guesswork, no assumed sizing.
+<div class="consize-hero__cmd" markdown>
+```bash
+docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:latest
+```
+</div>
 
--   [:material-source-pull:{ .lg .middle } **2. Review**](guides/rightsizing.md)
-
-    ---
-
-    Get a rightsizing pull request against your IaC repo, or apply approved changes directly through the UI within configured boundaries.
-
--   [:material-shield-check:{ .lg .middle } **3. Verify**](concepts/safety-net.md)
-
-    ---
-
-    SLIs are watched after every change. If something regresses, Consize triggers an automatic, byte-identical rollback.
+<div class="consize-shot" markdown>
+![The Consize dashboard showing a rightsizing recommendation and its safety verification status](assets/demo-dashboard.png){ .consize-hero-shot }
+</div>
 
 </div>
 
-## How it works
+<p class="consize-note">Stuck at any point? <a href="resources/troubleshooting/">Troubleshooting</a>, the <a href="resources/faq/">FAQ</a>, and <a href="resources/support/">Support</a> are one click away from every page in the footer.</p>
 
-```mermaid
-flowchart LR
-    A[Observe] --> B[Analyze]
-    B --> C[Recommend]
-    C --> D[Review]
-    D --> E[Apply]
-    E --> F[Verify]
-    F -.->|regression detected| A
-```
+Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied through reviewable pull requests against your existing Infrastructure-as-Code workflow, or as guarded runtime changes within configured boundaries.
 
-Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied — through reviewable pull requests against your existing Infrastructure-as-Code workflow, or as guarded runtime changes within configured boundaries.
+## Explore the Platform
 
----
+Go from zero to a verified rightsizing change against a real workload.
 
-## Explore the platform
+<div class="consize-steps" markdown>
 
-<div class="grid cards" markdown>
+<div class="consize-step" markdown>
 
--   [:material-resize:{ .lg .middle } **Kubernetes Rightsizing**](guides/rightsizing.md)
+<div class="consize-step__icon" markdown>:material-magnify:</div>
 
-    ---
+<div class="consize-step__title" markdown>[1. Analyze](getting-started/get-started.md)</div>
 
-    Reduce over-provisioned CPU and memory by adjusting requests and limits based on observed, not assumed, usage.
+Point Consize at a cluster. It profiles real CPU and memory usage over a rolling window: no guesswork, no assumed sizing.
 
--   [:material-chart-line:{ .lg .middle } **Observability**](guides/observability.md)
+<div class="consize-step__links" markdown>
 
-    ---
+- [Get started](getting-started/get-started.md)
+- [Interactive Sandbox](getting-started/sandbox.md)
+- [Production Installation](getting-started/installation.md)
 
-    How the Observe → Change → Verify loop uses SLIs to confirm a change was actually safe.
+</div>
 
--   [:material-layers-outline:{ .lg .middle } **Environments**](guides/environments.md)
+</div>
 
-    ---
+<div class="consize-step" markdown>
 
-    Control the scope of what Consize can observe and modify — start small and expand automation gradually.
+<div class="consize-step__icon" markdown>:material-source-pull:</div>
 
--   [:material-sitemap:{ .lg .middle } **How Consize Works**](concepts/architecture.md)
+<div class="consize-step__title" markdown>[2. Review](guides/rightsizing.md)</div>
 
-    ---
+Get a rightsizing pull request against your IaC repo, or apply approved changes directly through the UI within configured boundaries.
 
-    The full Observe → Analyze → Recommend → Review → Apply → Verify architecture, end to end.
+<div class="consize-step__links" markdown>
 
--   [:material-shield-lock:{ .lg .middle } **The Safety Net**](concepts/safety-net.md)
+- [Kubernetes Rightsizing](guides/rightsizing.md)
+- [Environments](guides/environments.md)
+- [Configuration](reference/configuration.md)
 
-    ---
+</div>
 
-    Optimize infrastructure without turning cost savings into production risk — the principle the whole system is built around.
+</div>
 
--   [:material-cog:{ .lg .middle } **Configuration**](reference/configuration.md)
+<div class="consize-step" markdown>
 
-    ---
+<div class="consize-step__icon" markdown>:material-shield-check:</div>
 
-    The full reference for controlling what Consize observes, what it can change, and how it operates in your environment.
+<div class="consize-step__title" markdown>[3. Verify](concepts/safety-net.md)</div>
 
--   [:material-check-decagram:{ .lg .middle } **Supported Platforms**](reference/supported-platforms.md)
+SLIs are watched after every change. If something regresses, Consize triggers an automatic, byte-identical rollback.
 
-    ---
+<div class="consize-step__links" markdown>
 
-    Which cloud providers, IaC targets, and integrations Consize supports today.
+- [The Safety Net](concepts/safety-net.md)
+- [Observability](guides/observability.md)
+- [How Consize Works](concepts/architecture.md)
+
+</div>
+
+</div>
 
 </div>

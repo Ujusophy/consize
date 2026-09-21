@@ -14,6 +14,8 @@ description: >
 
 # Observability isn't enough: why we built Consize
 
+![The Consize dashboard showing a rightsizing recommendation and its safety verification status](../../assets/demo-dashboard.png)
+
 Most Kubernetes cost tools stop at the dashboard. They'll tell you, correctly,
 that a service is requesting 4 vCPUs and using 400m. What they won't do is
 change it, because changing it safely in a live production cluster is a
@@ -103,13 +105,3 @@ automatic rollback in real time: the exact loop described above, start to
 finish.
 
 [Try the Interactive Sandbox](../../getting-started/sandbox.md){ .md-button .md-button--primary }
-[Read the architecture](../../concepts/architecture.md){ .md-button }
-
-<div class="consize-post-cta" markdown>
-Consize is Apache 2.0 licensed and open for contribution. If you're
-wrestling with the same observability-vs-action gap, we'd like to hear
-about it.
-
-[Start a Discussion](https://github.com/consize-oss/consize/discussions){ .md-button }
-[Browse good first issues](https://github.com/consize-oss/consize/labels/good%20first%20issue){ .md-button }
-</div>
