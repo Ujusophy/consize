@@ -10,6 +10,29 @@
   hover/focus dropdown listing all of them. A tab with exactly one page,
   or a deeper nested structure, falls back to stock behavior unchanged.
 -#}
+{#- Icons shown beside each option in the tab dropdown, keyed by page title.
+    Any page not listed here falls back to a generic document icon. -#}
+{% set consize_menu_icons = {
+  "Get started": "material/rocket-launch",
+  "Interactive Sandbox": "material/flask-outline",
+  "Production Installation": "material/server-outline",
+  "Kubernetes Rightsizing": "material/arrow-collapse-vertical",
+  "Observability": "material/eye-outline",
+  "Environments": "material/layers-outline",
+  "How Consize Works": "material/cog-outline",
+  "The Safety Net": "material/shield-check-outline",
+  "Configuration": "material/tune-variant",
+  "Supported Platforms": "material/cloud-outline",
+  "API Reference": "material/api",
+  "Contributing": "material/source-pull",
+  "Testing": "material/test-tube",
+  "E2E Tests": "material/check-decagram-outline",
+  "Decisions": "material/scale-balance",
+  "Roadmap": "material/map-marker-path",
+  "FAQ": "material/help-circle-outline",
+  "Troubleshooting": "material/wrench-outline",
+  "Support": "material/lifebuoy"
+} %}
 {% macro render_content(nav_item, ref) %}
   {% set ref = ref or nav_item %}
   {% if nav_item == ref or "navigation.indexes" in features %}
@@ -45,7 +68,10 @@
         <ul class="consize-tabs__menu">
           {% for child in nav_item.children %}
             <li class="consize-tabs__menu-item{% if child.active %} consize-tabs__menu-item--active{% endif %}">
-              <a href="{{ child.url | url }}">{{ child.title }}</a>
+              <a href="{{ child.url | url }}">
+                <span class="consize-tabs__menu-icon" aria-hidden="true">{% include ".icons/" ~ consize_menu_icons.get(child.title, "material/file-document-outline") ~ ".svg" %}</span>
+                <span>{{ child.title }}</span>
+              </a>
             </li>
           {% endfor %}
         </ul>

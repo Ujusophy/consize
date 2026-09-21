@@ -68,8 +68,6 @@ nav:
       - Interactive Sandbox: getting-started/sandbox.md
       - Production Installation: getting-started/installation.md
 
-  - Blog: blog/index.md
-
   - Guides:
       - Kubernetes Rightsizing: guides/rightsizing.md
       - Observability: guides/observability.md
@@ -91,6 +89,8 @@ nav:
       - FAQ: resources/faq.md
       - Troubleshooting: resources/troubleshooting.md
       - Support: resources/support.md
+
+  - Blog: blog/index.md
 
 markdown_extensions:
   - admonition
