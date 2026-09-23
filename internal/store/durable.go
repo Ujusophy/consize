@@ -22,6 +22,8 @@ type diskState struct {
 	NextRecID       int64                        `json:"next_recommendation_id"`
 }
 
+const currentStateVersion = 2
+
 // OpenDurable owns one local state file for its entire lifetime; other processes fail closed.
 func OpenDurable(path string) (*Memory, error) {
 	if path == "" {
@@ -60,7 +62,12 @@ func OpenDurable(path string) (*Memory, error) {
 		m.Close()
 		return nil, fmt.Errorf("invalid state file: %w", err)
 	}
-	if state.Version != 1 || state.Resources == nil || state.Recommendations == nil || state.Actions == nil || state.Jobs == nil || state.NextActionID < 1 || state.NextRecID < 1 {
+	migrated, err := migrateState(&state)
+	if err != nil {
+		m.Close()
+		return nil, err
+	}
+	if state.Resources == nil || state.Recommendations == nil || state.Actions == nil || state.Jobs == nil || state.NextActionID < 1 || state.NextRecID < 1 {
 		m.Close()
 		return nil, errors.New("invalid state schema")
 	}
@@ -74,7 +81,27 @@ func OpenDurable(path string) (*Memory, error) {
 	m.jobs = state.Jobs
 	m.nextActionID = state.NextActionID
 	m.nextRecID = state.NextRecID
+	if migrated {
+		if err := m.persistLocked(); err != nil {
+			m.Close()
+			return nil, fmt.Errorf("persist migrated state: %w", err)
+		}
+	}
 	return m, nil
+}
+
+func migrateState(state *diskState) (bool, error) {
+	switch state.Version {
+	case currentStateVersion:
+		return false, nil
+	case 1:
+		// v2 adds discovery provenance to Resource. The fields are optional for
+		// manually registered v1 resources and are populated on rediscovery.
+		state.Version = currentStateVersion
+		return true, nil
+	default:
+		return false, fmt.Errorf("unsupported state schema version %d", state.Version)
+	}
 }
 
 func validateState(state diskState) error {
@@ -147,7 +174,11 @@ func (m *Memory) persistLocked() (err error) {
 			m.poison = fmt.Errorf("durable store unavailable: %w", err)
 		}
 	}()
-	state := diskState{1, m.resources, m.recs, m.actions, m.jobs, m.nextActionID, m.nextRecID}
+	state := diskState{
+		Version: currentStateVersion, Resources: m.resources,
+		Recommendations: m.recs, Actions: m.actions, Jobs: m.jobs,
+		NextActionID: m.nextActionID, NextRecID: m.nextRecID,
+	}
 	data, err := json.Marshal(state)
 	if err != nil {
 		return err

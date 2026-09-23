@@ -25,24 +25,25 @@ const (
 )
 
 type Recommendation struct {
-	ID                      int64          `json:"id"`
-	ResourceID              string         `json:"resource_id"`
-	PluginID                string         `json:"plugin_id"`
-	AlgorithmID             string         `json:"algorithm_id"`
-	ActionType              string         `json:"action_type"`
-	Title                   string         `json:"title"`
-	Summary                 string         `json:"summary"`
-	Current                 map[string]any `json:"current"`
-	Proposed                map[string]any `json:"proposed"`
-	Parameters              map[string]any `json:"parameters"`
-	EstimatedSavingsMonthly float64        `json:"estimated_savings_monthly"`
-	Confidence              string         `json:"confidence"`
-	Risk                    string         `json:"risk"`
-	Evidence                []string       `json:"evidence"`
-	PolicyID                string         `json:"policy_id"`
-	Status                  string         `json:"status"`
-	CreatedAt               time.Time      `json:"created_at"`
-	UpdatedAt               time.Time      `json:"updated_at"`
+	ID                      int64                `json:"id"`
+	ResourceID              string               `json:"resource_id"`
+	PluginID                string               `json:"plugin_id"`
+	AlgorithmID             string               `json:"algorithm_id"`
+	ActionType              string               `json:"action_type"`
+	Title                   string               `json:"title"`
+	Summary                 string               `json:"summary"`
+	Current                 map[string]any       `json:"current"`
+	Proposed                map[string]any       `json:"proposed"`
+	Parameters              map[string]any       `json:"parameters"`
+	EstimatedSavingsMonthly float64              `json:"estimated_savings_monthly"`
+	CostEstimate            *plugin.CostEstimate `json:"cost_estimate,omitempty"`
+	Confidence              string               `json:"confidence"`
+	Risk                    string               `json:"risk"`
+	Evidence                []string             `json:"evidence"`
+	PolicyID                string               `json:"policy_id"`
+	Status                  string               `json:"status"`
+	CreatedAt               time.Time            `json:"created_at"`
+	UpdatedAt               time.Time            `json:"updated_at"`
 }
 
 type ActionEvent struct {

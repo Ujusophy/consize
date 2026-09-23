@@ -16,11 +16,12 @@ const (
 )
 
 const (
-	CapabilityActionPlan      = "action.plan"
-	CapabilityActionExecute   = "action.execute"
-	CapabilityActionPreflight = "action.preflight"
-	CapabilityMetricsRead     = "metrics.read"
-	CapabilityCostRead        = "cost.read"
+	CapabilityActionPlan       = "action.plan"
+	CapabilityActionExecute    = "action.execute"
+	CapabilityActionPreflight  = "action.preflight"
+	CapabilityMetricsRead      = "metrics.read"
+	CapabilityCostRead         = "cost.read"
+	CapabilityResourceDiscover = "resource.discover"
 )
 
 type Manifest struct {
@@ -160,6 +161,42 @@ const (
 type MetricsPlugin interface {
 	Plugin
 	ReadMetrics(ctx context.Context, res resource.Resource) (MetricsSnapshot, error)
+}
+
+// CostEstimate prices a proposed state. It is intentionally distinct from
+// realized billing, which requires provider invoice or billing-export data.
+type CostEstimate struct {
+	PluginID        string         `json:"plugin_id"`
+	ResourceID      string         `json:"resource_id"`
+	Classification  string         `json:"classification"`
+	Currency        string         `json:"currency"`
+	CurrentMonthly  float64        `json:"current_monthly"`
+	ProposedMonthly float64        `json:"proposed_monthly"`
+	SavingsMonthly  float64        `json:"savings_monthly"`
+	PricingSource   string         `json:"pricing_source"`
+	EffectiveAt     time.Time      `json:"effective_at"`
+	CollectedAt     time.Time      `json:"collected_at"`
+	Evidence        map[string]any `json:"evidence,omitempty"`
+}
+
+type CostPlugin interface {
+	Plugin
+	Estimate(ctx context.Context, res resource.Resource, proposed map[string]any) (CostEstimate, error)
+}
+
+// ProviderObservation is the immutable boundary between provider discovery and
+// the universal registry. Provider plugins own collection; core owns identity,
+// persistence, lifecycle, and policy-visible normalization.
+type ProviderObservation struct {
+	PluginID   string            `json:"plugin_id"`
+	Provider   string            `json:"provider"`
+	ObservedAt time.Time         `json:"observed_at"`
+	Resource   resource.Resource `json:"resource"`
+}
+
+type DiscoveryPlugin interface {
+	Plugin
+	Discover(context.Context) ([]ProviderObservation, error)
 }
 
 type WindowedMetricsPlugin interface {

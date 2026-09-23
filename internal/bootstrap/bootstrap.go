@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consize-oss/consize/internal/auth"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/plugin/marketplace"
 	"github.com/consize-oss/consize/pkg/plugins/kubernetes"
+	"github.com/consize-oss/consize/pkg/plugins/pricing"
 	"github.com/consize-oss/consize/pkg/plugins/prometheus"
 )
 
@@ -20,6 +22,24 @@ type Config struct {
 	Recommender     RecommenderConfig            `json:"recommender"`
 	Verification    VerificationConfig           `json:"verification"`
 	Audit           AuditConfig                  `json:"audit"`
+	Auth            auth.Config                  `json:"auth"`
+	Pricing         PricingConfig                `json:"pricing"`
+}
+
+type PricingConfig struct {
+	Enabled          bool    `json:"enabled"`
+	PluginID         string  `json:"plugin_id,omitempty"`
+	Currency         string  `json:"currency"`
+	Source           string  `json:"source"`
+	MemoryGiBMonthly float64 `json:"memory_gib_monthly"`
+	CPUCoreMonthly   float64 `json:"cpu_core_monthly"`
+}
+
+func (c PricingConfig) EffectivePluginID() string {
+	if c.PluginID != "" {
+		return c.PluginID
+	}
+	return pricing.ID
 }
 
 type KubernetesConfig struct {
@@ -93,6 +113,9 @@ func RegisterConfiguredPlugins(_ context.Context, m *plugin.Manager, cfg Config)
 		if err := m.RegisterAction(p); err != nil {
 			return err
 		}
+		if err := m.RegisterDiscovery(p); err != nil {
+			return err
+		}
 	}
 	if cfg.Prometheus.Enabled {
 		window, err := parseOptionalDuration(cfg.Prometheus.Window)
@@ -113,6 +136,18 @@ func RegisterConfiguredPlugins(_ context.Context, m *plugin.Manager, cfg Config)
 			return fmt.Errorf("configure prometheus plugin: %w", err)
 		}
 		if err := m.RegisterMetrics(p); err != nil {
+			return err
+		}
+	}
+	if cfg.Pricing.Enabled {
+		p, err := pricing.New(pricing.Config{Currency: cfg.Pricing.Currency, Source: cfg.Pricing.Source, MemoryGiBMonthly: cfg.Pricing.MemoryGiBMonthly, CPUCoreMonthly: cfg.Pricing.CPUCoreMonthly})
+		if err != nil {
+			return fmt.Errorf("configure pricing plugin: %w", err)
+		}
+		if cfg.Pricing.EffectivePluginID() != p.ID() {
+			return fmt.Errorf("pricing plugin_id must be %q", p.ID())
+		}
+		if err := m.RegisterCost(p); err != nil {
 			return err
 		}
 	}

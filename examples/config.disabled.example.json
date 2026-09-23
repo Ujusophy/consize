@@ -13,11 +13,17 @@
   "recommender": {
     "enabled": false
   },
+  "pricing": {
+    "enabled": false
+  },
   "verification": {
     "enabled": false
   },
   "audit": {
     "path": ""
+  },
+  "auth": {
+    "enabled": false,
+    "tokens": []
   }
 }
-

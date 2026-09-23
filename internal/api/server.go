@@ -5,13 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/consize-oss/consize/internal/audit"
+	"github.com/consize-oss/consize/internal/auth"
 	"github.com/consize-oss/consize/internal/bootstrap"
+	"github.com/consize-oss/consize/internal/cost"
+	"github.com/consize-oss/consize/internal/discovery"
 	"github.com/consize-oss/consize/internal/orchestrator"
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/recommender"
@@ -23,12 +29,15 @@ import (
 
 type Server struct {
 	controller *safety.Controller
+	auth       *auth.Authorizer
 	actionMu   sync.Mutex
 	st         store.Store
 	plugins    *plugin.Manager
 	policies   *policy.Engine
 	cfg        bootstrap.Config
 }
+
+var requestSequence atomic.Uint64
 
 type Dashboard struct {
 	Verification    bootstrap.VerificationConfig `json:"verification"`
@@ -64,16 +73,19 @@ type PolicySummary struct {
 }
 
 type actionRequest struct {
-	Mode  string `json:"mode"`
-	Actor string `json:"actor"`
+	Mode string `json:"mode"`
 }
 
-func NewServer(st store.Store, plugins *plugin.Manager, policies *policy.Engine, cfg bootstrap.Config) *Server {
-	s := &Server{st: st, plugins: plugins, policies: policies, cfg: cfg}
+func NewServer(st store.Store, plugins *plugin.Manager, policies *policy.Engine, cfg bootstrap.Config) (*Server, error) {
+	authorizer, err := auth.New(cfg.Auth)
+	if err != nil {
+		return nil, err
+	}
+	s := &Server{st: st, plugins: plugins, policies: policies, cfg: cfg, auth: authorizer}
 	if durable, ok := st.(store.JobStore); ok {
 		s.controller = safety.New(durable, plugins, policies, cfg.Verification, cfg.Recommender)
 	}
-	return s
+	return s, nil
 }
 
 func (s *Server) RunWorker(ctx context.Context) error {
@@ -86,14 +98,32 @@ func (s *Server) RunWorker(ctx context.Context) error {
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/health", s.withCORS(s.handleHealth))
-	mux.HandleFunc("/api/dashboard", s.withCORS(s.handleDashboard))
-	mux.HandleFunc("/api/resources", s.withCORS(s.handleResources))
-	mux.HandleFunc("/api/plugins", s.withCORS(s.handlePlugins))
-	mux.HandleFunc("/api/recommendations/generate", s.withCORS(s.handleGenerateRecommendation))
-	mux.HandleFunc("/api/recommendations/", s.withCORS(s.handleRecommendationAction))
-	mux.HandleFunc("/api/actions", s.withCORS(s.handleActions))
-	mux.HandleFunc("/api/jobs", s.withCORS(s.handleJobs))
-	return mux
+	mux.HandleFunc("/api/dashboard", s.protect(auth.RoleViewer, s.handleDashboard))
+	mux.HandleFunc("/api/resources", s.protect(s.resourceRole, s.handleResources))
+	mux.HandleFunc("/api/discovery", s.protect(auth.RoleAdmin, s.handleDiscovery))
+	mux.HandleFunc("/api/plugins", s.protect(auth.RoleViewer, s.handlePlugins))
+	mux.HandleFunc("/api/recommendations/generate", s.protect(auth.RoleOperator, s.handleGenerateRecommendation))
+	mux.HandleFunc("/api/recommendations/", s.protect(s.recommendationRole, s.handleRecommendationAction))
+	mux.HandleFunc("/api/actions", s.protect(auth.RoleViewer, s.handleActions))
+	mux.HandleFunc("/api/jobs", s.protect(auth.RoleViewer, s.handleJobs))
+	return s.logRequests(mux)
+}
+
+func (s *Server) handleDiscovery(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+	results, err := discovery.New(s.st, s.plugins).Run(r.Context())
+	if err != nil {
+		writeError(w, http.StatusBadGateway, err.Error())
+		return
+	}
+	if err := s.writeAudit("discovery", results); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"providers": results})
 }
 
 func (s *Server) handleJobs(w http.ResponseWriter, r *http.Request) {
@@ -175,10 +205,27 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := s.st.Health(r.Context()); err != nil {
-		writeError(w, http.StatusServiceUnavailable, err.Error())
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"status": "unhealthy", "store": "unavailable", "error": err.Error()})
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"status": "healthy"})
+	statuses, err := s.pluginStatuses(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"status": "unhealthy", "store": "healthy", "error": err.Error()})
+		return
+	}
+	status := "healthy"
+	for _, candidate := range statuses {
+		if candidate.Health.Status != "healthy" {
+			status = "degraded"
+			break
+		}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":         status,
+		"store":          "healthy",
+		"durable_worker": s.controller != nil,
+		"plugins":        statuses,
+	})
 }
 
 func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
@@ -283,6 +330,15 @@ func (s *Server) handleGenerateRecommendation(w http.ResponseWriter, r *http.Req
 	created := make([]store.Recommendation, 0, len(recs))
 	for _, rec := range recs {
 		rec.ResourceID = res.ID
+		costPluginID := ""
+		if s.cfg.Pricing.Enabled {
+			costPluginID = s.cfg.Pricing.EffectivePluginID()
+		}
+		rec, err = cost.Enrich(r.Context(), s.plugins, costPluginID, res, rec)
+		if err != nil {
+			writeError(w, http.StatusBadGateway, err.Error())
+			return
+		}
 		out, err := s.st.CreateRecommendation(r.Context(), rec)
 		if err != nil {
 			writeError(w, http.StatusBadRequest, err.Error())
@@ -326,10 +382,12 @@ func (s *Server) handleRecommendationAction(w http.ResponseWriter, r *http.Reque
 	if req.Mode != "" && op == "execute" {
 		mode = req.Mode
 	}
-	actor := req.Actor
-	if actor == "" {
-		actor = "ui@consize.local"
+	identity, ok := auth.FromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "authenticated identity is unavailable")
+		return
 	}
+	actor := identity.Subject
 	if op == "recover" {
 		if req.Mode != "approved" || s.controller == nil {
 			writeError(w, http.StatusBadRequest, "recovery requires explicit approval and durable controller")
@@ -505,7 +563,7 @@ func (s *Server) withCORS(next http.HandlerFunc) http.HandlerFunc {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Vary", "Origin")
 		}
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
@@ -513,6 +571,69 @@ func (s *Server) withCORS(next http.HandlerFunc) http.HandlerFunc {
 		}
 		next(w, r)
 	}
+}
+
+func (s *Server) protect(requiredRole any, next http.HandlerFunc) http.HandlerFunc {
+	return s.withCORS(func(w http.ResponseWriter, r *http.Request) {
+		var role string
+		switch required := requiredRole.(type) {
+		case string:
+			role = required
+		case func(*http.Request) string:
+			role = required(r)
+		default:
+			writeError(w, http.StatusInternalServerError, "route authorization is misconfigured")
+			return
+		}
+		authorized, _, err := s.auth.Authorize(r, role)
+		if err != nil {
+			status := http.StatusUnauthorized
+			if _, authErr := s.auth.Authenticate(r); authErr == nil {
+				status = http.StatusForbidden
+			}
+			writeError(w, status, err.Error())
+			return
+		}
+		next(w, authorized)
+	})
+}
+
+func (s *Server) resourceRole(r *http.Request) string {
+	if r.Method == http.MethodGet {
+		return auth.RoleViewer
+	}
+	return auth.RoleAdmin
+}
+
+func (s *Server) recommendationRole(r *http.Request) string {
+	if strings.HasSuffix(r.URL.Path, "/recover") {
+		return auth.RoleAdmin
+	}
+	return auth.RoleOperator
+}
+
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *statusRecorder) WriteHeader(status int) {
+	w.status = status
+	w.ResponseWriter.WriteHeader(status)
+}
+
+func (s *Server) logRequests(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		started := time.Now()
+		requestID := r.Header.Get("X-Request-ID")
+		if requestID == "" {
+			requestID = fmt.Sprintf("req-%d", requestSequence.Add(1))
+		}
+		w.Header().Set("X-Request-ID", requestID)
+		recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(recorder, r)
+		slog.Info("http request", "request_id", requestID, "method", r.Method, "path", r.URL.Path, "status", recorder.status, "duration_ms", time.Since(started).Milliseconds())
+	})
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

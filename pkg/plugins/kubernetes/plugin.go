@@ -56,7 +56,7 @@ func (p *Plugin) Manifest() plugin.Manifest {
 		Category:                plugin.CategoryAction,
 		SupportedResourceTypes:  []string{resource.TypeKubernetesDeployment},
 		SupportedActionTypes:    []string{"k8s.patch_resources"},
-		Capabilities:            []string{plugin.CapabilityActionPlan, plugin.CapabilityActionExecute, plugin.CapabilityActionPreflight},
+		Capabilities:            []string{plugin.CapabilityActionPlan, plugin.CapabilityActionExecute, plugin.CapabilityActionPreflight, plugin.CapabilityResourceDiscover},
 		CanMutateInfrastructure: true,
 		RequiresApproval:        true,
 	}
