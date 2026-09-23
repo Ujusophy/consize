@@ -1,0 +1,23 @@
+{
+  "kubernetes": {
+    "enabled": false,
+    "kubeconfig": ""
+  },
+  "prometheus": {
+    "enabled": false,
+    "base_url": "",
+    "window": "",
+    "step": "",
+    "queries": {}
+  },
+  "recommender": {
+    "enabled": false
+  },
+  "verification": {
+    "enabled": false
+  },
+  "audit": {
+    "path": ""
+  }
+}
+

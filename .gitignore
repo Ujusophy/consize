@@ -10,6 +10,12 @@ deploy/prod/env.sh
 !deploy/prod/env.sh.example
 
 # Build outputs and caches
+.gocache/
+.consize/
+bin/
+dist/
+/consize
+*.test
 engine/bin/
 engine/collector
 engine/.gocache/
@@ -27,6 +33,7 @@ tests/e2e-live/out/
 
 # Logs
 *.log
+*.jsonl
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
