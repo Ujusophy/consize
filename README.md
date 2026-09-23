@@ -29,8 +29,6 @@
 
 **Consize** is the open source cost optimisation tool that turns cost and usage signals into governed, verifiable optimization actions. It finds waste, explains the safest change, routes it through policy and approval, applies it gradually, verifies health, rolls back on regression, and proves *realized* savings, not just estimated ones.
 
-> This describes where Consize is headed. What's live today on `main` is listed under [Features](#features) below; the full governed policy/rollback workflow is landing in [v0.3.0](#roadmap). For something you can run today, use the [`v0.2.0` tag](https://github.com/consize-oss/consize/tree/v0.2.0).
-
 ---
 
 ## Getting Started
