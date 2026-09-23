@@ -19,6 +19,7 @@
 <h4 align="center">
   <a href="https://github.com/consize-oss/consize/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="Consize is released under the Apache 2.0 license." />
+  </a>
   <a href="https://consizetownhall.slack.com/">
     <img src="https://img.shields.io/badge/Community-Slack-4A154B.svg?logo=slack" alt="Consize community Slack" />
   </a>
@@ -27,26 +28,6 @@
 <img src="/img/demo-dashboard.png" width="100%" alt="Consize dashboard" />
 
 **Consize** is the open source cost optimisation tool that turns cost and usage signals into governed, verifiable optimization actions. It finds waste, explains the safest change, routes it through policy and approval, applies it gradually, verifies health, rolls back on regression, and proves *realized* savings, not just estimated ones.
-
----
-
-## Features
-
-**Find waste**
-- **Resource Rightsizing**: deterministic CPU & memory p95/p99 usage analysis over rolling windows, with support for more resource types landing through the plugin system.
-- **Cloud Waste Scanning**: detects unattached volumes, idle IPs, and stopped compute instances (AWS/GCP).
-
-**Act safely**
-- **Policy Engine**: every recommendation carries a decision: `blocked`, `approval_required`, `open_pr`, or `auto_apply`.
-- **Step-wise Apply**: large changes are never applied at once; they're broken into small, reversible increments.
-- **IaC Integration**: clean up waste via the UI, or auto-generate PRs against your GitOps repos (Terraform/YAML).
-
-**Verify and recover**
-- **Auto-Rollback Guardrails**: watches SLIs (OOMKills, CPU throttling, latency, error rate) after every change and triggers an instant, byte-identical rollback on regression.
-- **Audit Trail**: every recommendation, approval, and action is recorded, so realized savings can be traced back to evidence.
-
-**Extend it**
-- **Plugin SDK** *(0.3.0-alpha)*: a versioned contract for building new metrics, cost, and action providers without touching Consize's core engine.
 
 ---
 
@@ -62,7 +43,7 @@
 docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:latest
 ```
 
-Open `http://localhost:3000` and watch the Verifier catch an intentional regression on the `checkout-api` workload, then automatically roll it back.
+Open `http://localhost:3000` and watch the Verifier catch an intentional regression on the `checkout-api` workload, then automatically roll it back to restore safely.
 
 ### Production Installation
 
@@ -77,8 +58,25 @@ helm install consize oci://ghcr.io/consize-oss/charts/consize \
   --create-namespace \
   -f values.yaml
 ```
+Consize is built to run safely inside your cluster. It uses read-only access for analysis and requires explicit, least-privilege, namespace-scoped RoleBindings before it can apply any changes.
 
-Full setup (Service Accounts, Integration Secrets, Helm values) is in the **[Documentation](https://docs.consizehq.com/getting-started/installation/#1-create-the-consize-namespace)**.
+---
+
+## Configuration
+
+For detailed instructions on configuring Helm values, setting up Service Accounts, and providing Integration Secrets, please refer to this **[Documentation](https://docs.consizehq.com/getting-started/installation/#1-create-the-consize-namespace)**.
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Kubernetes Rightsizing** | Deterministic CPU & Memory p95/p99 usage analysis over 14-day windows. |
+| **Cloud Waste Scanning** | Automatically detects unattached EBS volumes, Elastic IPs, and stopped Compute instances (AWS/GCP). |
+| **IaC Integration** | Clean up waste directly through the UI or automatically generate PRs against your GitOps repos (Terraform/YAML). |
+| **Step-wise Apply** | Large changes are never applied at once; they are broken down into smaller, safe increments. |
+| **Auto-Rollback Guardrails** | Monitors SLIs (OOMKills, CPU throttling) after every change. Breaching a threshold triggers an instant, byte-identical rollback. |
 
 ---
 
@@ -90,4 +88,46 @@ Consize is built with the community. Look for `good first issue` on the tracker 
 
 ## ⚖️ License
 
-Distributed under the **Apache 2.0 License**. See [`LICENSE`](https://github.com/consize-oss/consize/blob/main/LICENSE).
+Distributed under the **Apache 2.0 License**. See [`LICENSE`](LICENSE) for more information.
+
+---
+
+## Consize v0.3.0 Is in Development
+
+We are actively building Consize v0.3.0 as the next open-source release. The
+work on `main` introduces a safer, extensible foundation for turning
+infrastructure evidence into governed optimization actions.
+
+The published v0.2.0 release remains available from the
+[`v0.2.0` tag](https://github.com/consize-oss/consize/tree/v0.2.0), with
+maintenance work kept on
+[`release/0.2`](https://github.com/consize-oss/consize/tree/release/0.2).
+
+### v0.3.0 Features
+
+- **Evidence-backed recommendations:** use real workload metrics to explain what
+  should change and why.
+- **Policy guardrails:** require approval, allow safe automation or block a
+  change based on environment, risk and available evidence.
+- **Safety headroom:** retain configurable capacity above observed demand and
+  limit the size of each optimization step.
+- **Dry runs and reviewable plans:** inspect proposed changes before they affect
+  infrastructure.
+- **Controlled Kubernetes remediation:** apply approved resource changes through
+  one governed action path.
+- **Post-action verification:** monitor workload health after every applied
+  change.
+- **Automatic rollback:** restore the previous configuration when verification
+  fails or an action cannot complete safely.
+- **Restart recovery:** continue pending actions and verification after Consize
+  restarts.
+- **Durable audit history:** retain recommendations, policy decisions, actions,
+  verification results and rollback outcomes.
+- **Extensible plugins:** connect additional infrastructure, metrics, cost and
+  action providers through a common plugin model.
+- **Clear savings reporting:** keep projected savings separate from savings
+  confirmed by provider billing data.
+
+The first `v0.3.0` workflow focuses on Kubernetes Deployments and Prometheus.
+Additional cloud providers, databases, billing integrations and GitOps
+workflows will follow after the OSS foundation is qualified.
