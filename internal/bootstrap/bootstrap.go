@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consize-oss/consize/internal/auth"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/plugin/marketplace"
 	"github.com/consize-oss/consize/pkg/plugins/kubernetes"
@@ -20,6 +21,7 @@ type Config struct {
 	Recommender     RecommenderConfig            `json:"recommender"`
 	Verification    VerificationConfig           `json:"verification"`
 	Audit           AuditConfig                  `json:"audit"`
+	Auth            auth.Config                  `json:"auth"`
 }
 
 type KubernetesConfig struct {

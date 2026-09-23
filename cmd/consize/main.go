@@ -383,7 +383,10 @@ func serveHTTP(ctx context.Context, configPath, addr, resourcePath, recommendati
 			return err
 		}
 	}
-	server := api.NewServer(st, plugins, policies, cfg)
+	server, err := api.NewServer(st, plugins, policies, cfg)
+	if err != nil {
+		return err
+	}
 	if demo {
 		if err := server.SeedDemo(ctx); err != nil {
 			return err
