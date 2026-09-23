@@ -1,248 +1,118 @@
+<div align="center">
+
+  <img src="docs/assets/banner.jpg" alt="Consize" width="800" />
+
 # Consize
 
-This branch contains the provider-neutral foundation for Consize 0.3.
+**Policy-governed infrastructure optimization with safe, verifiable execution.**
 
-This MVP focuses on two production-oriented plugins:
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Development](https://img.shields.io/badge/v0.3.0-in_development-0aa174.svg)](https://github.com/consize-oss/consize)
 
-- `kubernetes-action`: plans staged Kubernetes Deployment request reductions, preserves limits, and supports exact-state rollback.
-- `prometheus-metrics`: reads Kubernetes workload health and utilization signals from Prometheus.
+</div>
 
-There are no runtime seeds or placeholder cloud plugins in this foundation. Resources, recommendations, and plugin configuration must be provided explicitly.
+## v0.3.0 Is in Development
 
-Recommendation generation uses the built-in `prometheus-headroom-v1` recommender. It is intentionally part of OSS core for now, but it sits behind an internal recommender interface so future algorithm plugins can replace or supplement it without changing the action or metrics plugins.
+Consize v0.3.0 is the next open-source release and is currently under active
+development. It rebuilds Consize as a provider-neutral optimization control
+plane: infrastructure evidence becomes an explainable recommendation, policy
+and preflight checks decide whether it may proceed, and a durable safety loop
+owns execution, verification, recovery and rollback.
 
-## Public SDK
+The code on `main` is the development baseline for v0.3.0. It is not yet a
+stable production release. The supported v0.2 line remains available from the
+[`v0.2.0` tag](https://github.com/consize-oss/consize/tree/v0.2.0) and
+[`release/0.2`](https://github.com/consize-oss/consize/tree/release/0.2).
 
-Downloadable, signed executable plugins are supported alongside built-ins. The
-catalog client, installer, runtime contract, and trust boundary live under
-`pkg/plugin/marketplace`. Public catalog hosting and publisher key distribution
-are not yet deployed.
+## Features
 
-Community-facing SDK packages live under `pkg`:
+- **Kubernetes optimization:** discover workloads and identify opportunities to
+  reduce unnecessary CPU and memory reservations.
+- **Evidence-backed recommendations:** use real Prometheus usage and health data
+  to explain what should change and why.
+- **Safety headroom:** retain configurable capacity above observed demand and
+  limit how much a resource can be reduced in one step.
+- **Policy guardrails:** define when changes may proceed, require approval or be
+  blocked based on environment, risk and available evidence.
+- **Dry runs and reviewable plans:** inspect a proposed change and its safety
+  checks before anything is applied.
+- **Controlled remediation:** apply approved Kubernetes changes through one
+  governed action path.
+- **Post-action verification:** monitor workload health after a change and
+  confirm that configured safety conditions remain satisfied.
+- **Automatic rollback:** restore the previous resource configuration when
+  verification fails or the action cannot complete safely.
+- **Restart recovery:** continue pending action and verification work after the
+  Consize process restarts.
+- **Audit history:** retain the recommendation, policy decision, action,
+  verification result and rollback outcome.
+- **Extensible integrations:** support additional infrastructure, metrics, cost
+  and action providers through the Consize plugin model.
+- **Clear savings estimates:** show projected savings separately from savings
+  confirmed by provider billing data.
 
-- `pkg/plugin`
-- `pkg/resource`
+## Current MVP Scope
 
-First-party OSS plugins live under `pkg/plugins`.
+The working optimization path currently targets Kubernetes Deployments using
+Prometheus evidence. The resource and plugin contracts are provider-neutral,
+but AWS, GCP, databases and other resource types are not automatically
+discovered or remediated yet.
 
-Everything under `internal` is implementation wiring for the OSS engine.
+The following capabilities are planned after the Kubernetes OSS foundation is
+qualified:
 
-## Boundary
+- additional cloud and database discovery/action plugins;
+- GitHub-hosted public plugin catalog and publisher trust distribution;
+- billing exports, FOCUS normalization and realized-savings reconciliation;
+- GitOps pull-request workflows and additional notification integrations;
+- scheduled reporting and broader multi-provider optimization algorithms.
 
-Open source should contain platform primitives.
+## Safety Model
 
-Enterprise should contain organizational trust, collaboration, governance, and commercial operations.
-
-In practice:
-
-- OSS makes Consize adoptable.
-- Enterprise makes Consize governable.
-
-## MVP Flow
+Every infrastructure mutation must follow one controlled path:
 
 ```text
-resource JSON
-recommendation JSON
-policy decision
-plugin action plan
-durable intent and baseline
-idempotent plugin execution
-rollout readiness and isolated metrics verification
-policy-authorized rollback and restoration verification when needed
-durable audit events and final state
+discovery
+  -> evidence
+  -> recommendation
+  -> authorization and policy
+  -> preflight checks
+  -> durable action intent
+  -> apply
+  -> rollout readiness
+  -> metrics verification
+  -> verified completion or rollback
+  -> durable audit history
 ```
 
-No action should bypass policy evaluation or audit creation.
+Review and dry-run operations may produce a plan, but they cannot mutate
+infrastructure. Approved execution is handled by the durable safety controller.
 
-## Configuration
+## Documentation
 
-Create a config file:
+Read the product and engineering documentation at
+[docs.consizehq.com](https://docs.consizehq.com).
 
-```json
-{
-  "state_path": "./.consize/state.json",
-  "kubernetes": {
-    "enabled": true,
-    "kubeconfig": "/path/to/kubeconfig"
-  },
-  "prometheus": {
-    "enabled": true,
-    "base_url": "http://prometheus.example:9090",
-    "window": "24h",
-    "step": "30s",
-    "queries": {
-      "cpu_cores": "max(sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"{namespace}\",pod=~\"{pod_regex}\",container!=\"\",container!=\"POD\",image!=\"\"}[5m])))",
-      "memory_working_set_bytes": "max(sum by (pod) (container_memory_working_set_bytes{namespace=\"{namespace}\",pod=~\"{pod_regex}\",container!=\"\",container!=\"POD\",image!=\"\"}))",
-      "restarts_30m": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"{namespace}\",pod=~\"{pod_regex}\"}[30m]))"
-    }
-  },
-  "recommender": {
-    "enabled": true,
-    "metrics_plugin_id": "prometheus-metrics",
-    "action_plugin_id": "kubernetes-action",
-    "action_type": "k8s.patch_resources",
-    "resource_kind": "memory",
-    "metric_key": "memory_working_set_bytes_p95",
-    "current_request_key": "memory_request_bytes",
-    "current_limit_key": "memory_limit_bytes",
-    "headroom_ratio": 1.5,
-    "min_reduction_ratio": 0.1
-  },
-  "verification": {
-    "enabled": true,
-    "metrics_plugin_id": "prometheus-metrics",
-    "wait": "5m",
-    "isolation": "30m",
-    "timeout": "10m",
-    "rollback_on_failure": true,
-    "rollback_on_timeout": true,
-    "max_restart_increase": 0,
-    "max_memory_p95_increase_ratio": 1.25,
-    "max_cpu_p95_increase_ratio": 1.5
-  },
-  "audit": {
-    "path": "./consize-audit.jsonl"
-  }
-}
-```
+Development references in this repository:
 
-If `kubeconfig` is empty, the Kubernetes plugin uses in-cluster configuration.
+- [`local-lab/README.md`](local-lab/README.md)
+- [`docs/v0.3-foundation-reference.md`](docs/v0.3-foundation-reference.md)
 
-## Commands
+## Release Lines
 
-```sh
-go test ./...
-go run ./cmd/consize plugins -config config.json
-go run ./cmd/consize health -config config.json
-go run ./cmd/consize metrics -config config.json -resource resource.json
-go run ./cmd/consize recommend -config config.json -resource resource.json
-go run ./cmd/consize plan -config config.json -resource resource.json -recommendation recommendation.json -mode dry_run -actor operator@example.com
-go run ./cmd/consize execute -config config.json -resource resource.json -recommendation recommendation.json -mode approved -actor operator@example.com
-go run ./cmd/consize run -config config.json -resource resource.json -mode approved -actor operator@example.com
-go run ./cmd/consize worker -config config.json
-```
+- `main`: active v0.3.0 development; new work uses short-lived branches and PRs.
+- `release/0.2`: supported maintenance line for v0.2.x fixes.
+- `v0.2.0`: immutable source reference for the published v0.2.0 release.
 
-## Kubernetes Resource Shape
+See [`docs/maintenance-0.2.md`](docs/maintenance-0.2.md) for the v0.2 maintenance
+and hotfix process.
 
-```json
-{
-  "id": "k8s:prod:checkout-api",
-  "type": "kubernetes.deployment",
-  "provider": "kubernetes",
-  "name": "checkout-api",
-  "environment": "production",
-  "owner": "payments-team",
-  "criticality": "high",
-  "metadata": {
-    "namespace": "prod",
-    "name": "checkout-api",
-    "pod_regex": "checkout-api-.+"
-  },
-  "current_state": {
-    "memory_request_bytes": 8589934592,
-    "memory_limit_bytes": 17179869184
-  }
-}
-```
+## Contributing
 
-## Kubernetes Recommendation Shape
+Contributions are welcome. Please open an issue or discussion before large
+architecture changes, keep provider-specific behavior behind plugin contracts,
+and include tests for the safety behavior affected by a change.
 
-```json
-{
-  "plugin_id": "kubernetes-action",
-  "action_type": "k8s.patch_resources",
-  "title": "Reduce checkout-api memory request",
-  "confidence": "medium",
-  "parameters": {
-    "patch": {
-      "resource": "memory",
-      "current_request": 8589934592,
-      "proposed_request": 6442450944,
-      "current_limit": 17179869184,
-      "proposed_limit": 17179869184
-    },
-    "proposed": {
-      "memory_request": "6Gi",
-      "memory_limit": "16Gi"
-    }
-  }
-}
-```
+## License
 
-## Safety Rules
-
-The Kubernetes action plugin:
-
-- only supports Deployment patches in this MVP;
-- validates namespace and name from the resource model;
-- validates patch parameters before planning;
-- reads current Deployment resources during planning;
-- fails the plan if live resources no longer match the recommendation;
-- preserves existing request/limit shape for each container;
-- retries Kubernetes update conflicts;
-- checks rollout readiness before and after action;
-- captures exact original and target per-container resource requirements;
-- rejects immutable identity or workload configuration drift;
-- applies and rolls back idempotently.
-
-The policy engine:
-
-- blocks invalid modes;
-- keeps production conservative;
-- requires an actor for approved actions;
-- supplies decisions retained with the durable action audit.
-
-The end-to-end `run` command:
-
-- reads pre-action Prometheus evidence;
-- uses the built-in headroom recommender if no recommendation file is supplied;
-- applies policy and action orchestration;
-- persists intent before any infrastructure mutation;
-- resumes unfinished actions after interruption through `worker` or `serve`;
-- requires complete, recent baseline metrics and timestamped coverage;
-- checks a separate post-action observation window;
-- retries inconclusive checks until the captured deadline;
-- performs policy-authorized rollback and verifies restoration;
-- retains canonical action and verification records in the durable state store.
-
-API and CLI mutation use the same safety controller. The legacy orchestrator is
-review-only. Each state file has one active process owner; stop the API before
-using CLI commands with that state file. Unresolved recovery blocks further
-actions on the resource. See [Local Safety Notes](local-lab/SAFETY-NOTES.md) for
-timing, storage requirements and recovery operation.
-
-SDK action plugins used for mutation must implement `RecoverableActionPlugin`
-(`Inspect`, `Ready`, `Rollback`) and provide original/applied registry state in
-their plans. They must also implement `PreflightActionPlugin`; blocked or unknown
-checks prevent mutation. The Kubernetes plugin checks controller conflicts and
-QoS changes in `pkg/plugins/kubernetes/preflight.go`. Metrics plugins must
-implement `WindowedMetricsPlugin` and provide timestamped coverage for required
-signals. Plugins without these capabilities can be reviewed but cannot enter the
-durable mutation flow.
-
-## Current Migration Boundary
-
-The v0.3 foundation has one supported execution path: provider discovery writes
-universal resources, metrics become evidence, the recommender creates a
-reviewable proposal, policy and preflight guard it, and the durable safety
-controller owns apply, verification, recovery and rollback. API callers cannot
-choose their audit identity; when authentication is enabled, identities and
-roles come from server-side token configuration. Without authentication, the
-API refuses to listen beyond the local machine.
-
-Configured rate cards may attach monthly savings estimates to recommendations.
-Those values are planning evidence, not realized savings. Realized savings will
-remain unavailable until a billing-export capability can reconcile provider
-charges over a complete billing-data window.
-
-The following v0.2-era capabilities are intentionally deferred rather than
-copied around the v0.3 boundaries:
-
-- AWS and GCP resource discovery and optimization;
-- database-specific discovery and remediation;
-- provider billing ingestion, FOCUS normalization and realized-savings reconciliation;
-- scheduled report generation and delivery.
-
-Each deferred provider must be introduced through the same discovery, evidence,
-cost or action plugin contracts. It must not create a second resource store or
-bypass the policy, durable execution, verification and audit lifecycle.
+Consize is licensed under the [Apache License 2.0](LICENSE).
