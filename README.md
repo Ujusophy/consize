@@ -33,7 +33,7 @@ The fastest way to experience Consize's safety net is through our **Interactive 
 
 ```bash
 # Pull and run the all-in-one interactive sandbox
-docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:latest
+docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:0.2.0
 ```
 
 Open `http://localhost:3000` in your browser. You can watch the Verifier catch an intentional regression on the `checkout-api` workload and instantly trigger an automatic rollback to restore safety.
