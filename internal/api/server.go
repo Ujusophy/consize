@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/consize-oss/consize/internal/audit"
 	"github.com/consize-oss/consize/internal/auth"
@@ -33,6 +36,8 @@ type Server struct {
 	policies   *policy.Engine
 	cfg        bootstrap.Config
 }
+
+var requestSequence atomic.Uint64
 
 type Dashboard struct {
 	Verification    bootstrap.VerificationConfig `json:"verification"`
@@ -101,7 +106,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/recommendations/", s.protect(s.recommendationRole, s.handleRecommendationAction))
 	mux.HandleFunc("/api/actions", s.protect(auth.RoleViewer, s.handleActions))
 	mux.HandleFunc("/api/jobs", s.protect(auth.RoleViewer, s.handleJobs))
-	return mux
+	return s.logRequests(mux)
 }
 
 func (s *Server) handleDiscovery(w http.ResponseWriter, r *http.Request) {
@@ -200,10 +205,27 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := s.st.Health(r.Context()); err != nil {
-		writeError(w, http.StatusServiceUnavailable, err.Error())
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"status": "unhealthy", "store": "unavailable", "error": err.Error()})
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"status": "healthy"})
+	statuses, err := s.pluginStatuses(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"status": "unhealthy", "store": "healthy", "error": err.Error()})
+		return
+	}
+	status := "healthy"
+	for _, candidate := range statuses {
+		if candidate.Health.Status != "healthy" {
+			status = "degraded"
+			break
+		}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":         status,
+		"store":          "healthy",
+		"durable_worker": s.controller != nil,
+		"plugins":        statuses,
+	})
 }
 
 func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
@@ -588,6 +610,30 @@ func (s *Server) recommendationRole(r *http.Request) string {
 		return auth.RoleAdmin
 	}
 	return auth.RoleOperator
+}
+
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *statusRecorder) WriteHeader(status int) {
+	w.status = status
+	w.ResponseWriter.WriteHeader(status)
+}
+
+func (s *Server) logRequests(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		started := time.Now()
+		requestID := r.Header.Get("X-Request-ID")
+		if requestID == "" {
+			requestID = fmt.Sprintf("req-%d", requestSequence.Add(1))
+		}
+		w.Header().Set("X-Request-ID", requestID)
+		recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(recorder, r)
+		slog.Info("http request", "request_id", requestID, "method", r.Method, "path", r.URL.Path, "status", recorder.status, "duration_ms", time.Since(started).Milliseconds())
+	})
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

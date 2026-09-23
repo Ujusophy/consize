@@ -219,3 +219,30 @@ QoS changes in `pkg/plugins/kubernetes/preflight.go`. Metrics plugins must
 implement `WindowedMetricsPlugin` and provide timestamped coverage for required
 signals. Plugins without these capabilities can be reviewed but cannot enter the
 durable mutation flow.
+
+## Current Migration Boundary
+
+The v0.3 foundation has one supported execution path: provider discovery writes
+universal resources, metrics become evidence, the recommender creates a
+reviewable proposal, policy and preflight guard it, and the durable safety
+controller owns apply, verification, recovery and rollback. API callers cannot
+choose their audit identity; when authentication is enabled, identities and
+roles come from server-side token configuration. Without authentication, the
+API refuses to listen beyond the local machine.
+
+Configured rate cards may attach monthly savings estimates to recommendations.
+Those values are planning evidence, not realized savings. Realized savings will
+remain unavailable until a billing-export capability can reconcile provider
+charges over a complete billing-data window.
+
+The following v0.2-era capabilities are intentionally deferred rather than
+copied around the v0.3 boundaries:
+
+- AWS and GCP resource discovery and optimization;
+- database-specific discovery and remediation;
+- provider billing ingestion, FOCUS normalization and realized-savings reconciliation;
+- scheduled report generation and delivery.
+
+Each deferred provider must be introduced through the same discovery, evidence,
+cost or action plugin contracts. It must not create a second resource store or
+bypass the policy, durable execution, verification and audit lifecycle.

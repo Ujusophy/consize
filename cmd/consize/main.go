@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,6 +17,7 @@ import (
 	"github.com/consize-oss/consize/internal/bootstrap"
 	"github.com/consize-oss/consize/internal/config"
 	"github.com/consize-oss/consize/internal/cost"
+	"github.com/consize-oss/consize/internal/discovery"
 	"github.com/consize-oss/consize/internal/orchestrator"
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/recommender"
@@ -39,6 +41,22 @@ func run(ctx context.Context, args []string) error {
 		return usage()
 	}
 	switch args[0] {
+	case "discover":
+		fs := flag.NewFlagSet("discover", flag.ExitOnError)
+		configPath := fs.String("config", "", "Path to Consize plugin config JSON")
+		if err := fs.Parse(args[1:]); err != nil {
+			return err
+		}
+		st, plugins, _, _, err := foundation(ctx, *configPath)
+		if err != nil {
+			return err
+		}
+		defer st.Close()
+		results, err := discovery.New(st, plugins).Run(ctx)
+		if err != nil {
+			return err
+		}
+		return printJSON(map[string]any{"providers": results})
 	case "worker":
 		fs := flag.NewFlagSet("worker", flag.ExitOnError)
 		path := fs.String("config", "", "Plugin and durable state configuration")
@@ -260,7 +278,7 @@ func foundation(ctx context.Context, path string) (*store.Memory, *plugin.Manage
 }
 
 func usage() error {
-	return fmt.Errorf("usage: consize <plugins|health|metrics|recommend|plan|execute|run|serve> -config config.json [flags]")
+	return fmt.Errorf("usage: consize <discover|plugins|health|metrics|recommend|plan|execute|run|serve> -config config.json [flags]")
 }
 
 func printJSON(v any) error {
@@ -367,6 +385,9 @@ func serveHTTP(ctx context.Context, configPath, addr, resourcePath, recommendati
 		return err
 	}
 	defer st.Close()
+	if err := validateListenAddress(addr, cfg.Auth.Enabled); err != nil {
+		return err
+	}
 	var seededResource resource.Resource
 	if resourcePath != "" {
 		seededResource, err = config.LoadResource(resourcePath)
@@ -410,7 +431,15 @@ func serveHTTP(ctx context.Context, configPath, addr, resourcePath, recommendati
 	fmt.Printf("Consize API listening on http://%s\n", addr)
 	workerCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	httpServer := &http.Server{Addr: addr, Handler: server.Handler(), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
+	httpServer := &http.Server{
+		Addr:              addr,
+		Handler:           server.Handler(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    1 << 20,
+	}
 	workerDone := make(chan error, 1)
 	go func() {
 		err := server.RunWorker(workerCtx)
@@ -435,6 +464,21 @@ func serveHTTP(ctx context.Context, configPath, addr, resourcePath, recommendati
 		return nil
 	}
 	return err
+}
+
+func validateListenAddress(addr string, authenticationEnabled bool) error {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return fmt.Errorf("invalid listen address: %w", err)
+	}
+	if authenticationEnabled || host == "localhost" {
+		return nil
+	}
+	ip := net.ParseIP(host)
+	if ip == nil || !ip.IsLoopback() {
+		return fmt.Errorf("authentication must be enabled before listening on non-loopback address %q", addr)
+	}
+	return nil
 }
 
 func runDurableJob(ctx context.Context, st *store.Memory, plugins *plugin.Manager, policies *policy.Engine, cfg bootstrap.Config, id int64, actor string) error {
