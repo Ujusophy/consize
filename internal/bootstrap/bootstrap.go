@@ -93,6 +93,9 @@ func RegisterConfiguredPlugins(_ context.Context, m *plugin.Manager, cfg Config)
 		if err := m.RegisterAction(p); err != nil {
 			return err
 		}
+		if err := m.RegisterDiscovery(p); err != nil {
+			return err
+		}
 	}
 	if cfg.Prometheus.Enabled {
 		window, err := parseOptionalDuration(cfg.Prometheus.Window)

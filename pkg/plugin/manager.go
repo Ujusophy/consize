@@ -15,13 +15,45 @@ var (
 )
 
 type Manager struct {
-	mu      sync.RWMutex
-	actions map[string]ActionPlugin
-	metrics map[string]MetricsPlugin
+	mu        sync.RWMutex
+	actions   map[string]ActionPlugin
+	metrics   map[string]MetricsPlugin
+	discovery map[string]DiscoveryPlugin
 }
 
 func NewManager() *Manager {
-	return &Manager{actions: map[string]ActionPlugin{}, metrics: map[string]MetricsPlugin{}}
+	return &Manager{actions: map[string]ActionPlugin{}, metrics: map[string]MetricsPlugin{}, discovery: map[string]DiscoveryPlugin{}}
+}
+
+func (m *Manager) RegisterDiscovery(p DiscoveryPlugin) error {
+	if p == nil {
+		return errors.New("plugin is nil")
+	}
+	manifest := p.Manifest()
+	if manifest.ID == "" || !Supports(manifest.Capabilities, CapabilityResourceDiscover) {
+		return errors.New("discovery plugin must declare an id and resource.discover capability")
+	}
+	if manifest.CanMutateInfrastructure && !Supports(manifest.Capabilities, CapabilityActionExecute) {
+		return fmt.Errorf("discovery-only plugin %s cannot mutate infrastructure", manifest.ID)
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if _, exists := m.discovery[manifest.ID]; exists {
+		return fmt.Errorf("discovery plugin %s already registered", manifest.ID)
+	}
+	m.discovery[manifest.ID] = p
+	return nil
+}
+
+func (m *Manager) DiscoveryPlugins() []DiscoveryPlugin {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	out := make([]DiscoveryPlugin, 0, len(m.discovery))
+	for _, p := range m.discovery {
+		out = append(out, p)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID() < out[j].ID() })
+	return out
 }
 
 func (m *Manager) RegisterAction(p ActionPlugin) error {
@@ -122,12 +154,19 @@ func (m *Manager) MetricsPlugins(resourceType string) []MetricsPlugin {
 func (m *Manager) Manifests() []Manifest {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	out := make([]Manifest, 0, len(m.actions)+len(m.metrics))
+	byID := make(map[string]Manifest, len(m.actions)+len(m.metrics)+len(m.discovery))
 	for _, p := range m.actions {
-		out = append(out, p.Manifest())
+		byID[p.ID()] = p.Manifest()
 	}
 	for _, p := range m.metrics {
-		out = append(out, p.Manifest())
+		byID[p.ID()] = p.Manifest()
+	}
+	for _, p := range m.discovery {
+		byID[p.ID()] = p.Manifest()
+	}
+	out := make([]Manifest, 0, len(byID))
+	for _, manifest := range byID {
+		out = append(out, manifest)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
@@ -140,6 +179,9 @@ func (m *Manager) Health(ctx context.Context, id string) (Health, error) {
 		return p.Health(ctx), nil
 	}
 	if p, ok := m.metrics[id]; ok {
+		return p.Health(ctx), nil
+	}
+	if p, ok := m.discovery[id]; ok {
 		return p.Health(ctx), nil
 	}
 	return Health{}, ErrNotFound

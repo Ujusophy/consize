@@ -47,6 +47,8 @@ type Resource struct {
 	Metadata           map[string]any    `json:"metadata"`
 	CurrentState       map[string]any    `json:"current_state"`
 	MonthlyCost        float64           `json:"monthly_cost"`
+	SourcePluginID     string            `json:"source_plugin_id"`
+	ObservedAt         time.Time         `json:"observed_at"`
 	CreatedAt          time.Time         `json:"created_at"`
 	UpdatedAt          time.Time         `json:"updated_at"`
 }

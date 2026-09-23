@@ -12,6 +12,7 @@ import (
 
 	"github.com/consize-oss/consize/internal/audit"
 	"github.com/consize-oss/consize/internal/bootstrap"
+	"github.com/consize-oss/consize/internal/discovery"
 	"github.com/consize-oss/consize/internal/orchestrator"
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/recommender"
@@ -88,12 +89,30 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/health", s.withCORS(s.handleHealth))
 	mux.HandleFunc("/api/dashboard", s.withCORS(s.handleDashboard))
 	mux.HandleFunc("/api/resources", s.withCORS(s.handleResources))
+	mux.HandleFunc("/api/discovery", s.withCORS(s.handleDiscovery))
 	mux.HandleFunc("/api/plugins", s.withCORS(s.handlePlugins))
 	mux.HandleFunc("/api/recommendations/generate", s.withCORS(s.handleGenerateRecommendation))
 	mux.HandleFunc("/api/recommendations/", s.withCORS(s.handleRecommendationAction))
 	mux.HandleFunc("/api/actions", s.withCORS(s.handleActions))
 	mux.HandleFunc("/api/jobs", s.withCORS(s.handleJobs))
 	return mux
+}
+
+func (s *Server) handleDiscovery(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+	results, err := discovery.New(s.st, s.plugins).Run(r.Context())
+	if err != nil {
+		writeError(w, http.StatusBadGateway, err.Error())
+		return
+	}
+	if err := s.writeAudit("discovery", results); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"providers": results})
 }
 
 func (s *Server) handleJobs(w http.ResponseWriter, r *http.Request) {
