@@ -25,8 +25,6 @@ Community-facing SDK packages live under `pkg`:
 
 First-party OSS plugins live under `pkg/plugins`.
 
-Everything under `internal` is implementation wiring for the OSS engine.
-
 ## Boundary
 
 Open source should contain platform primitives.
@@ -107,6 +105,11 @@ Create a config file:
 ```
 
 If `kubeconfig` is empty, the Kubernetes plugin uses in-cluster configuration.
+
+## Local Development
+
+See [`DEVELOPMENT.md`](DEVELOPMENT.md) for clean-machine setup of the v0.3
+backend, UI, local Kubernetes workload, Prometheus and plugin configuration.
 
 ## Commands
 
