@@ -1,109 +1,220 @@
-<div align="center">
-
-  <img src="docs/assets/banner.jpg" alt="Consize Logo" width="800"/>
-
 # Consize
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker)](https://github.com/consize-oss/consize-sandbox)
+This branch contains the provider-neutral foundation for Consize 0.3.
 
-</div>
+This MVP focuses on two production-oriented plugins:
 
-**The automated safety engine for cloud cost optimization.**
+- `kubernetes-action`: plans staged Kubernetes Deployment request reductions, preserves limits, and supports exact-state rollback.
+- `prometheus-metrics`: reads Kubernetes workload health and utilization signals from Prometheus.
 
-Cloud infrastructure teams waste 30–50% of their compute and database spend not because they lack visibility, but because the operational risk outweighs the potential savings.
+There are no runtime seeds or placeholder cloud plugins in this foundation. Resources, recommendations, and plugin configuration must be provided explicitly.
 
-**Consize exists to close that gap.** It is a fully automated safety engine that analyzes your infrastructure, applies rightsizing changes in small steps, verifies the safety of those changes in real-time, and automatically rolls back if things go wrong.
+Recommendation generation uses the built-in `prometheus-headroom-v1` recommender. It is intentionally part of OSS core for now, but it sits behind an internal recommender interface so future algorithm plugins can replace or supplement it without changing the action or metrics plugins.
 
----
+## Public SDK
 
-## How is Consize different from Kubecost?
+Downloadable, signed executable plugins are supported alongside built-ins. See
+[Plugin marketplace](docs/plugin-marketplace.md) for the catalog client, installer,
+publisher tooling, runtime contract and trust boundary. Public catalog hosting
+and publisher key distribution are not yet deployed.
 
-[Kubecost](https://www.kubecost.com/) is a phenomenal open-source project and the absolute gold standard for Kubernetes cost observability and allocation. If your goal is to map cloud billing data to specific namespaces or cross-charge teams, you should use Kubecost.
+Community-facing SDK packages live under `pkg`:
 
-However, observing waste and **fixing waste safely** are two different problems. 
+- `pkg/plugin`
+- `pkg/resource`
 
-Consize compliments the ecosystem by focusing entirely on safe, automated action. While observability tools provide recommendations for engineers to apply manually, Consize acts as an active safety net: it generates rightsizing IaC PRs, executes changes in small steps, and monitors your SLIs (e.g., latency, OOM kills) in real-time. If an application degrades, Consize triggers an automated rollback. 
+First-party OSS plugins live under `pkg/plugins`.
 
----
+Everything under `internal` is implementation wiring for the OSS engine.
 
-## Try the Interactive Sandbox
+## Boundary
 
-The fastest way to experience Consize's safety net is through our **Interactive Sandbox**. It runs entirely on your local machine using a single Docker container, pre-seeded with historical data, cloud waste opportunities, and a live metrics simulation.
+Open source should contain platform primitives.
 
-```bash
-# Pull and run the all-in-one interactive sandbox
-docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:0.2.0
+Enterprise should contain organizational trust, collaboration, governance, and commercial operations.
+
+In practice:
+
+- OSS makes Consize adoptable.
+- Enterprise makes Consize governable.
+
+## MVP Flow
+
+```text
+resource JSON
+recommendation JSON
+policy decision
+plugin action plan
+durable intent and baseline
+idempotent plugin execution
+rollout readiness and isolated metrics verification
+policy-authorized rollback and restoration verification when needed
+durable audit events and final state
 ```
 
-Open `http://localhost:3000` in your browser. You can watch the Verifier catch an intentional regression on the `checkout-api` workload and instantly trigger an automatic rollback to restore safety.
-
-<img src="img/demo-dashboard.png" alt="Consize Demo Dashboard" />
-
----
-
-## Production Installation
-
-Consize is built to run safely inside your cluster. It uses read-only access for analysis and requires explicit, least-privilege, namespace-scoped `RoleBindings` before it can apply any changes.
-
-Install Consize onto a live cluster (AWS and GCP currently supported) using our official Helm chart hosted on GitHub Container Registry (GHCR):
-
-```bash
-# 1. Export the default values to customize your installation
-helm show values oci://ghcr.io/consize-oss/charts/consize > values.yaml
-
-# 2. Install the chart using your customized values
-helm install consize oci://ghcr.io/consize-oss/charts/consize \
-  --version 0.2.0 \
-  --namespace consize-system \
-  --create-namespace \
-  -f values.yaml
-```
-
----
+No action should bypass policy evaluation or audit creation.
 
 ## Configuration
 
-For detailed instructions on configuring Helm values, setting up Service Accounts, and providing Integration Secrets, please refer to this **[Installation Guide](docs/customer-guide.md#installation)**.
+Create a config file:
 
----
+```json
+{
+  "state_path": "./.consize/state.json",
+  "kubernetes": {
+    "enabled": true,
+    "kubeconfig": "/path/to/kubeconfig"
+  },
+  "prometheus": {
+    "enabled": true,
+    "base_url": "http://prometheus.example:9090",
+    "window": "24h",
+    "step": "30s",
+    "queries": {
+      "cpu_cores": "max(sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"{namespace}\",pod=~\"{pod_regex}\",container!=\"\",container!=\"POD\",image!=\"\"}[5m])))",
+      "memory_working_set_bytes": "max(sum by (pod) (container_memory_working_set_bytes{namespace=\"{namespace}\",pod=~\"{pod_regex}\",container!=\"\",container!=\"POD\",image!=\"\"}))",
+      "restarts_30m": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"{namespace}\",pod=~\"{pod_regex}\"}[30m]))"
+    }
+  },
+  "recommender": {
+    "enabled": true,
+    "metrics_plugin_id": "prometheus-metrics",
+    "action_plugin_id": "kubernetes-action",
+    "action_type": "k8s.patch_resources",
+    "resource_kind": "memory",
+    "metric_key": "memory_working_set_bytes_p95",
+    "current_request_key": "memory_request_bytes",
+    "current_limit_key": "memory_limit_bytes",
+    "headroom_ratio": 1.5,
+    "min_reduction_ratio": 0.1
+  },
+  "verification": {
+    "enabled": true,
+    "metrics_plugin_id": "prometheus-metrics",
+    "wait": "5m",
+    "isolation": "30m",
+    "timeout": "10m",
+    "rollback_on_failure": true,
+    "rollback_on_timeout": true,
+    "max_restart_increase": 0,
+    "max_memory_p95_increase_ratio": 1.25,
+    "max_cpu_p95_increase_ratio": 1.5
+  },
+  "audit": {
+    "path": "./consize-audit.jsonl"
+  }
+}
+```
 
-## Core Features
+If `kubeconfig` is empty, the Kubernetes plugin uses in-cluster configuration.
 
-| Feature | Description |
-|---------|-------------|
-| **Kubernetes Rightsizing** | Deterministic CPU & Memory p95/p99 usage analysis over 14-day windows. |
-| **Cloud Waste Scanning** | Automatically detects unattached EBS volumes, Elastic IPs, and stopped Compute instances (AWS/GCP). |
-| **IaC Integration** | Clean up waste directly through the UI or automatically generate PRs against your GitOps repos (Terraform/YAML). |
-| **Step-wise Apply** | Large changes are never applied at once; they are broken down into smaller, safe increments. |
-| **Auto-Rollback Guardrails** | Monitors SLIs (OOMKills, CPU throttling) after every change. Breaching a threshold triggers an instant, byte-identical rollback. |
+## Commands
 
----
+```sh
+go test ./...
+go run ./cmd/consize plugins -config config.json
+go run ./cmd/consize health -config config.json
+go run ./cmd/consize metrics -config config.json -resource resource.json
+go run ./cmd/consize recommend -config config.json -resource resource.json
+go run ./cmd/consize plan -config config.json -resource resource.json -recommendation recommendation.json -mode dry_run -actor operator@example.com
+go run ./cmd/consize execute -config config.json -resource resource.json -recommendation recommendation.json -mode approved -actor operator@example.com
+go run ./cmd/consize run -config config.json -resource resource.json -mode approved -actor operator@example.com
+go run ./cmd/consize worker -config config.json
+```
 
-## Documentation
+## Kubernetes Resource Shape
 
-The full docs, including guides, configuration reference, and troubleshooting, live at **[docs.consizehq.com](https://docs.consizehq.com)**. A few starting points:
+```json
+{
+  "id": "k8s:prod:checkout-api",
+  "type": "kubernetes.deployment",
+  "provider": "kubernetes",
+  "name": "checkout-api",
+  "environment": "production",
+  "owner": "payments-team",
+  "criticality": "high",
+  "metadata": {
+    "namespace": "prod",
+    "name": "checkout-api",
+    "pod_regex": "checkout-api-.+"
+  },
+  "current_state": {
+    "memory_request_bytes": 8589934592,
+    "memory_limit_bytes": 17179869184
+  }
+}
+```
 
-- **[Vision & The Safety Net](VISION.md)** — why Consize exists and the safety principle it's built around
-- **[Get Started](https://docs.consizehq.com/getting-started/get-started/)** — install it and run your first rightsizing change
-- **[How Consize Works](https://docs.consizehq.com/concepts/architecture/)** — architecture and data flow
-- **[Security & Least Privilege](SECURITY.md)**
-- **[Decisions & ADR Log](https://docs.consizehq.com/contributing/decisions/)**
+## Kubernetes Recommendation Shape
 
----
+```json
+{
+  "plugin_id": "kubernetes-action",
+  "action_type": "k8s.patch_resources",
+  "title": "Reduce checkout-api memory request",
+  "confidence": "medium",
+  "parameters": {
+    "patch": {
+      "resource": "memory",
+      "current_request": 8589934592,
+      "proposed_request": 6442450944,
+      "current_limit": 17179869184,
+      "proposed_limit": 17179869184
+    },
+    "proposed": {
+      "memory_request": "6Gi",
+      "memory_limit": "16Gi"
+    }
+  }
+}
+```
 
-## Contributing
+## Safety Rules
 
-Consize is completely open for contribution! We build with the community, not just for the community. 
+The Kubernetes action plugin:
 
-Whether it's adding support for new cloud providers, fixing bugs, or improving documentation, we welcome all contributions. 
+- only supports Deployment patches in this MVP;
+- validates namespace and name from the resource model;
+- validates patch parameters before planning;
+- reads current Deployment resources during planning;
+- fails the plan if live resources no longer match the recommendation;
+- preserves existing request/limit shape for each container;
+- retries Kubernetes update conflicts;
+- checks rollout readiness before and after action;
+- captures exact original and target per-container resource requirements;
+- rejects immutable identity or workload configuration drift;
+- applies and rolls back idempotently.
 
-- **Good first issues:** Look for the `good first issue` label on our issue tracker to get started.
-- **Design proposals:** For larger architectural changes, please open a GitHub Discussion first. We use Architecture Decision Records (ADRs) to document significant decisions.
-- **Local Development:** Check out the [Architecture & Data Flow](docs/architecture.md) documentation to understand how the components fit together before spinning up your local environment.
+The policy engine:
 
----
+- blocks invalid modes;
+- keeps production conservative;
+- requires an actor for approved actions;
+- supplies decisions retained with the durable action audit.
 
-## ⚖️ License
+The end-to-end `run` command:
 
-Distributed under the **Apache 2.0 License**. See [`LICENSE`](LICENSE) for more information.
+- reads pre-action Prometheus evidence;
+- uses the built-in headroom recommender if no recommendation file is supplied;
+- applies policy and action orchestration;
+- persists intent before any infrastructure mutation;
+- resumes unfinished actions after interruption through `worker` or `serve`;
+- requires complete, recent baseline metrics and timestamped coverage;
+- checks a separate post-action observation window;
+- retries inconclusive checks until the captured deadline;
+- performs policy-authorized rollback and verifies restoration;
+- retains canonical action and verification records in the durable state store.
+
+API and CLI mutation use the same safety controller. The legacy orchestrator is
+review-only. Each state file has one active process owner; stop the API before
+using CLI commands with that state file. Unresolved recovery blocks further
+actions on the resource. See [Local Safety Notes](local-lab/SAFETY-NOTES.md) for
+timing, storage requirements and recovery operation.
+
+SDK action plugins used for mutation must implement `RecoverableActionPlugin`
+(`Inspect`, `Ready`, `Rollback`) and provide original/applied registry state in
+their plans. They must also implement `PreflightActionPlugin`; blocked or unknown
+checks prevent mutation. Kubernetes checks controller conflicts and QoS changes;
+see [Kubernetes Preflight](docs/kubernetes-preflight.md). Metrics plugins must implement `WindowedMetricsPlugin` and provide
+timestamped coverage for required signals. Plugins without these capabilities
+can be reviewed but cannot enter the durable mutation flow.
