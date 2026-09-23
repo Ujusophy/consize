@@ -13,6 +13,7 @@ import (
 	"github.com/consize-oss/consize/internal/audit"
 	"github.com/consize-oss/consize/internal/auth"
 	"github.com/consize-oss/consize/internal/bootstrap"
+	"github.com/consize-oss/consize/internal/cost"
 	"github.com/consize-oss/consize/internal/discovery"
 	"github.com/consize-oss/consize/internal/orchestrator"
 	"github.com/consize-oss/consize/internal/policy"
@@ -307,6 +308,15 @@ func (s *Server) handleGenerateRecommendation(w http.ResponseWriter, r *http.Req
 	created := make([]store.Recommendation, 0, len(recs))
 	for _, rec := range recs {
 		rec.ResourceID = res.ID
+		costPluginID := ""
+		if s.cfg.Pricing.Enabled {
+			costPluginID = s.cfg.Pricing.EffectivePluginID()
+		}
+		rec, err = cost.Enrich(r.Context(), s.plugins, costPluginID, res, rec)
+		if err != nil {
+			writeError(w, http.StatusBadGateway, err.Error())
+			return
+		}
 		out, err := s.st.CreateRecommendation(r.Context(), rec)
 		if err != nil {
 			writeError(w, http.StatusBadRequest, err.Error())

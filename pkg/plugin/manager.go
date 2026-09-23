@@ -18,11 +18,45 @@ type Manager struct {
 	mu        sync.RWMutex
 	actions   map[string]ActionPlugin
 	metrics   map[string]MetricsPlugin
+	costs     map[string]CostPlugin
 	discovery map[string]DiscoveryPlugin
 }
 
 func NewManager() *Manager {
-	return &Manager{actions: map[string]ActionPlugin{}, metrics: map[string]MetricsPlugin{}, discovery: map[string]DiscoveryPlugin{}}
+	return &Manager{actions: map[string]ActionPlugin{}, metrics: map[string]MetricsPlugin{}, costs: map[string]CostPlugin{}, discovery: map[string]DiscoveryPlugin{}}
+}
+
+func (m *Manager) RegisterCost(p CostPlugin) error {
+	if p == nil {
+		return errors.New("plugin is nil")
+	}
+	manifest := p.Manifest()
+	if manifest.ID == "" || manifest.Category != CategoryCost || !Supports(manifest.Capabilities, CapabilityCostRead) {
+		return errors.New("cost plugin must declare an id, cost category, and cost.read capability")
+	}
+	if manifest.CanMutateInfrastructure {
+		return fmt.Errorf("cost plugin %s cannot mutate infrastructure", manifest.ID)
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if _, exists := m.costs[manifest.ID]; exists {
+		return fmt.Errorf("cost plugin %s already registered", manifest.ID)
+	}
+	m.costs[manifest.ID] = p
+	return nil
+}
+
+func (m *Manager) CostPlugin(id, resourceType string) (CostPlugin, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	p, ok := m.costs[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	if !Supports(p.Manifest().SupportedResourceTypes, resourceType) {
+		return nil, ErrUnsupported
+	}
+	return p, nil
 }
 
 func (m *Manager) RegisterDiscovery(p DiscoveryPlugin) error {
@@ -154,11 +188,14 @@ func (m *Manager) MetricsPlugins(resourceType string) []MetricsPlugin {
 func (m *Manager) Manifests() []Manifest {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	byID := make(map[string]Manifest, len(m.actions)+len(m.metrics)+len(m.discovery))
+	byID := make(map[string]Manifest, len(m.actions)+len(m.metrics)+len(m.costs)+len(m.discovery))
 	for _, p := range m.actions {
 		byID[p.ID()] = p.Manifest()
 	}
 	for _, p := range m.metrics {
+		byID[p.ID()] = p.Manifest()
+	}
+	for _, p := range m.costs {
 		byID[p.ID()] = p.Manifest()
 	}
 	for _, p := range m.discovery {
@@ -179,6 +216,9 @@ func (m *Manager) Health(ctx context.Context, id string) (Health, error) {
 		return p.Health(ctx), nil
 	}
 	if p, ok := m.metrics[id]; ok {
+		return p.Health(ctx), nil
+	}
+	if p, ok := m.costs[id]; ok {
 		return p.Health(ctx), nil
 	}
 	if p, ok := m.discovery[id]; ok {

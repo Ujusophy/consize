@@ -15,6 +15,7 @@ import (
 	"github.com/consize-oss/consize/internal/audit"
 	"github.com/consize-oss/consize/internal/bootstrap"
 	"github.com/consize-oss/consize/internal/config"
+	"github.com/consize-oss/consize/internal/cost"
 	"github.com/consize-oss/consize/internal/orchestrator"
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/recommender"
@@ -150,6 +151,14 @@ func run(ctx context.Context, args []string) error {
 		})
 		if err != nil {
 			return err
+		}
+		if cfg.Pricing.Enabled {
+			for i := range recs {
+				recs[i], err = cost.Enrich(ctx, plugins, cfg.Pricing.EffectivePluginID(), res, recs[i])
+				if err != nil {
+					return err
+				}
+			}
 		}
 		return printJSON(map[string]any{"recommendations": recs, "evidence": snapshot})
 	case "plan", "execute":
@@ -313,6 +322,12 @@ func runEndToEnd(ctx context.Context, configPath, resourcePath, recommendationPa
 		rec = recs[0]
 	}
 	rec.ResourceID = res.ID
+	if cfg.Pricing.Enabled {
+		rec, err = cost.Enrich(ctx, plugins, cfg.Pricing.EffectivePluginID(), res, rec)
+		if err != nil {
+			return err
+		}
+	}
 	rec, err = st.CreateRecommendation(ctx, rec)
 	if err != nil {
 		return err
