@@ -14,7 +14,7 @@ deploy/prod/env.sh
 .consize/
 bin/
 dist/
-consize
+/consize
 *.test
 engine/bin/
 engine/collector
