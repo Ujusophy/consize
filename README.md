@@ -35,7 +35,7 @@
 
 | 🧪 Try the Sandbox | 🚀 Production Install |
 | --- | --- |
-| Run everything locally in one container, pre-seeded with data and a live regression to watch Consize catch and roll back. | Install onto a live cluster (AWS/GCP) with the official Helm chart. Read-only by default until you grant least-privilege `RoleBindings`. |
+| Run everything locally in one container, pre-seeded with data and a live regression to watch Consize catch and roll back. | Install onto a live Kubernetes cluster on AWS/GCP with the official Helm chart. Read-only by default until you grant least-privilege `RoleBindings`. |
 
 ### Try the Interactive Sandbox
 
