@@ -13,7 +13,6 @@
   <a href="https://github.com/consize-oss/consize/blob/main/docs/customer-guide.md">Docs</a> |
   <a href="#try-the-interactive-sandbox">Sandbox</a> |
   <a href="https://github.com/consize-oss/consize/blob/main/VISION.md">Vision</a> |
-  <a href="https://github.com/consize-oss/consize/blob/main/docs/architecture.md">Architecture</a> |
   <a href="https://github.com/consize-oss/consize/blob/main/SECURITY.md">Security</a>
 </h4>
 
