@@ -13,10 +13,10 @@ Recommendation generation uses the built-in `prometheus-headroom-v1` recommender
 
 ## Public SDK
 
-Downloadable, signed executable plugins are supported alongside built-ins. See
-[Plugin marketplace](docs/plugin-marketplace.md) for the catalog client, installer,
-publisher tooling, runtime contract and trust boundary. Public catalog hosting
-and publisher key distribution are not yet deployed.
+Downloadable, signed executable plugins are supported alongside built-ins. The
+catalog client, installer, runtime contract, and trust boundary live under
+`pkg/plugin/marketplace`. Public catalog hosting and publisher key distribution
+are not yet deployed.
 
 Community-facing SDK packages live under `pkg`:
 
@@ -214,7 +214,8 @@ timing, storage requirements and recovery operation.
 SDK action plugins used for mutation must implement `RecoverableActionPlugin`
 (`Inspect`, `Ready`, `Rollback`) and provide original/applied registry state in
 their plans. They must also implement `PreflightActionPlugin`; blocked or unknown
-checks prevent mutation. Kubernetes checks controller conflicts and QoS changes;
-see [Kubernetes Preflight](docs/kubernetes-preflight.md). Metrics plugins must implement `WindowedMetricsPlugin` and provide
-timestamped coverage for required signals. Plugins without these capabilities
-can be reviewed but cannot enter the durable mutation flow.
+checks prevent mutation. The Kubernetes plugin checks controller conflicts and
+QoS changes in `pkg/plugins/kubernetes/preflight.go`. Metrics plugins must
+implement `WindowedMetricsPlugin` and provide timestamped coverage for required
+signals. Plugins without these capabilities can be reviewed but cannot enter the
+durable mutation flow.
