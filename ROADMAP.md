@@ -24,5 +24,5 @@ Consize ships narrow, then widens. **Consize v0.3.0 is in active development on 
 ## How to follow along or weigh in
 
 - Track progress on `main` against the features above.
-- Open a GitHub Discussion for larger architectural proposals; significant decisions are logged as ADRs (see [`docs/decisions.md`](docs/decisions.md)).
+- Open a GitHub Discussion for larger architectural proposals; significant decisions are logged as ADRs (see [`DECISIONS.md`](docs/decisions.md)).
 - See [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to pick up a `good first issue`.
