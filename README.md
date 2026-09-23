@@ -29,6 +29,8 @@
 
 **Consize** is the open source cost optimisation tool that turns cost and usage signals into governed, verifiable optimization actions. It finds waste, explains the safest change, routes it through policy and approval, applies it gradually, verifies health, rolls back on regression, and proves *realized* savings, not just estimated ones.
 
+> This describes where Consize is headed. What's live today on `main` is listed under [Features](#features) below; the full governed policy/rollback workflow is landing in [v0.3.0](#roadmap). For something you can run today, use the [`v0.2.0` tag](https://github.com/consize-oss/consize/tree/v0.2.0).
+
 ---
 
 ## Getting Started
@@ -58,6 +60,7 @@ helm install consize oci://ghcr.io/consize-oss/charts/consize \
   --create-namespace \
   -f values.yaml
 ```
+
 Consize is built to run safely inside your cluster. It uses read-only access for analysis and requires explicit, least-privilege, namespace-scoped RoleBindings before it can apply any changes.
 
 ---
@@ -80,6 +83,11 @@ For detailed instructions on configuring Helm values, setting up Service Account
 
 ---
 
+## Roadmap
+**Full scope & progress:** see [`ROADMAP.md`](ROADMAP.md) for phase-by-phase detail and how to weigh in.
+
+---
+
 ## Contributing
 
 Consize is built with the community. Look for `good first issue` on the tracker and open a Discussion before larger architectural changes (we log decisions as ADRs). Details in [`CONTRIBUTING.md`](https://github.com/consize-oss/consize/blob/main/CONTRIBUTING.md).
@@ -89,45 +97,3 @@ Consize is built with the community. Look for `good first issue` on the tracker 
 ## ⚖️ License
 
 Distributed under the **Apache 2.0 License**. See [`LICENSE`](LICENSE) for more information.
-
----
-
-## Consize v0.3.0 Is in Development
-
-We are actively building Consize v0.3.0 as the next open-source release. The
-work on `main` introduces a safer, extensible foundation for turning
-infrastructure evidence into governed optimization actions.
-
-The published v0.2.0 release remains available from the
-[`v0.2.0` tag](https://github.com/consize-oss/consize/tree/v0.2.0), with
-maintenance work kept on
-[`release/0.2`](https://github.com/consize-oss/consize/tree/release/0.2).
-
-### v0.3.0 Features
-
-- **Evidence-backed recommendations:** use real workload metrics to explain what
-  should change and why.
-- **Policy guardrails:** require approval, allow safe automation or block a
-  change based on environment, risk and available evidence.
-- **Safety headroom:** retain configurable capacity above observed demand and
-  limit the size of each optimization step.
-- **Dry runs and reviewable plans:** inspect proposed changes before they affect
-  infrastructure.
-- **Controlled Kubernetes remediation:** apply approved resource changes through
-  one governed action path.
-- **Post-action verification:** monitor workload health after every applied
-  change.
-- **Automatic rollback:** restore the previous configuration when verification
-  fails or an action cannot complete safely.
-- **Restart recovery:** continue pending actions and verification after Consize
-  restarts.
-- **Durable audit history:** retain recommendations, policy decisions, actions,
-  verification results and rollback outcomes.
-- **Extensible plugins:** connect additional infrastructure, metrics, cost and
-  action providers through a common plugin model.
-- **Clear savings reporting:** keep projected savings separate from savings
-  confirmed by provider billing data.
-
-The first `v0.3.0` workflow focuses on Kubernetes Deployments and Prometheus.
-Additional cloud providers, databases, billing integrations and GitOps
-workflows will follow after the OSS foundation is qualified.
