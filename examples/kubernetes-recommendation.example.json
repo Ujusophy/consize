@@ -1,0 +1,36 @@
+{
+  "plugin_id": "kubernetes-action",
+  "algorithm_id": "prometheus-headroom-v1",
+  "action_type": "k8s.patch_resources",
+  "title": "Reduce checkout-api memory request",
+  "summary": "Reduce memory request and limit after Prometheus evidence confirms retained headroom.",
+  "current": {
+    "request": 8589934592,
+    "limit": 17179869184
+  },
+  "proposed": {
+    "request": 6442450944,
+    "limit": 12884901888
+  },
+  "parameters": {
+    "patch": {
+      "resource": "memory",
+      "current_request": 8589934592,
+      "proposed_request": 6442450944,
+      "current_limit": 17179869184,
+      "proposed_limit": 12884901888
+    },
+    "proposed": {
+      "request": 6442450944,
+      "limit": 12884901888
+    }
+  },
+  "confidence": "medium",
+  "risk": "medium",
+  "evidence": [
+    "Prometheus memory p95 supports retained headroom",
+    "Kubernetes action plugin will verify live resources before applying"
+  ],
+  "status": "pending"
+}
+

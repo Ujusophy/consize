@@ -54,7 +54,7 @@ We packaged the entire Consize backend (API, Verifier, Prometheus Stub, Postgres
 You don't need a Kubernetes cluster or any external dependencies to run this. Just run:
 
 ```bash
-docker run -p 3000:3000 ghcr.io/consize-oss/consize-sandbox:latest
+docker run -p 3000:3000 ghcr.io/consize-oss/consize-sandbox:0.2.0
 ```
 
 Then open [http://localhost:3000](http://localhost:3000) in your browser. 
@@ -189,4 +189,3 @@ Consize's unique position is the **Safety Engine** — the verifier, step-wise a
 ---
 
 *This document is a living roadmap. It is updated as the project evolves. Significant changes to project direction will be noted in [docs/decisions.md](docs/decisions.md).*
-
