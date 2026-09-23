@@ -26,6 +26,14 @@
     "headroom_ratio": 1.5,
     "min_reduction_ratio": 0.1
   },
+  "pricing": {
+    "enabled": true,
+    "plugin_id": "configured-rate-card",
+    "currency": "USD",
+    "source": "approved-internal-rate-card",
+    "memory_gib_monthly": 4.5,
+    "cpu_core_monthly": 32
+  },
   "verification": {
     "enabled": true,
     "metrics_plugin_id": "prometheus-metrics",
@@ -36,6 +44,15 @@
   },
   "audit": {
     "path": "./consize-audit.jsonl"
+  },
+  "auth": {
+    "enabled": true,
+    "tokens": [
+      {
+        "subject": "local-admin",
+        "role": "admin",
+        "token_env": "CONSIZE_ADMIN_TOKEN"
+      }
+    ]
   }
 }
-

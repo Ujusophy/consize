@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consize-oss/consize/internal/auth"
 	"github.com/consize-oss/consize/internal/bootstrap"
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/store"
@@ -64,7 +65,11 @@ func apiFixture(t *testing.T) (*Server, *store.Memory, *fake.Clientset) {
 	if _, err := st.CreateRecommendation(context.Background(), store.Recommendation{ResourceID: "test", PluginID: k8splugin.ID, ActionType: "k8s.patch_resources", Confidence: "medium", Parameters: map[string]any{"patch": k8splugin.PatchDiff{Resource: "memory", CurrentReq: 512 * 1024 * 1024, ProposedReq: 384 * 1024 * 1024, CurrentLimit: 1024 * 1024 * 1024, ProposedLimit: 1024 * 1024 * 1024}}}); err != nil {
 		t.Fatal(err)
 	}
-	return NewServer(st, plugins, policy.NewEngine(), bootstrap.Config{Verification: bootstrap.VerificationConfig{Enabled: true, MetricsPluginID: "metrics", Wait: "5m", RollbackOnFailure: true, RollbackOnTimeout: true, MaxMemoryP95IncreaseRatio: 1.25, MaxCPUP95IncreaseRatio: 1.5}}), st, client
+	server, err := NewServer(st, plugins, policy.NewEngine(), bootstrap.Config{Verification: bootstrap.VerificationConfig{Enabled: true, MetricsPluginID: "metrics", Wait: "5m", RollbackOnFailure: true, RollbackOnTimeout: true, MaxMemoryP95IncreaseRatio: 1.25, MaxCPUP95IncreaseRatio: 1.5}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return server, st, client
 }
 
 func TestReviewCannotExecuteAndSubmissionIsDurableAndIdempotent(t *testing.T) {
@@ -76,7 +81,7 @@ func TestReviewCannotExecuteAndSubmissionIsDurableAndIdempotent(t *testing.T) {
 		server.Handler().ServeHTTP(w, r)
 		return w
 	}
-	if w := request("/api/recommendations/1/plan", `{"mode":"approved","actor":"operator"}`); w.Code != http.StatusOK {
+	if w := request("/api/recommendations/1/plan", `{"mode":"approved"}`); w.Code != http.StatusOK {
 		t.Fatalf("plan: %d %s", w.Code, w.Body)
 	}
 	for _, action := range client.Actions() {
@@ -85,7 +90,7 @@ func TestReviewCannotExecuteAndSubmissionIsDurableAndIdempotent(t *testing.T) {
 		}
 	}
 	for i := 0; i < 2; i++ {
-		if w := request("/api/recommendations/1/execute", `{"mode":"approved","actor":"operator"}`); w.Code != http.StatusAccepted {
+		if w := request("/api/recommendations/1/execute", `{"mode":"approved"}`); w.Code != http.StatusAccepted {
 			t.Fatalf("execute: %d %s", w.Code, w.Body)
 		}
 	}
@@ -102,7 +107,7 @@ func TestReviewCannotExecuteAndSubmissionIsDurableAndIdempotent(t *testing.T) {
 
 func TestUntrustedOriginAndMalformedApprovalAreRejected(t *testing.T) {
 	server, st, _ := apiFixture(t)
-	for _, body := range []string{`broken`, `{"actor":"operator","mode":"approved"} {}`, `{"actor":"operator","extra":true}`} {
+	for _, body := range []string{`broken`, `{"mode":"approved"} {}`, `{"actor":"spoofed","mode":"approved"}`, `{"extra":true}`} {
 		w := httptest.NewRecorder()
 		server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/api/recommendations/1/execute", strings.NewReader(body)))
 		if w.Code != http.StatusBadRequest {
@@ -119,5 +124,41 @@ func TestUntrustedOriginAndMalformedApprovalAreRejected(t *testing.T) {
 	jobs, _ := st.ListJobs(context.Background())
 	if len(jobs) != 0 {
 		t.Fatal("rejected request queued execution")
+	}
+}
+
+func TestAuthorizationProtectsMutationAndDerivesActorFromToken(t *testing.T) {
+	server, _, _ := apiFixture(t)
+	t.Setenv("CONSIZE_VIEWER_TOKEN", "viewer-token-at-least-24-characters")
+	t.Setenv("CONSIZE_OPERATOR_TOKEN", "operator-token-at-least-24-characters")
+	authorizer, err := auth.New(auth.Config{Enabled: true, Tokens: []auth.TokenConfig{
+		{Subject: "read-only-user", Role: auth.RoleViewer, TokenEnv: "CONSIZE_VIEWER_TOKEN"},
+		{Subject: "trusted-operator", Role: auth.RoleOperator, TokenEnv: "CONSIZE_OPERATOR_TOKEN"},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	server.auth = authorizer
+
+	request := func(method, path, token, body string) *httptest.ResponseRecorder {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(method, path, strings.NewReader(body))
+		if token != "" {
+			r.Header.Set("Authorization", "Bearer "+token)
+		}
+		server.Handler().ServeHTTP(w, r)
+		return w
+	}
+	if w := request(http.MethodGet, "/api/resources", "viewer-token-at-least-24-characters", ""); w.Code != http.StatusOK {
+		t.Fatalf("viewer read: %d %s", w.Code, w.Body)
+	}
+	if w := request(http.MethodPost, "/api/recommendations/1/execute", "viewer-token-at-least-24-characters", `{"mode":"approved"}`); w.Code != http.StatusForbidden {
+		t.Fatalf("viewer mutation: %d %s", w.Code, w.Body)
+	}
+	if w := request(http.MethodPost, "/api/recommendations/1/execute", "", `{"mode":"approved"}`); w.Code != http.StatusUnauthorized {
+		t.Fatalf("anonymous mutation: %d %s", w.Code, w.Body)
+	}
+	if w := request(http.MethodPost, "/api/recommendations/1/execute", "operator-token-at-least-24-characters", `{"mode":"approved","actor":"spoofed"}`); w.Code != http.StatusBadRequest {
+		t.Fatalf("actor override: %d %s", w.Code, w.Body)
 	}
 }
