@@ -1,0 +1,41 @@
+{
+  "kubernetes": {
+    "enabled": true,
+    "kubeconfig": ""
+  },
+  "prometheus": {
+    "enabled": true,
+    "base_url": "http://prometheus.example:9090",
+    "window": "24h",
+    "step": "5m",
+    "queries": {
+      "cpu_cores": "sum(rate(container_cpu_usage_seconds_total{namespace=\"{namespace}\",pod=~\"{pod_regex}\",container!=\"\",image!=\"\"}[5m]))",
+      "memory_working_set_bytes": "sum(container_memory_working_set_bytes{namespace=\"{namespace}\",pod=~\"{pod_regex}\",container!=\"\",image!=\"\"})",
+      "restarts_30m": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"{namespace}\",pod=~\"{pod_regex}\"}[30m]))"
+    }
+  },
+  "recommender": {
+    "enabled": true,
+    "metrics_plugin_id": "prometheus-metrics",
+    "action_plugin_id": "kubernetes-action",
+    "action_type": "k8s.patch_resources",
+    "resource_kind": "memory",
+    "metric_key": "memory_working_set_bytes_p95",
+    "current_request_key": "memory_request_bytes",
+    "current_limit_key": "memory_limit_bytes",
+    "headroom_ratio": 1.5,
+    "min_reduction_ratio": 0.1
+  },
+  "verification": {
+    "enabled": true,
+    "metrics_plugin_id": "prometheus-metrics",
+    "wait": "5m",
+    "max_restart_increase": 0,
+    "max_memory_p95_increase_ratio": 1.25,
+    "max_cpu_p95_increase_ratio": 1.5
+  },
+  "audit": {
+    "path": "./consize-audit.jsonl"
+  }
+}
+

@@ -1,0 +1,25 @@
+{
+  "id": "k8s:local:consize-demo:checkout-api",
+  "type": "kubernetes.deployment",
+  "provider": "kubernetes",
+  "provider_resource_id": "consize-demo/checkout-api",
+  "name": "checkout-api",
+  "environment": "development",
+  "owner": "platform",
+  "region": "local",
+  "account": "docker-desktop",
+  "criticality": "low",
+  "labels": {
+    "namespace": "consize-demo",
+    "app": "checkout-api"
+  },
+  "metadata": {
+    "namespace": "consize-demo",
+    "name": "checkout-api",
+    "pod_regex": "checkout-api-.+"
+  },
+  "current_state": {
+    "memory_request_bytes": 536870912,
+    "memory_limit_bytes": 1073741824
+  }
+}

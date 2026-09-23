@@ -1,0 +1,26 @@
+{
+  "id": "k8s:prod:checkout-api",
+  "type": "kubernetes.deployment",
+  "provider": "kubernetes",
+  "provider_resource_id": "apps/v1/namespaces/prod/deployments/checkout-api",
+  "name": "checkout-api",
+  "environment": "production",
+  "owner": "payments-team",
+  "region": "cluster-local",
+  "account": "prod-cluster",
+  "criticality": "high",
+  "labels": {
+    "app": "checkout-api"
+  },
+  "metadata": {
+    "namespace": "prod",
+    "name": "checkout-api",
+    "pod_regex": "checkout-api-.+"
+  },
+  "current_state": {
+    "memory_request_bytes": 8589934592,
+    "memory_limit_bytes": 17179869184
+  },
+  "monthly_cost": 0
+}
+
