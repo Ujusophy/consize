@@ -2,66 +2,94 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  go-test:
-    name: Go Test
+  backend:
+    name: Backend quality
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: engine
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: 'engine/go.mod'
-          cache-dependency-path: 'engine/go.sum'
-      - name: Run Tests
-        run: go test -v -race ./...
+      - name: Check out source
+        uses: actions/checkout@v4
 
-  go-lint:
-    name: Go Lint
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: engine
-    steps:
-      - uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'engine/go.mod'
-          cache-dependency-path: 'engine/go.sum'
-      - name: Verify Formatting
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Verify formatting
+        shell: bash
         run: |
-          if [ -n "$(go fmt ./...)" ]; then
-            echo "Code is not formatted. Run 'go fmt ./...' locally."
+          unformatted="$(gofmt -l cmd internal pkg)"
+          if [[ -n "$unformatted" ]]; then
+            printf 'The following Go files require gofmt:\n%s\n' "$unformatted"
             exit 1
           fi
-      - name: Run Go Vet
+
+      - name: Vet packages
         run: go vet ./...
 
-  ui-test:
-    name: UI Lint & Build
+      - name: Test with race detector
+        run: go test -race ./...
+
+  frontend:
+    name: Frontend production build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: ui
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out source
+        uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          cache: 'npm'
-          cache-dependency-path: 'ui/package-lock.json'
-      - name: Install Dependencies
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install locked dependencies
         run: npm ci
-      - name: Run Linter
-        run: npm run lint
-      - name: Build Next.js
+
+      - name: Build production frontend
         run: npm run build
+
+  repository-hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Reject generated and local runtime files
+        shell: bash
+        run: |
+          forbidden="$({
+            git ls-files | grep -E '(^|/)(\.consize|\.gocache|\.next|node_modules|bin|dist)(/|$)|\.jsonl$|fix_css.*\.py$|(^|/)consize$|\.test$' || true
+          })"
+          if [[ -n "$forbidden" ]]; then
+            printf 'Forbidden generated or local files are tracked:\n%s\n' "$forbidden"
+            exit 1
+          fi
+
+      - name: Reject legacy module references
+        shell: bash
+        run: |
+          if git grep -n 'github.com/consize-oss/consize-0' -- '*.go' go.mod; then
+            echo 'Legacy consize-0 module references remain.'
+            exit 1
+          fi

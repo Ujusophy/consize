@@ -14,7 +14,7 @@
 - [ ] I have read the `CONTRIBUTING.md` guidelines.
 - [ ] My code follows the style guidelines of this project.
 - [ ] I have added/updated unit tests to cover my changes.
-- [ ] All new and existing tests pass (`go test ./...` and `npm run lint`).
+- [ ] All new and existing tests pass (`go test -race ./...`, `go vet ./...`, and `npm run build`).
 - [ ] I have updated the documentation accordingly.
 
 ## Screenshots (if UI change)
