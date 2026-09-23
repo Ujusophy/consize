@@ -95,6 +95,7 @@ Read the product and engineering documentation at
 
 Development references in this repository:
 
+- [`DEVELOPMENT.md`](DEVELOPMENT.md)
 - [`local-lab/README.md`](local-lab/README.md)
 - [`docs/v0.3-foundation-reference.md`](docs/v0.3-foundation-reference.md)
 

@@ -2,6 +2,11 @@
 
 This lab runs the OSS Consize foundation against a local Kubernetes cluster.
 
+For clean-machine prerequisites, dependency installation, backend and UI setup,
+plugin configuration, restart recovery and troubleshooting, begin with the
+[v0.3 local development guide](../DEVELOPMENT.md). This file is the shorter lab
+command reference.
+
 ## Start the Cluster
 
 ```bash
@@ -49,10 +54,9 @@ Then start the UI:
 
 ```bash
 cd ui
-npm run dev
+npm ci
+npm run dev -- --hostname 127.0.0.1 --port 3030
 ```
-
-For the current dashboard port, use `npm run dev -- --port 3030`.
 
 Read [SAFETY-NOTES.md](SAFETY-NOTES.md) before testing apply. The API automatically
 resumes durable verification and recovery work on startup. Preserve
