@@ -10,7 +10,7 @@
 </p>
 
 <h4 align="center">
-  <a href="https://github.com/consize-oss/consize/blob/main/docs/customer-guide.md">Docs</a> |
+  <a href="https://docs.consizehq.com">Docs</a> |
   <a href="#try-the-interactive-sandbox">Sandbox</a> |
   <a href="https://github.com/consize-oss/consize/blob/main/VISION.md">Vision</a> |
   <a href="https://github.com/consize-oss/consize/blob/main/SECURITY.md">Security</a>
