@@ -579,6 +579,12 @@ A renewal requires:
 6. An updated remediation issue.
 7. Removal of the expired record when its audit history is preserved elsewhere.
 
+CI verifies that `renewal_of` exists in the pull request's base revision, that
+the new record preserves the exact scanner, finding, fingerprint, risk,
+disposition and scope, and that approval occurred before the prior exception's
+expiry and next-review deadline. `renewal_of` cannot revive an expired or
+overdue exception, point to an arbitrary ID, or broaden the accepted risk.
+
 The same maximum duration applies to the new record. Repeated renewals should
 trigger escalation to the repository owner and release owner because they
 indicate that temporary risk has become normal operating practice.

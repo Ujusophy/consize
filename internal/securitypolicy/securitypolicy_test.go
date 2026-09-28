@@ -103,6 +103,65 @@ func TestChangedExceptionCannotBeApprovedByChangeAuthor(t *testing.T) {
 	}
 }
 
+func TestRenewalMustReferenceMatchingActiveBaselineException(t *testing.T) {
+	baseline := loadRegistryFixture(t, "valid-exceptions.json")
+	newRenewal := func() ExceptionRegistry {
+		current := loadRegistryFixture(t, "valid-exceptions.json")
+		renewal := current.Exceptions[0]
+		renewal.ID = "SEC-EXC-2026-0002"
+		renewal.RenewalOf = "SEC-EXC-2026-0001"
+		renewal.RenewalReason = "The upstream fix remains incompatible after another reviewed test cycle."
+		renewal.Timeline.ApprovedAt = "2026-10-04T00:00:00Z"
+		renewal.Timeline.LastReviewedAt = "2026-10-04T00:00:00Z"
+		renewal.Timeline.NextReviewAt = "2026-10-11T00:00:00Z"
+		renewal.Timeline.ExpiresAt = "2026-10-18T00:00:00Z"
+		current.Exceptions = []Exception{renewal}
+		return current
+	}
+
+	t.Run("valid renewal", func(t *testing.T) {
+		if err := ValidateExceptionChanges(baseline, newRenewal(), "carol"); err != nil {
+			t.Fatalf("valid renewal was rejected: %v", err)
+		}
+	})
+
+	t.Run("unknown prior id", func(t *testing.T) {
+		current := newRenewal()
+		current.Exceptions[0].RenewalOf = "SEC-EXC-2026-9999"
+		err := ValidateExceptionChanges(baseline, current, "carol")
+		if err == nil || !strings.Contains(err.Error(), "base revision") {
+			t.Fatalf("expected unknown prior rejection, got %v", err)
+		}
+	})
+
+	t.Run("changed scope", func(t *testing.T) {
+		current := newRenewal()
+		current.Exceptions[0].Scope.Component = "npm:another-package"
+		err := ValidateExceptionChanges(baseline, current, "carol")
+		if err == nil || !strings.Contains(err.Error(), "preserve") {
+			t.Fatalf("expected changed-scope rejection, got %v", err)
+		}
+	})
+
+	t.Run("approved after expiry", func(t *testing.T) {
+		current := newRenewal()
+		current.Exceptions[0].Timeline.ApprovedAt = "2026-10-21T00:00:00Z"
+		err := ValidateExceptionChanges(baseline, current, "carol")
+		if err == nil || !strings.Contains(err.Error(), "expired before renewal") {
+			t.Fatalf("expected expired-prior rejection, got %v", err)
+		}
+	})
+
+	t.Run("approved after overdue review", func(t *testing.T) {
+		current := newRenewal()
+		current.Exceptions[0].Timeline.ApprovedAt = "2026-10-06T00:00:00Z"
+		err := ValidateExceptionChanges(baseline, current, "carol")
+		if err == nil || !strings.Contains(err.Error(), "review was overdue") {
+			t.Fatalf("expected overdue-review rejection, got %v", err)
+		}
+	})
+}
+
 func TestEvaluation(t *testing.T) {
 	policy := loadPolicyForTest(t)
 	empty := ExceptionRegistry{Schema: "./exceptions.schema.json", SchemaVersion: 1, PolicyVersion: policy.PolicyVersion, Exceptions: []Exception{}}
