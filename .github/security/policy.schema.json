@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/consize-oss/consize/blob/main/.github/security/policy.schema.json",
+  "title": "Consize CI security policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "policy_version",
+    "exception_limits",
+    "service_levels",
+    "finding_rules"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "./policy.schema.json"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "exception_limits": {
+      "$ref": "#/$defs/severitySettings"
+    },
+    "service_levels": {
+      "$ref": "#/$defs/serviceLevels"
+    },
+    "finding_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/findingRule"
+      }
+    }
+  },
+  "$defs": {
+    "exceptionLimit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_duration_hours",
+        "review_interval_hours",
+        "independent_approval",
+        "approver_roles"
+      ],
+      "properties": {
+        "max_duration_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "review_interval_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "independent_approval": {
+          "type": "boolean"
+        },
+        "approver_roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "security",
+              "repository_owner"
+            ]
+          }
+        }
+      }
+    },
+    "severitySettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "properties": {
+        "critical": {
+          "$ref": "#/$defs/exceptionLimit"
+        },
+        "high": {
+          "$ref": "#/$defs/exceptionLimit"
+        },
+        "medium": {
+          "$ref": "#/$defs/exceptionLimit"
+        },
+        "low": {
+          "$ref": "#/$defs/exceptionLimit"
+        }
+      }
+    },
+    "serviceLevel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acknowledgement_hours",
+        "remediation_or_decision_hours",
+        "release_impact"
+      ],
+      "properties": {
+        "acknowledgement_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "remediation_or_decision_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "release_impact": {
+          "enum": [
+            "block",
+            "release_owner_review",
+            "track"
+          ]
+        }
+      }
+    },
+    "serviceLevels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "properties": {
+        "critical": {
+          "$ref": "#/$defs/serviceLevel"
+        },
+        "high": {
+          "$ref": "#/$defs/serviceLevel"
+        },
+        "medium": {
+          "$ref": "#/$defs/serviceLevel"
+        },
+        "low": {
+          "$ref": "#/$defs/serviceLevel"
+        }
+      }
+    },
+    "findingRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_type",
+        "description",
+        "block_mode",
+        "exception_mode",
+        "release_impact",
+        "owner"
+      ],
+      "properties": {
+        "finding_type": {
+          "enum": [
+            "secret",
+            "frontend_dependency",
+            "go_vulnerability",
+            "runtime_image",
+            "development_image",
+            "configuration",
+            "sast",
+            "ci_workflow",
+            "license",
+            "dependency_source",
+            "sbom_failure",
+            "release_integrity",
+            "kubernetes_iac",
+            "plugin_permission",
+            "plugin_revoked",
+            "plugin_untrusted_signer",
+            "runtime_eol",
+            "security_regression",
+            "report_delivery",
+            "report_schema",
+            "scanner_failure"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10
+        },
+        "block_mode": {
+          "enum": [
+            "always",
+            "severity",
+            "reachable",
+            "sast_contextual"
+          ]
+        },
+        "block_severities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "info",
+              "unknown"
+            ]
+          }
+        },
+        "blocked_reachability": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "reachable",
+              "not_reachable",
+              "unknown",
+              "not_applicable"
+            ]
+          }
+        },
+        "minimum_confidence": {
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "unknown"
+          ]
+        },
+        "mandatory_only": {
+          "type": "boolean"
+        },
+        "exception_mode": {
+          "enum": [
+            "none",
+            "false_positive_only",
+            "risk_or_false_positive",
+            "contextual"
+          ]
+        },
+        "required_exception_environment": {
+          "enum": [
+            "development",
+            "test",
+            "ci",
+            "staging",
+            "production",
+            "release"
+          ]
+        },
+        "release_impact": {
+          "enum": [
+            "block",
+            "release_owner_review",
+            "track"
+          ]
+        },
+        "owner": {
+          "enum": [
+            "backend",
+            "frontend",
+            "integration",
+            "plugin",
+            "security",
+            "release"
+          ]
+        }
+      }
+    }
+  }
+}

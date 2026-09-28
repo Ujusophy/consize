@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/consize-oss/consize/blob/main/.github/security/exceptions.schema.json",
+  "title": "Consize security exceptions",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "policy_version",
+    "exceptions"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "./exceptions.schema.json"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "exceptions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/exception"
+      }
+    }
+  },
+  "$defs": {
+    "principal": {
+      "type": "string",
+      "pattern": "^(github:[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})|team:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)$"
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "scanner",
+        "finding_type",
+        "rule_id",
+        "fingerprint",
+        "risk_class",
+        "disposition",
+        "scope",
+        "reason",
+        "compensating_controls",
+        "ownership",
+        "timeline",
+        "remediation_issue"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^SEC-EXC-[0-9]{4}-[0-9]{4}$"
+        },
+        "scanner": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,63}$"
+        },
+        "finding_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fingerprint": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 512
+        },
+        "risk_class": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "disposition": {
+          "enum": [
+            "risk_acceptance",
+            "false_positive"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 4000
+        },
+        "false_positive_evidence": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 4000
+        },
+        "compensating_controls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 1000
+          }
+        },
+        "ownership": {
+          "$ref": "#/$defs/ownership"
+        },
+        "timeline": {
+          "$ref": "#/$defs/timeline"
+        },
+        "remediation_issue": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "renewal_of": {
+          "type": "string",
+          "pattern": "^SEC-EXC-[0-9]{4}-[0-9]{4}$"
+        },
+        "renewal_reason": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 2000
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component",
+        "component_type",
+        "environment",
+        "context",
+        "affected_version_range"
+      ],
+      "properties": {
+        "component": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 512
+        },
+        "component_type": {
+          "enum": [
+            "source",
+            "dependency",
+            "runtime_image",
+            "development_image",
+            "workflow",
+            "configuration",
+            "kubernetes",
+            "iac",
+            "plugin",
+            "artifact",
+            "runtime",
+            "report"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "artifact_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "environment": {
+          "enum": [
+            "development",
+            "test",
+            "ci",
+            "staging",
+            "production",
+            "release"
+          ]
+        },
+        "context": {
+          "enum": [
+            "pull_request",
+            "default_branch",
+            "scheduled_scan",
+            "development_image",
+            "runtime_image",
+            "build",
+            "release",
+            "plugin_install",
+            "deployment"
+          ]
+        },
+        "affected_version_range": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "requested_by",
+        "approved_by",
+        "approver_role"
+      ],
+      "properties": {
+        "owner": {
+          "$ref": "#/$defs/principal"
+        },
+        "requested_by": {
+          "$ref": "#/$defs/principal"
+        },
+        "approved_by": {
+          "$ref": "#/$defs/principal"
+        },
+        "approver_role": {
+          "enum": [
+            "security",
+            "repository_owner"
+          ]
+        }
+      }
+    },
+    "timeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approved_at",
+        "expires_at",
+        "last_reviewed_at",
+        "next_review_at"
+      ],
+      "properties": {
+        "approved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "last_reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "next_review_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

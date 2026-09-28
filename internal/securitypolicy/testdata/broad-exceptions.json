@@ -1,0 +1,40 @@
+{
+  "$schema": "./exceptions.schema.json",
+  "schema_version": 1,
+  "policy_version": "1.0.0",
+  "exceptions": [
+    {
+      "id": "SEC-EXC-2026-0004",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "GHSA-*",
+      "fingerprint": "all-findings*",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "*",
+        "component_type": "dependency",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "*"
+      },
+      "reason": "This fixture demonstrates that blanket scope exclusions are rejected.",
+      "compensating_controls": [
+        "This control is intentionally insufficient because the scope is blanket."
+      ],
+      "ownership": {
+        "owner": "github:alice",
+        "requested_by": "github:alice",
+        "approved_by": "github:bob",
+        "approver_role": "security"
+      },
+      "timeline": {
+        "approved_at": "2026-09-28T00:00:00Z",
+        "expires_at": "2026-10-20T00:00:00Z",
+        "last_reviewed_at": "2026-09-28T00:00:00Z",
+        "next_review_at": "2026-10-05T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/1004"
+    }
+  ]
+}

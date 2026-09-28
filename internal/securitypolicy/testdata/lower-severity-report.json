@@ -1,0 +1,38 @@
+{
+  "$schema": "./findings.schema.json",
+  "schema_version": 1,
+  "scanner": "npm-audit",
+  "scan_id": "scan-medium-0001",
+  "generated_at": "2026-09-28T01:00:00Z",
+  "status": "completed",
+  "attempts": 1,
+  "target": {
+    "component": "frontend",
+    "environment": "ci",
+    "context": "pull_request",
+    "version": "0.3.0-alpha"
+  },
+  "findings": [
+    {
+      "fingerprint": "npm-medium-example-0001",
+      "rule_id": "GHSA-example-medium",
+      "finding_type": "frontend_dependency",
+      "severity": "medium",
+      "confidence": "high",
+      "reachability": "unknown",
+      "mandatory": false,
+      "exception_allowed": true,
+      "live_credential": false,
+      "component": "npm:example",
+      "component_type": "dependency",
+      "path": "ui/package-lock.json",
+      "environment": "ci",
+      "context": "pull_request",
+      "version": "1.0.0",
+      "summary": "Synthetic medium dependency finding assigned for non-blocking triage.",
+      "redacted": true,
+      "owner": "frontend",
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/1006"
+    }
+  ]
+}
