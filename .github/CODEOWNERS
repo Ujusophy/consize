@@ -1,0 +1,10 @@
+# Security policy, exception decisions, and their enforcement require review by
+# the repository security owner. High and critical exceptions also require an
+# approving person other than the change author; see docs/engineering/ci-security.md.
+/.github/CODEOWNERS @TheInvincibleRalph
+/.github/security/ @TheInvincibleRalph
+/.github/workflows/ @TheInvincibleRalph
+/cmd/security-policy/ @TheInvincibleRalph
+/internal/securitypolicy/ @TheInvincibleRalph
+/docs/engineering/ci-security.md @TheInvincibleRalph
+/docs/requirements.txt @TheInvincibleRalph
