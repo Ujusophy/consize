@@ -86,6 +86,7 @@ nav:
       - E2E Tests: contributing/e2e.md
       - Decisions: contributing/decisions.md
       - CI Security Policy: engineering/ci-security.md
+      - Repository Security: engineering/repository-security.md
       - Roadmap: resources/roadmap.md
       - FAQ: resources/faq.md
       - Troubleshooting: resources/troubleshooting.md

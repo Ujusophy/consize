@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://consizehq.com/schemas/repository-allowlist.schema.json",
+  "title": "Consize repository security declarations",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema_version", "declarations"],
+  "properties": {
+    "$schema": { "const": "./repository-allowlist.schema.json" },
+    "schema_version": { "const": 1 },
+    "declarations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "rule_id", "path", "sha256", "classification", "reason", "owner", "approved_by", "reviewed_at", "expires_at"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^REP-ALLOW-[0-9]{4}-[0-9]{4}$" },
+          "rule_id": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "classification": { "enum": ["example", "test_fixture", "generated_asset", "approved_tool"] },
+          "reason": { "type": "string", "minLength": 20 },
+          "owner": { "type": "string", "minLength": 1 },
+          "approved_by": { "type": "string", "minLength": 1 },
+          "reviewed_at": { "type": "string", "format": "date-time" },
+          "expires_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}
