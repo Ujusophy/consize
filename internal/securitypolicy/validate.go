@@ -228,9 +228,6 @@ func ValidateExceptions(policy Policy, registry ExceptionRegistry, now time.Time
 }
 
 func ValidateExceptionChanges(baseline, current ExceptionRegistry, changeAuthor string) error {
-	if changeAuthor == "" {
-		return nil
-	}
 	baselineByID := make(map[string]Exception, len(baseline.Exceptions))
 	for _, exception := range baseline.Exceptions {
 		baselineByID[exception.ID] = exception
@@ -241,11 +238,48 @@ func ValidateExceptionChanges(baseline, current ExceptionRegistry, changeAuthor 
 		if existed && reflect.DeepEqual(previous, exception) {
 			continue
 		}
-		if oneOf(exception.RiskClass, "critical", "high") && normalizePrincipal(changeAuthor) == exception.Ownership.ApprovedBy {
+		if changeAuthor != "" && oneOf(exception.RiskClass, "critical", "high") && normalizePrincipal(changeAuthor) == exception.Ownership.ApprovedBy {
 			problems = append(problems, exception.ID+": high and critical exceptions cannot be approved by the change author")
+		}
+		if exception.RenewalOf != "" {
+			problems = append(problems, validateRenewal(previous, existed, baselineByID, exception)...)
 		}
 	}
 	return joined(problems)
+}
+
+func validateRenewal(previous Exception, existed bool, baselineByID map[string]Exception, renewal Exception) []string {
+	var problems []string
+	if existed {
+		problems = append(problems, renewal.ID+": a renewal must use a new exception id")
+	}
+	prior, ok := baselineByID[renewal.RenewalOf]
+	if !ok {
+		return append(problems, renewal.ID+": renewal_of must reference an exception in the base revision")
+	}
+	if !sameRenewalScope(prior, renewal) {
+		problems = append(problems, renewal.ID+": renewal must preserve scanner, finding, fingerprint, risk, disposition, and exact scope")
+	}
+	approvedAt, approvalErr := time.Parse(time.RFC3339, renewal.Timeline.ApprovedAt)
+	priorExpiry, expiryErr := time.Parse(time.RFC3339, prior.Timeline.ExpiresAt)
+	priorReview, reviewErr := time.Parse(time.RFC3339, prior.Timeline.NextReviewAt)
+	if approvalErr == nil && expiryErr == nil && approvedAt.After(priorExpiry) {
+		problems = append(problems, renewal.ID+": prior exception expired before renewal approval")
+	}
+	if approvalErr == nil && reviewErr == nil && approvedAt.After(priorReview) {
+		problems = append(problems, renewal.ID+": prior exception review was overdue before renewal approval")
+	}
+	return problems
+}
+
+func sameRenewalScope(prior, renewal Exception) bool {
+	return prior.Scanner == renewal.Scanner &&
+		prior.FindingType == renewal.FindingType &&
+		prior.RuleID == renewal.RuleID &&
+		prior.Fingerprint == renewal.Fingerprint &&
+		prior.RiskClass == renewal.RiskClass &&
+		prior.Disposition == renewal.Disposition &&
+		reflect.DeepEqual(prior.Scope, renewal.Scope)
 }
 
 func validateException(policy Policy, exception Exception, now time.Time, changeAuthor string) []string {
