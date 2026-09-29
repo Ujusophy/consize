@@ -32,7 +32,7 @@ docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:lat
 
 Consize continuously evaluates your infrastructure and turns resource usage data into actionable recommendations. You decide how changes are applied through reviewable pull requests against your existing Infrastructure-as-Code workflow, or as guarded runtime changes within configured boundaries.
 
-## Explore the Platform
+## How it works
 
 Go from zero to a verified rightsizing change against a real workload.
 

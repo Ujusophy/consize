@@ -1,67 +1,8 @@
----
-date: 2026-09-14
-categories:
-  - Comparisons
-  - Announcements
-authors:
-  - consize-team
-slug: observability-isnt-enough
-description: >
-  Kubecost tells you where your Kubernetes waste is. Consize is the safety
-  engine that actually fixes it, with guarded rollouts and automatic,
-  SLI-verified rollbacks. Here's why we built it, and how the two fit together.
----
+# How Consize Works
 
-# Observability isn't enough: why we built Consize
-
-![The Consize dashboard showing a rightsizing recommendation and its safety verification status](../../assets/demo-dashboard.png)
-
-Most Kubernetes cost tools stop at the dashboard. They'll tell you, correctly,
-that a service is requesting 4 vCPUs and using 400m. What they won't do is
-change it, because changing it safely in a live production cluster is a
-completely different engineering problem than measuring it.
-
-That gap is why we built Consize.
-
-<!-- more -->
-
-## The real blocker isn't visibility, it's risk
-
-Teams don't sit on 30 to 50% of wasted compute and database spend because
-they're unaware of it. They sit on it because the person who could fix it is
-also the person who gets paged at 2am if the fix goes wrong. Faced with that
-trade-off, "leave it alone" is the rational choice, every time.
-
-Cost optimization tooling that stops at "here's what you should change" pushes
-all of that risk back onto an engineer, manually, forever. It doesn't scale,
-and it doesn't get prioritized against feature work. The backlog of
-recommendations just grows.
-
-## Where Kubecost fits, and where it doesn't
-
-[Kubecost](https://www.kubecost.com/) is the gold standard for Kubernetes
-cost observability and allocation: mapping cloud billing data to namespaces,
-teams, and workloads so you know exactly who is spending what. If your
-problem is "we don't have visibility into our cluster spend," you should be
-using it.
-
-But observing waste and *fixing waste safely* are different problems.
-Consize isn't an observability replacement. It's built to compliment that
-ecosystem by taking on the part observability tools intentionally leave to
-humans: safe, automated action.
-
-|  | Observability tools | Consize |
-|---|---|---|
-| **Finds waste** | ✅ | ✅ |
-| **Recommends a fix** | ✅ | ✅ |
-| **Applies the fix** | Manual | Automated, step-wise |
-| **Verifies it's safe post-change** | ❌ | ✅ (SLI-monitored) |
-| **Rolls back automatically on regression** | ❌ | ✅ (byte-identical) |
-
-## How Consize closes the gap
-
-Consize runs the same loop every time, whether it's touching a Kubernetes
-workload or an idle cloud resource:
+Consize turns cost and usage signals into governed, verifiable optimization
+actions. Every optimization, whether it's a Kubernetes rightsizing change or
+cleaning up an idle cloud resource, moves through the same loop:
 
 ```mermaid
 flowchart LR
@@ -73,33 +14,69 @@ flowchart LR
     F -.->|regression detected| A
 ```
 
-A few things about that loop that matter in practice:
+- **Observe.** Discovery plugins collect resource inventory and usage
+  evidence, for example Kubernetes workload metrics from Prometheus, or
+  cloud billing and utilization data.
+- **Analyze.** The recommender profiles real usage (CPU/memory p95/p99 over
+  a rolling window) rather than relying on static assumptions.
+- **Recommend.** A proposed change is generated, along with the evidence
+  and reasoning behind it, and optionally enriched with a price estimate.
+- **Review.** The policy engine decides what happens next: block, split
+  into smaller steps, require approval, or auto-apply, depending on your
+  configured guardrails. See [The Safety Net](safety-net.md) for the full
+  decision matrix.
+- **Apply.** Approved changes are applied gradually. Large changes are
+  broken into small, reversible steps rather than applied all at once,
+  either as a pull request against your IaC repo or as a guarded runtime
+  change.
+- **Verify.** Real SLIs (OOM kills, CPU throttling, latency) are monitored
+  after every step. A regression triggers an instant, byte-identical
+  rollback, no manual intervention required.
 
-- **Changes are never applied all at once.** Large rightsizing changes are
-  broken into small, reversible steps.
-- **Every step is verified against real SLIs.** Latency, OOM kills, CPU
-  throttling, not just whether the deploy succeeded.
-- **A regression triggers an instant, byte-identical rollback.** No manual
-  intervention, no waiting for someone to notice in a dashboard.
-- **You choose the level of automation.** Consize can open a reviewable pull
-  request against your IaC repo, or apply guarded runtime changes directly,
-  within boundaries you configure.
+## Components
 
-That last point matters for adoption. You don't have to hand over the keys on
-day one. Most teams start with PR-only mode, build trust in the
-recommendations, and expand automation gradually.
+Consize is built from a small set of focused pieces that map directly onto
+the loop above:
 
-## See it catch a regression in under a minute
+| Component | Role |
+|---|---|
+| **Discovery** | Finds resources and collects the evidence (metrics, billing data) needed to analyze them |
+| **Recommender** | Turns evidence into a deterministic, reproducible recommendation |
+| **Cost enrichment** | Attaches a transparent price estimate to a recommendation, when a pricing source is configured |
+| **Policy** | Evaluates every proposed change against your configured guardrails before it's allowed to proceed |
+| **Orchestrator** | Applies approved changes step-wise, within configured boundaries |
+| **Safety / Verifier** | Watches SLIs after each step and triggers an automatic rollback on regression |
+| **Store** | Persists resources, recommendations, and their audit history |
+| **Audit** | Records what was observed, recommended, approved, applied, and verified, so every action is traceable |
 
-The fastest way to understand this is to watch it happen. Our interactive
-sandbox runs entirely on your machine, no cluster, no cloud account, just
-Docker:
+## Plugin architecture
 
-```
+Discovery, metrics, and pricing sources are pluggable. Consize ships with
+built-in plugins for Kubernetes, Prometheus, and cloud pricing, and can load
+additional plugins so the same Observe → Verify loop extends to new
+resource types and platforms without changing the core engine. See
+[Supported Platforms](../reference/supported-platforms.md) for what's
+supported today.
+
+## See it end to end
+
+The fastest way to understand the loop is to watch it happen. The
+interactive sandbox runs entirely on your machine, no cluster, no cloud
+account, just Docker:
+
+```bash
 docker run -p 3000:3000 -p 8080:8080 -it ghcr.io/consize-oss/consize-sandbox:latest
 ```
 
-Open `http://localhost:3000` and you can watch the Verifier catch an
-intentional regression on a seeded `checkout-api` workload and trigger an
-automatic rollback in real time: the exact loop described above, start to
-finish.
+Open `http://localhost:3000` and watch the Verifier catch an intentional
+regression on a seeded `checkout-api` workload and trigger an automatic
+rollback in real time.
+
+[Try the Interactive Sandbox](../getting-started/sandbox.md){ .md-button .md-button--primary }
+
+## Next steps
+
+* [The Safety Net](safety-net.md)
+* [Kubernetes Rightsizing](../guides/rightsizing.md)
+* [Observability](../guides/observability.md)
+* [Configuration](../reference/configuration.md)
