@@ -1,0 +1,286 @@
+{
+  "$schema": "./policy.schema.json",
+  "schema_version": 1,
+  "policy_version": "1.0.0",
+  "exception_limits": {
+    "critical": {
+      "max_duration_hours": 168,
+      "review_interval_hours": 24,
+      "independent_approval": true,
+      "approver_roles": [
+        "security",
+        "repository_owner"
+      ]
+    },
+    "high": {
+      "max_duration_hours": 720,
+      "review_interval_hours": 168,
+      "independent_approval": true,
+      "approver_roles": [
+        "security",
+        "repository_owner"
+      ]
+    },
+    "medium": {
+      "max_duration_hours": 2160,
+      "review_interval_hours": 720,
+      "independent_approval": false,
+      "approver_roles": [
+        "security",
+        "repository_owner"
+      ]
+    },
+    "low": {
+      "max_duration_hours": 4320,
+      "review_interval_hours": 2160,
+      "independent_approval": false,
+      "approver_roles": [
+        "security",
+        "repository_owner"
+      ]
+    }
+  },
+  "service_levels": {
+    "critical": {
+      "acknowledgement_hours": 4,
+      "remediation_or_decision_hours": 24,
+      "release_impact": "block"
+    },
+    "high": {
+      "acknowledgement_hours": 24,
+      "remediation_or_decision_hours": 168,
+      "release_impact": "block"
+    },
+    "medium": {
+      "acknowledgement_hours": 72,
+      "remediation_or_decision_hours": 720,
+      "release_impact": "release_owner_review"
+    },
+    "low": {
+      "acknowledgement_hours": 240,
+      "remediation_or_decision_hours": 2160,
+      "release_impact": "track"
+    }
+  },
+  "finding_rules": [
+    {
+      "finding_type": "secret",
+      "description": "Detected credentials or likely secrets block until removed or narrowly confirmed as non-secret.",
+      "block_mode": "always",
+      "exception_mode": "false_positive_only",
+      "release_impact": "block",
+      "owner": "security"
+    },
+    {
+      "finding_type": "frontend_dependency",
+      "description": "High and critical frontend dependency vulnerabilities block all dependency contexts.",
+      "block_mode": "severity",
+      "block_severities": [
+        "critical",
+        "high"
+      ],
+      "exception_mode": "risk_or_false_positive",
+      "release_impact": "block",
+      "owner": "frontend"
+    },
+    {
+      "finding_type": "go_vulnerability",
+      "description": "Reachable Go vulnerabilities block regardless of advisory severity metadata availability.",
+      "block_mode": "reachable",
+      "blocked_reachability": [
+        "reachable"
+      ],
+      "exception_mode": "risk_or_false_positive",
+      "release_impact": "block",
+      "owner": "backend"
+    },
+    {
+      "finding_type": "runtime_image",
+      "description": "High and critical findings in deployable runtime images block release and deployment.",
+      "block_mode": "severity",
+      "block_severities": [
+        "critical",
+        "high"
+      ],
+      "exception_mode": "risk_or_false_positive",
+      "release_impact": "block",
+      "owner": "release"
+    },
+    {
+      "finding_type": "development_image",
+      "description": "High and critical development-image findings require development-scoped disposition.",
+      "block_mode": "severity",
+      "block_severities": [
+        "critical",
+        "high"
+      ],
+      "exception_mode": "risk_or_false_positive",
+      "required_exception_environment": "development",
+      "release_impact": "release_owner_review",
+      "owner": "security"
+    },
+    {
+      "finding_type": "configuration",
+      "description": "Mandatory high and critical repository configuration violations block when applicable.",
+      "block_mode": "severity",
+      "block_severities": [
+        "critical",
+        "high"
+      ],
+      "mandatory_only": true,
+      "exception_mode": "contextual",
+      "release_impact": "block",
+      "owner": "security"
+    },
+    {
+      "finding_type": "sast",
+      "description": "Supported high-confidence or medium-confidence reachable high and critical code findings block.",
+      "block_mode": "sast_contextual",
+      "block_severities": [
+        "critical",
+        "high"
+      ],
+      "blocked_reachability": [
+        "reachable",
+        "unknown"
+      ],
+      "minimum_confidence": "medium",
+      "exception_mode": "contextual",
+      "release_impact": "block",
+      "owner": "security"
+    },
+    {
+      "finding_type": "ci_workflow",
+      "description": "High and critical CI workflow and GitHub Actions supply-chain violations block.",
+      "block_mode": "severity",
+      "block_severities": [
+        "critical",
+        "high"
+      ],
+      "exception_mode": "contextual",
+      "release_impact": "block",
+      "owner": "security"
+    },
+    {
+      "finding_type": "license",
+      "description": "High and critical prohibited or incompatible license findings block.",
+      "block_mode": "severity",
+      "block_severities": [
+        "critical",
+        "high"
+      ],
+      "exception_mode": "risk_or_false_positive",
+      "release_impact": "block",
+      "owner": "security"
+    },
+    {
+      "finding_type": "dependency_source",
+      "description": "High and critical prohibited dependency-source findings block.",
+      "block_mode": "severity",
+      "block_severities": [
+        "critical",
+        "high"
+      ],
+      "exception_mode": "risk_or_false_positive",
+      "release_impact": "block",
+      "owner": "security"
+    },
+    {
+      "finding_type": "sbom_failure",
+      "description": "Missing or invalid required SBOM output is an incomplete release security check.",
+      "block_mode": "always",
+      "exception_mode": "none",
+      "release_impact": "block",
+      "owner": "release"
+    },
+    {
+      "finding_type": "release_integrity",
+      "description": "Missing, invalid, or unverifiable provenance, checksum, or signature blocks release.",
+      "block_mode": "always",
+      "exception_mode": "none",
+      "release_impact": "block",
+      "owner": "release"
+    },
+    {
+      "finding_type": "kubernetes_iac",
+      "description": "Mandatory high and critical Kubernetes or infrastructure-as-code violations block.",
+      "block_mode": "severity",
+      "block_severities": [
+        "critical",
+        "high"
+      ],
+      "mandatory_only": true,
+      "exception_mode": "contextual",
+      "release_impact": "block",
+      "owner": "integration"
+    },
+    {
+      "finding_type": "plugin_permission",
+      "description": "Plugin permission expansion blocks until the requested capability and trust impact are reviewed.",
+      "block_mode": "always",
+      "exception_mode": "contextual",
+      "release_impact": "block",
+      "owner": "plugin"
+    },
+    {
+      "finding_type": "plugin_revoked",
+      "description": "A revoked plugin version is not eligible for exception or installation.",
+      "block_mode": "always",
+      "exception_mode": "none",
+      "release_impact": "block",
+      "owner": "plugin"
+    },
+    {
+      "finding_type": "plugin_untrusted_signer",
+      "description": "A plugin from an untrusted signing identity is not eligible for exception or installation.",
+      "block_mode": "always",
+      "exception_mode": "none",
+      "release_impact": "block",
+      "owner": "plugin"
+    },
+    {
+      "finding_type": "runtime_eol",
+      "description": "High and critical unsupported runtime, base-image, and dependency lifecycle findings block.",
+      "block_mode": "severity",
+      "block_severities": [
+        "critical",
+        "high"
+      ],
+      "exception_mode": "risk_or_false_positive",
+      "release_impact": "block",
+      "owner": "release"
+    },
+    {
+      "finding_type": "security_regression",
+      "description": "Failure of a required security-control regression test is not exceptionable.",
+      "block_mode": "always",
+      "exception_mode": "none",
+      "release_impact": "block",
+      "owner": "security"
+    },
+    {
+      "finding_type": "report_delivery",
+      "description": "Failure to retain or upload a required security report leaves the check incomplete.",
+      "block_mode": "always",
+      "exception_mode": "none",
+      "release_impact": "block",
+      "owner": "security"
+    },
+    {
+      "finding_type": "report_schema",
+      "description": "An invalid security report cannot be interpreted as a clean scan.",
+      "block_mode": "always",
+      "exception_mode": "none",
+      "release_impact": "block",
+      "owner": "security"
+    },
+    {
+      "finding_type": "scanner_failure",
+      "description": "Scanner crash, timeout, unavailable data, or invalid output fails after bounded retry.",
+      "block_mode": "always",
+      "exception_mode": "none",
+      "release_impact": "block",
+      "owner": "security"
+    }
+  ]
+}

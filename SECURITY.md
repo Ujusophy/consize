@@ -1,5 +1,11 @@
 # Consize — Security Design
 
+Repository security findings, blocking thresholds, scanner-failure behavior,
+and time-limited exceptions are governed by the
+[CI Security Policy and Exception Standard](docs/engineering/ci-security.md).
+That policy is enforced by the versioned files under `.github/security/` and
+the `Security policy` CI check.
+
 Consize is a tool that *mutates production infrastructure*. Its threat model is therefore its own worst case: **compromise of Consize = attacker with rightsizing power over your cluster and databases.** Every design decision below exists to contain that.
 
 ## 1. Threat model

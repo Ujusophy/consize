@@ -1,0 +1,36 @@
+{
+  "$schema": "./findings.schema.json",
+  "schema_version": 1,
+  "scanner": "npm-audit",
+  "scan_id": "scan-high-0001",
+  "generated_at": "2026-09-28T01:00:00Z",
+  "status": "completed",
+  "attempts": 1,
+  "target": {
+    "component": "frontend",
+    "environment": "ci",
+    "context": "pull_request",
+    "version": "0.3.0-alpha"
+  },
+  "findings": [
+    {
+      "fingerprint": "npm-next-ghsa-example-0001",
+      "rule_id": "GHSA-example-0001",
+      "finding_type": "frontend_dependency",
+      "severity": "high",
+      "confidence": "high",
+      "reachability": "unknown",
+      "mandatory": true,
+      "exception_allowed": true,
+      "live_credential": false,
+      "component": "npm:next",
+      "component_type": "dependency",
+      "path": "ui/package-lock.json",
+      "environment": "ci",
+      "context": "pull_request",
+      "version": "16.3.3",
+      "summary": "Synthetic high dependency finding used to test exact exception matching.",
+      "redacted": true
+    }
+  ]
+}

@@ -11,6 +11,13 @@ deploy/prod/env.sh
 
 # Build outputs and caches
 .gocache/
+.tools/
+.security-tools/
+.cache/security/
+.trivycache/
+coverage/
+tmp/
+output/
 .consize/
 bin/
 dist/

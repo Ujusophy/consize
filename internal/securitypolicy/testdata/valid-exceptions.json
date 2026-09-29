@@ -1,0 +1,41 @@
+{
+  "$schema": "./exceptions.schema.json",
+  "schema_version": 1,
+  "policy_version": "1.0.0",
+  "exceptions": [
+    {
+      "id": "SEC-EXC-2026-0001",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "GHSA-example-0001",
+      "fingerprint": "npm-next-ghsa-example-0001",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:next",
+        "component_type": "dependency",
+        "path": "ui/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": ">=16.3.3 <16.4.0"
+      },
+      "reason": "The fixed package version is not yet compatible with the supported frontend runtime.",
+      "compensating_controls": [
+        "The affected endpoint remains disabled and is covered by an explicit regression test."
+      ],
+      "ownership": {
+        "owner": "github:alice",
+        "requested_by": "github:alice",
+        "approved_by": "github:bob",
+        "approver_role": "security"
+      },
+      "timeline": {
+        "approved_at": "2026-09-28T00:00:00Z",
+        "expires_at": "2026-10-20T00:00:00Z",
+        "last_reviewed_at": "2026-09-28T00:00:00Z",
+        "next_review_at": "2026-10-05T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/1001"
+    }
+  ]
+}

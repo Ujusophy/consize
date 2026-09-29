@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/consize-oss/consize/blob/main/.github/security/findings.schema.json",
+  "title": "Consize normalized security findings",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "scanner",
+    "scan_id",
+    "generated_at",
+    "status",
+    "attempts",
+    "target",
+    "findings"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "./findings.schema.json"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "scanner": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,63}$"
+    },
+    "scan_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 256
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "failed",
+        "timed_out",
+        "data_unavailable",
+        "invalid_report"
+      ]
+    },
+    "attempts": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2
+    },
+    "target": {
+      "$ref": "#/$defs/target"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    }
+  },
+  "$defs": {
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component",
+        "environment",
+        "context",
+        "version"
+      ],
+      "properties": {
+        "component": {
+          "type": "string",
+          "minLength": 2
+        },
+        "artifact_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "environment": {
+          "enum": [
+            "development",
+            "test",
+            "ci",
+            "staging",
+            "production",
+            "release"
+          ]
+        },
+        "context": {
+          "enum": [
+            "pull_request",
+            "default_branch",
+            "scheduled_scan",
+            "development_image",
+            "runtime_image",
+            "build",
+            "release",
+            "plugin_install",
+            "deployment"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fingerprint",
+        "rule_id",
+        "finding_type",
+        "severity",
+        "confidence",
+        "reachability",
+        "mandatory",
+        "exception_allowed",
+        "live_credential",
+        "component",
+        "component_type",
+        "environment",
+        "context",
+        "version",
+        "summary",
+        "redacted"
+      ],
+      "properties": {
+        "fingerprint": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 512
+        },
+        "rule_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "finding_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info",
+            "unknown"
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "unknown"
+          ]
+        },
+        "reachability": {
+          "enum": [
+            "reachable",
+            "not_reachable",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "mandatory": {
+          "type": "boolean"
+        },
+        "exception_allowed": {
+          "type": "boolean"
+        },
+        "live_credential": {
+          "type": "boolean"
+        },
+        "component": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 512
+        },
+        "component_type": {
+          "enum": [
+            "source",
+            "dependency",
+            "runtime_image",
+            "development_image",
+            "workflow",
+            "configuration",
+            "kubernetes",
+            "iac",
+            "plugin",
+            "artifact",
+            "runtime",
+            "report"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "artifact_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "environment": {
+          "enum": [
+            "development",
+            "test",
+            "ci",
+            "staging",
+            "production",
+            "release"
+          ]
+        },
+        "context": {
+          "enum": [
+            "pull_request",
+            "default_branch",
+            "scheduled_scan",
+            "development_image",
+            "runtime_image",
+            "build",
+            "release",
+            "plugin_install",
+            "deployment"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "redacted": {
+          "type": "boolean"
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 128
+        },
+        "remediation_issue": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "finding_type": {
+                "enum": [
+                  "runtime_image",
+                  "development_image",
+                  "plugin_permission",
+                  "plugin_revoked",
+                  "plugin_untrusted_signer"
+                ]
+              }
+            },
+            "required": [
+              "finding_type"
+            ]
+          },
+          "then": {
+            "required": [
+              "artifact_digest"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "finding_type": {
+                "const": "secret"
+              }
+            },
+            "required": [
+              "finding_type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "redacted": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

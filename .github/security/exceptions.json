@@ -1,0 +1,6 @@
+{
+  "$schema": "./exceptions.schema.json",
+  "schema_version": 1,
+  "policy_version": "1.0.0",
+  "exceptions": []
+}
