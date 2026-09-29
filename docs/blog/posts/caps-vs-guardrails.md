@@ -17,6 +17,7 @@ description: >
 Token bill is the newest version of an old fight between finance and
 engineering. 
 
+<!-- more -->
 
 Earlier this year, Meta reportedly ran an internal leaderboard called
 Claudeonomics. It let 85,000 employees compete to be the top AI token
