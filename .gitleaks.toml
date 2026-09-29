@@ -1,0 +1,22 @@
+[extend]
+useDefault = true
+
+# This repository intentionally has no path-wide or file-type-wide exclusions.
+# Reviewed false positives belong in .github/security/exceptions.json after the
+# scanner has emitted a redacted, exact finding fingerprint.
+
+[[rules]]
+id = "consize-disposable-test-token"
+description = "Consize disposable secret-scanning test token"
+regex = '''CONSIZE_TEST_TOKEN_[A-Z0-9]{24}'''
+keywords = ["CONSIZE_TEST_TOKEN_"]
+
+[[allowlists]]
+description = "Documented placeholder values that cannot authenticate"
+regexTarget = "secret"
+regexes = [
+  '''(?i)^(replace[-_ ]?me|example|placeholder|not[-_ ]?a[-_ ]?secret|your[-_ ][a-z0-9_-]+)$''',
+  # Historical container image tag documented twice in docs/plan.md. It is a
+  # public artifact label, cannot authenticate, and is exact rather than path-wide.
+  '''^consize-m35-m4\.2$'''
+]
