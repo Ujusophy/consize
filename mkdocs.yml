@@ -58,9 +58,36 @@ plugins:
         - Engineering
         - Guides
         - Comparisons
+        - FinOps
       archive: true
       archive_date_format: yyyy
       authors: true
+  - llmstxt:
+      markdown_description: >
+        Consize is an open-source safety engine for infrastructure cost
+        optimization. It finds waste across Kubernetes and cloud resources,
+        applies changes in small verified steps, and rolls back automatically
+        if anything degrades.
+      full_output: llms-full.txt
+      sections:
+        Get started:
+          - getting-started/get-started.md: Overview and quickstart
+          - getting-started/sandbox.md: Interactive Docker sandbox
+          - getting-started/installation.md: Production Helm install
+        Guides:
+          - guides/rightsizing.md: Kubernetes rightsizing, why percentiles not averages
+          - guides/observability.md
+          - guides/environments.md
+          - concepts/architecture.md: How Consize works end to end
+          - concepts/safety-net.md: The safety decision matrix (BLOCK/SPLIT/REJECT/etc)
+        Reference:
+          - reference/configuration.md
+          - reference/supported-platforms.md
+          - reference/api.md
+        Resources:
+          - contributing/decisions.md: How and why decisions get documented
+          - resources/faq.md
+          - resources/troubleshooting.md
 
 nav:
   - Get started:
