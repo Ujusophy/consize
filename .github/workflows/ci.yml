@@ -14,6 +14,83 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out complete source history
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Install checksum-verified Gitleaks
+        run: scripts/security/install-gitleaks.sh "$RUNNER_TEMP/gitleaks"
+
+      - name: Test secret-scan controls
+        env:
+          GITLEAKS_BIN: ${{ runner.temp }}/gitleaks
+        run: scripts/security/test-gitleaks.sh
+
+      - name: Scan tracked source and introduced commits
+        env:
+          GITLEAKS_BIN: ${{ runner.temp }}/gitleaks
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          MERGE_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          SCAN_CONTEXT: ${{ github.event_name == 'pull_request' && 'pull_request' || github.event_name == 'push' && 'default_branch' || 'build' }}
+        shell: bash
+        run: |
+          scripts/security/run-gitleaks.sh snapshot "$RUNNER_TEMP/gitleaks-snapshot.json"
+          case "$EVENT_NAME" in
+            pull_request) base="$PR_BASE_SHA" ;;
+            merge_group) base="$MERGE_BASE_SHA" ;;
+            push) base="$PUSH_BEFORE_SHA" ;;
+            *) echo "Unsupported secret scan event: $EVENT_NAME"; exit 2 ;;
+          esac
+          [[ "$base" != "0000000000000000000000000000000000000000" ]] || {
+            echo "The comparison base is the all-zero Git sentinel; refusing an incomplete scan."
+            exit 2
+          }
+          scripts/security/run-gitleaks.sh range "$RUNNER_TEMP/gitleaks-history.json" "$base"
+
+      - name: Evaluate snapshot findings
+        run: |
+          go run ./cmd/security-policy evaluate \
+            --policy .github/security/policy.json \
+            --exceptions .github/security/exceptions.json \
+            --report "$RUNNER_TEMP/gitleaks-snapshot.json" \
+            --output "$RUNNER_TEMP/gitleaks-snapshot-decision.json"
+
+      - name: Evaluate introduced-history findings
+        run: |
+          go run ./cmd/security-policy evaluate \
+            --policy .github/security/policy.json \
+            --exceptions .github/security/exceptions.json \
+            --report "$RUNNER_TEMP/gitleaks-history.json" \
+            --output "$RUNNER_TEMP/gitleaks-history-decision.json"
+
+      - name: Upload redacted secret-scan evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: secret-scan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/gitleaks-snapshot.json
+            ${{ runner.temp }}/gitleaks-history.json
+            ${{ runner.temp }}/gitleaks-snapshot-decision.json
+            ${{ runner.temp }}/gitleaks-history-decision.json
+          if-no-files-found: warn
+          retention-days: 14
+
   security-policy:
     name: Security policy
     runs-on: ubuntu-latest

@@ -10,4 +10,9 @@
 /internal/repositorysecurity/ @TheInvincibleRalph
 /docs/engineering/repository-security.md @TheInvincibleRalph
 /docs/engineering/ci-security.md @TheInvincibleRalph
+/cmd/gitleaks-report/ @TheInvincibleRalph
+/internal/gitleaksreport/ @TheInvincibleRalph
+/scripts/security/ @TheInvincibleRalph
+/.gitleaks.toml @TheInvincibleRalph
+/docs/engineering/secret-scanning.md @TheInvincibleRalph
 /docs/requirements.txt @TheInvincibleRalph
