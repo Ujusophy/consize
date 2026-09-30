@@ -115,6 +115,7 @@ nav:
       - CI Security Policy: engineering/ci-security.md
       - Repository Security: engineering/repository-security.md
       - Secret Scanning: engineering/secret-scanning.md
+      - API Contract: engineering/api-contract.md
       - Roadmap: resources/roadmap.md
       - FAQ: resources/faq.md
       - Troubleshooting: resources/troubleshooting.md

@@ -16,3 +16,9 @@
 /.gitleaks.toml @TheInvincibleRalph
 /docs/engineering/secret-scanning.md @TheInvincibleRalph
 /docs/requirements.txt @TheInvincibleRalph
+/openapi/ @TheInvincibleRalph
+/redocly.yaml @TheInvincibleRalph
+/scripts/api/ @TheInvincibleRalph
+/ui/lib/generated/api.ts @TheInvincibleRalph
+/internal/api/openapi_contract_test.go @TheInvincibleRalph
+/docs/engineering/api-contract.md @TheInvincibleRalph
