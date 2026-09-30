@@ -12,12 +12,16 @@ description: >
 
 # What we learned building the first version of Consize
 
-Consize v0.2.0 is out while v0.3.0 is still in progress, and it's a good moment
+![Consize v0.2.0 retrospective: stepwise rightsizing](../../assets/blog/what-we-learned-v0-2-0.png)
+
+Consize v0.2.0 is out while v0.3.0 is still in progress...
+
+<!-- more -->
+
+It's a good moment
 to be honest about how we got here. This isn't a launch post, but rather the list of
 things we believed at the start, the ones that survived contact with reality,
 and the ones we're still working on.
-
-<!-- more -->
 
 ## Where we started
 
