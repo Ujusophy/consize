@@ -1936,6 +1936,9 @@ body:has(.consize-hero) .md-footer {
   .md-search__form:hover {
     border-color: var(--md-default-fg-color--light);
   }
+  
+  .md-sidebar--primary   { position: sticky; top: 0; height: 100vh; }
+  .md-sidebar--secondary { position: sticky; top: 0; height: 100vh; }
 
   /* keep the accent focus ring from section 1c (must come after :hover) */
   .md-search__form:focus-within,
@@ -1965,4 +1968,15 @@ body:has(.consize-hero) .md-footer {
 .consize-header-slack:hover {
   opacity: 1;
   transform: scale(1.08);
+}
+
+/* Keep the header title fixed; never swap to the page title */
+.md-header__title[data-md-state="active"] .md-header__topic:first-child {
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  z-index: auto !important;
+}
+.md-header__title .md-header__topic + .md-header__topic {
+  display: none !important;
 }
