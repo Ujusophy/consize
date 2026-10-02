@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"sort"
 	"sync"
@@ -42,17 +43,46 @@ func NewMemory() *Memory {
 func (m *Memory) Health(context.Context) error { m.mu.RLock(); defer m.mu.RUnlock(); return m.poison }
 
 func (m *Memory) UpsertResource(_ context.Context, res resource.Resource) (resource.Resource, error) {
-	if res.ID == "" {
-		return resource.Resource{}, errors.New("resource id is required")
+	now := m.now().UTC()
+	normalized, err := res.Normalize(now)
+	if err != nil {
+		return resource.Resource{}, fmt.Errorf("normalize resource: %w", err)
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if existing, ok := m.resources[res.ID]; ok && res.CreatedAt.IsZero() {
-		res.CreatedAt = existing.CreatedAt
+
+	for id, existing := range m.resources {
+		if id == normalized.ID || !resource.SameIdentity(existing, normalized) {
+			continue
+		}
+		if !resource.IsCanonicalID(id) && resource.IsCanonicalID(normalized.ID) {
+			// Preserve references created before canonical IDs were introduced.
+			normalized.ID = id
+			break
+		}
+		return resource.Resource{}, fmt.Errorf("%w: identity already registered as %q", resource.ErrIdentityConflict, id)
 	}
-	res = res.WithDefaults(m.now().UTC())
-	m.resources[res.ID] = clone(res)
-	return clone(res), m.persistLocked()
+
+	if existing, ok := m.resources[normalized.ID]; ok {
+		if !resource.SameIdentity(existing, normalized) {
+			return resource.Resource{}, fmt.Errorf("%w: id %q belongs to a different provider resource", resource.ErrIdentityConflict, normalized.ID)
+		}
+		if normalized.ObservedAt.Before(existing.LastSeenAt) {
+			return resource.Resource{}, fmt.Errorf("stale resource observation: observed_at %s precedes last_seen_at %s", normalized.ObservedAt, existing.LastSeenAt)
+		}
+		if !resource.ValidLifecycleTransition(existing.LifecycleState, normalized.LifecycleState) {
+			return resource.Resource{}, fmt.Errorf("invalid resource lifecycle transition from %q to %q", existing.LifecycleState, normalized.LifecycleState)
+		}
+		normalized.FirstSeenAt = existing.FirstSeenAt
+		normalized.CreatedAt = existing.CreatedAt
+	}
+	normalized.LastSeenAt = normalized.ObservedAt
+	normalized.UpdatedAt = now
+	if err := normalized.Validate(); err != nil {
+		return resource.Resource{}, fmt.Errorf("validate resource update: %w", err)
+	}
+	m.resources[normalized.ID] = clone(normalized)
+	return clone(normalized), m.persistLocked()
 }
 
 func (m *Memory) GetResource(_ context.Context, id string) (resource.Resource, error) {

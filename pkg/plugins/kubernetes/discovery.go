@@ -29,7 +29,7 @@ func (p *Plugin) Discover(ctx context.Context) ([]plugin.ProviderObservation, er
 	now := time.Now().UTC()
 	out := make([]plugin.ProviderObservation, 0, len(deployments))
 	for _, deployment := range deployments {
-		res := deploymentResource(deployment, now)
+		res := p.deploymentResource(deployment, now)
 		out = append(out, plugin.ProviderObservation{
 			PluginID: ID, Provider: resource.ProviderKubernetes,
 			ObservedAt: now, Resource: res,
@@ -38,7 +38,7 @@ func (p *Plugin) Discover(ctx context.Context) ([]plugin.ProviderObservation, er
 	return out, nil
 }
 
-func deploymentResource(deployment appsv1.Deployment, observedAt time.Time) resource.Resource {
+func (p *Plugin) deploymentResource(deployment appsv1.Deployment, observedAt time.Time) resource.Resource {
 	var cpuRequest, cpuLimit, memoryRequest, memoryLimit int64
 	for _, container := range deployment.Spec.Template.Spec.Containers {
 		cpuRequest += container.Resources.Requests.Cpu().MilliValue()
@@ -52,9 +52,9 @@ func deploymentResource(deployment appsv1.Deployment, observedAt time.Time) reso
 	criticality := firstNonEmpty(labels["consize.io/criticality"], resource.CriticalityMedium)
 	providerID := fmt.Sprintf("%s/%s", deployment.Namespace, deployment.Name)
 	return resource.Resource{
-		ID:   fmt.Sprintf("k8s:%s:%s", deployment.Namespace, deployment.Name),
 		Type: resource.TypeKubernetesDeployment, Provider: resource.ProviderKubernetes,
 		ProviderResourceID: providerID, Name: deployment.Name,
+		Account: p.clusterID, Region: p.location,
 		Environment: environment, Owner: owner, Criticality: criticality,
 		Labels: labels, SourcePluginID: ID, ObservedAt: observedAt,
 		Metadata: map[string]any{

@@ -25,7 +25,11 @@ func TestRunRegistersNormalizedObservation(t *testing.T) {
 	now := time.Date(2026, 9, 23, 12, 0, 0, 0, time.UTC)
 	p := fakeDiscovery{observation: plugin.ProviderObservation{
 		PluginID: "test-discovery", Provider: resource.ProviderKubernetes, ObservedAt: now,
-		Resource: resource.Resource{ID: "k8s:ns:api", Type: resource.TypeKubernetesDeployment, Provider: resource.ProviderKubernetes, ProviderResourceID: "ns/api", Name: "api"},
+		Resource: resource.Resource{
+			Type: resource.TypeKubernetesDeployment, Provider: resource.ProviderKubernetes,
+			ProviderResourceID: "ns/api", Name: "api", Account: "cluster-a", Region: "local",
+			Environment: resource.EnvDevelopment, Owner: "platform", Criticality: resource.CriticalityLow,
+		},
 	}}
 	manager := plugin.NewManager()
 	if err := manager.RegisterDiscovery(p); err != nil {
@@ -41,7 +45,11 @@ func TestRunRegistersNormalizedObservation(t *testing.T) {
 	if len(results) != 1 || results[0].Count != 1 {
 		t.Fatalf("unexpected results: %#v", results)
 	}
-	got, err := registry.GetResource(context.Background(), "k8s:ns:api")
+	id, err := resource.BuildID(p.observation.Resource.Identity())
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := registry.GetResource(context.Background(), id)
 	if err != nil {
 		t.Fatal(err)
 	}

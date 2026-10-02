@@ -243,17 +243,29 @@ export interface components {
             mode?: "approved";
         };
         Resource: {
+            /** @description Version of the universal resource contract. */
+            schema_version: number;
+            /** @description Stable Consize identity derived only from immutable provider coordinates for new resources. */
             id: string;
+            /** @description Provider-neutral resource type. */
             type: string;
             provider: string;
+            /** @description Stable identity assigned by the provider. */
             provider_resource_id: string;
             name: string;
-            environment: string;
+            /** @enum {string} */
+            environment: "production" | "staging" | "development";
             owner: string;
+            /** @description Provider location or explicit non-regional scope. */
             region: string;
+            /** @description Provider account, project, subscription, or cluster identity. */
             account: string;
             /** @enum {string} */
             criticality: "low" | "medium" | "high";
+            /** @enum {string} */
+            lifecycle_state: "active" | "stale" | "deleted";
+            /** @enum {string} */
+            support_status: "fully_supported" | "model_only" | "unsupported";
             labels: {
                 [key: string]: string;
             };
@@ -263,6 +275,10 @@ export interface components {
             source_plugin_id: string;
             /** Format: date-time */
             observed_at: string;
+            /** Format: date-time */
+            first_seen_at: string;
+            /** Format: date-time */
+            last_seen_at: string;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */

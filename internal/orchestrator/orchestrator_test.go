@@ -88,12 +88,10 @@ func TestLegacyOrchestratorCannotBypassDurableSafety(t *testing.T) {
 
 func testResourceAndRecommendation() (resource.Resource, store.Recommendation) {
 	res := resource.Resource{
-		ID:          "k8s:prod:checkout-api",
-		Type:        resource.TypeKubernetesDeployment,
-		Provider:    resource.ProviderKubernetes,
-		Name:        "checkout-api",
-		Environment: resource.EnvProduction,
-		Owner:       "payments-team",
+		ID: "k8s:prod:checkout-api", Type: resource.TypeKubernetesDeployment,
+		Provider: resource.ProviderKubernetes, ProviderResourceID: "prod/checkout-api",
+		Name: "checkout-api", Account: "prod-cluster", Region: "us-east-1",
+		Environment: resource.EnvProduction, Owner: "payments-team",
 		Criticality: resource.CriticalityHigh,
 		Metadata:    map[string]any{"namespace": "prod", "name": "checkout-api"},
 	}

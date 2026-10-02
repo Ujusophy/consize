@@ -1,7 +1,9 @@
 {
   "kubernetes": {
     "enabled": false,
-    "kubeconfig": ""
+    "kubeconfig": "",
+    "cluster_id": "local-disabled",
+    "location": "local"
   },
   "prometheus": {
     "enabled": false,
