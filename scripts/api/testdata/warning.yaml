@@ -1,0 +1,7 @@
+openapi: 3.1.0
+info: {title: Warning fixture, version: 1.0.1}
+paths:
+  /widgets:
+    get:
+      responses:
+        '200': {description: Widgets}

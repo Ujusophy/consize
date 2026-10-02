@@ -12,4 +12,26 @@ elif [[ "$merge_base" == "$bootstrap" ]]; then
 else
   echo "Canonical contract is missing from comparison base $merge_base; refusing to pass."; exit 2
 fi
-"$oasdiff" breaking --fail-on ERR "$tmp/base.yaml" "$repo/openapi/openapi.yaml"
+
+set +e
+"$oasdiff" breaking --fail-on ERR --format githubactions "$tmp/base.yaml" "$repo/openapi/openapi.yaml" > "$tmp/annotations.txt" 2>&1
+status=$?
+set -e
+cat "$tmp/annotations.txt"
+
+"$oasdiff" breaking --format markdown "$tmp/base.yaml" "$repo/openapi/openapi.yaml" > "$tmp/report.md"
+if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  {
+    echo "## API compatibility review"
+    echo
+    echo "> ERR findings block this check. WARN findings do not block automatically and must be acknowledged by an API-contract reviewer before merge."
+    echo
+    if [[ -s "$tmp/report.md" ]]; then
+      cat "$tmp/report.md"
+    else
+      echo "No ERR or WARN compatibility findings."
+    fi
+  } >> "$GITHUB_STEP_SUMMARY"
+fi
+
+exit "$status"

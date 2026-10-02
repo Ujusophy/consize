@@ -71,7 +71,7 @@ Repository owners must configure branch protection to require the emitted `API c
 
 CI fetches complete history and calculates a merge base with the pull request target. A missing or invalid Git base fails. The first contract PR has one narrow bootstrap allowance tied to the exact pre-contract commit in `openapi/.bootstrap-base`; after this change reaches `main`, comparisons use the canonical source from the merge base.
 
-`oasdiff v1.29.1` blocks definite `ERR`-level breaking changes. `WARN` findings still require contract review because a machine cannot determine every consumer impact. A breaking change needs an explicit versioning and migration decision; it must not be hidden by changing the comparison base.
+`oasdiff v1.29.1` blocks definite `ERR`-level breaking changes. `WARN` findings remain non-blocking because a machine cannot determine every consumer impact, but CI emits each warning as a GitHub annotation and includes the full compatibility report in the job summary. An API-contract reviewer must acknowledge any warning in the pull-request review before merge. A breaking change needs an explicit versioning and migration decision; it must not be hidden by changing the comparison base.
 
 ## What automation proves
 
@@ -85,4 +85,4 @@ It does **not** prove runtime semantics, authorization correctness, latency, ide
 - **Invalid comparison base:** fetch full history and pass a reachable commit or branch. Do not bypass the check.
 - **Lint error:** fix the source contract; do not create a broad ignore file.
 - **Bundle checksum changed:** expected when the contract changes. Confirm the source diff and generated declarations are part of the same review.
-- **Compatibility warning:** review the behavioral effect even when the CI severity does not block.
+- **Compatibility warning:** read the `API compatibility review` section in the job summary, explain the expected consumer impact in the pull request, and obtain acknowledgement from an API-contract reviewer before merge. Do not treat a green check as automatic approval of WARN findings.
