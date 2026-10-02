@@ -32,84 +32,23 @@ import {
   Zap
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import type { components } from "../lib/generated/api";
 
 const API_BASE = process.env.NEXT_PUBLIC_CONSIZE_API_BASE_URL ?? "http://127.0.0.1:8080";
 
-type ApiResource = {
-  id: string;
-  type: string;
-  provider: string;
-  name: string;
-  environment: string;
-  owner: string;
-  region: string;
-  criticality: string;
-  metadata?: Record<string, unknown>;
-};
-
-type ApiRecommendation = {
-  id: number;
-  resource_id: string;
-  plugin_id: string;
-  algorithm_id?: string;
-  action_type: string;
-  title: string;
-  summary: string;
-  estimated_savings_monthly: number;
-  confidence: string;
-  risk: string;
-  evidence?: string[];
-  policy_id: string;
-  status: string;
-  current?: Record<string, unknown>;
-  proposed?: Record<string, unknown>;
-  parameters?: { confidence_assessment?: { profile: string; required_history: string; observed_history: string; coverage_ratio: number; reasons: string[] }; verification_plan?: { checks?: string[]; metrics_plugin_id?: string } };
-};
-
-type ApiPluginStatus = {
-  manifest: {
-    id: string;
-    display_name: string;
-    category: string;
-    can_mutate_infrastructure: boolean;
-    requires_approval: boolean;
-  };
-  health: {
-    status: string;
-    message: string;
+type ApiResource = components["schemas"]["Resource"];
+type ApiPreflightCheck = components["schemas"]["PreflightCheck"];
+type ApiPluginStatus = components["schemas"]["PluginStatus"];
+type ApiAction = components["schemas"]["ActionEvent"];
+type GeneratedRecommendation = components["schemas"]["Recommendation"];
+type ApiRecommendation = Omit<GeneratedRecommendation, "parameters"> & {
+  parameters: GeneratedRecommendation["parameters"] & {
+    confidence_assessment?: { profile: string; required_history: string; observed_history: string; coverage_ratio: number; reasons: string[] };
+    verification_plan?: { checks?: string[]; metrics_plugin_id?: string };
   };
 };
-
-type ApiAction = {
-  plan?: { preflight?: ApiPreflightCheck[] };
-  id: number;
-  recommendation_id?: number;
-  resource_id: string;
-  plugin_id: string;
-  mode: string;
-  result: string;
-  message: string;
-  created_at: string;
-  policy_decision?: { policy_id: string; decision: string; reasons: string[] };
-};
-
-type ApiPreflightCheck = { id: string; status: string; message: string; details?: Record<string, unknown> };
-
-type ApiDashboard = {
-  verification?: { checks?: Array<{ signal: string; statistic: string; mode: string; threshold: number }> };
-  jobs?: Array<{ id: number; state: string; plan?: { preflight?: ApiPreflightCheck[] }; next_run: string; window_start: string; deadline: string; last_error?: string; verification: { rollback_on_failure: boolean; rollback_on_timeout: boolean; checks?: Array<{ signal: string; statistic: string; mode: string; threshold: number }> }; verification_result?: { status: string; reasons: string[] } }>;
-  stats: {
-    projected_savings_monthly: number;
-    verified_savings_monthly: number;
-    pending_approvals: number;
-    rollback_rate: number;
-    open_recommendations: number;
-    executed_actions: number;
-  };
-  resources: ApiResource[];
+type ApiDashboard = Omit<components["schemas"]["Dashboard"], "recommendations"> & {
   recommendations: ApiRecommendation[];
-  plugins: ApiPluginStatus[];
-  actions: ApiAction[];
 };
 
 const nav = [
