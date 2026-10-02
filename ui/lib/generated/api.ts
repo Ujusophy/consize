@@ -253,8 +253,7 @@ export interface components {
             /** @description Stable identity assigned by the provider. */
             provider_resource_id: string;
             name: string;
-            /** @enum {string} */
-            environment: "production" | "staging" | "development";
+            environment: string;
             owner: string;
             /** @description Provider location or explicit non-regional scope. */
             region: string;
@@ -279,6 +278,33 @@ export interface components {
             first_seen_at: string;
             /** Format: date-time */
             last_seen_at: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        /** @description Resource observation accepted from an administrator or trusted discovery adapter. Server-managed model and lifecycle fields are returned in Resource. */
+        ResourceInput: {
+            id: string;
+            type: string;
+            provider: string;
+            provider_resource_id: string;
+            name: string;
+            environment: string;
+            owner: string;
+            region: string;
+            account: string;
+            /** @enum {string} */
+            criticality: "low" | "medium" | "high";
+            labels: {
+                [key: string]: string;
+            };
+            metadata: components["schemas"]["JsonObject"];
+            current_state: components["schemas"]["JsonObject"];
+            monthly_cost: number;
+            source_plugin_id: string;
+            /** Format: date-time */
+            observed_at: string;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
@@ -656,7 +682,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Resource"];
+                "application/json": components["schemas"]["ResourceInput"];
             };
         };
         responses: {

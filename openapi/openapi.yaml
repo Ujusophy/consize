@@ -59,7 +59,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: '#/components/schemas/Resource'}
+            schema: {$ref: '#/components/schemas/ResourceInput'}
       responses:
         '200':
           description: Resource stored successfully.
@@ -262,7 +262,7 @@ components:
         provider: {type: string, minLength: 1}
         provider_resource_id: {type: string, minLength: 1, description: Stable identity assigned by the provider.}
         name: {type: string, minLength: 1}
-        environment: {type: string, enum: [production, staging, development]}
+        environment: {type: string}
         owner: {type: string, minLength: 1}
         region: {type: string, minLength: 1, description: Provider location or explicit non-regional scope.}
         account: {type: string, minLength: 1, description: "Provider account, project, subscription, or cluster identity."}
@@ -277,6 +277,29 @@ components:
         observed_at: {type: string, format: date-time}
         first_seen_at: {type: string, format: date-time}
         last_seen_at: {type: string, format: date-time}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    ResourceInput:
+      type: object
+      description: Resource observation accepted from an administrator or trusted discovery adapter. Server-managed model and lifecycle fields are returned in Resource.
+      required: [id, type, provider, provider_resource_id, name, environment, owner, region, account, criticality, labels, metadata, current_state, monthly_cost, source_plugin_id, observed_at, created_at, updated_at]
+      properties:
+        id: {type: string}
+        type: {type: string}
+        provider: {type: string}
+        provider_resource_id: {type: string}
+        name: {type: string}
+        environment: {type: string}
+        owner: {type: string}
+        region: {type: string}
+        account: {type: string}
+        criticality: {type: string, enum: [low, medium, high]}
+        labels: {type: object, additionalProperties: {type: string}}
+        metadata: {$ref: '#/components/schemas/JsonObject'}
+        current_state: {$ref: '#/components/schemas/JsonObject'}
+        monthly_cost: {type: number}
+        source_plugin_id: {type: string}
+        observed_at: {type: string, format: date-time}
         created_at: {type: string, format: date-time}
         updated_at: {type: string, format: date-time}
     Recommendation:
