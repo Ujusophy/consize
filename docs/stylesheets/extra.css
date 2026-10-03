@@ -1971,7 +1971,7 @@ body:has(.consize-hero) .md-footer {
 }
 
 /* Keep the header title fixed; never swap to the page title */
-.md-header__title[data-md-state="active"] .md-header__topic:first-child {
+.md-header__title--active .md-header__topic:first-child {
   opacity: 1 !important;
   transform: none !important;
   pointer-events: auto !important;
