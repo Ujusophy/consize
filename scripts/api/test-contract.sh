@@ -9,4 +9,6 @@ if GENERATED_API_FILE="$tmp/stale-api.ts" "$repo/scripts/api/check-generated.sh"
 if "$repo/scripts/api/compare-breaking.sh" invalid-revision-for-contract-test >/dev/null 2>&1; then echo "Invalid comparison revision unexpectedly passed."; exit 1; fi
 if "$oasdiff" breaking --fail-on ERR "$repo/scripts/api/testdata/base.yaml" "$repo/scripts/api/testdata/breaking.yaml" >/dev/null 2>&1; then echo "Representative breaking change unexpectedly passed."; exit 1; fi
 "$oasdiff" breaking --fail-on ERR "$repo/scripts/api/testdata/base.yaml" "$repo/scripts/api/testdata/compatible.yaml" >/dev/null
-echo "Invalid schema, stale generation, invalid base, breaking change, and compatible change paths behave as expected."
+warning_output="$($oasdiff breaking --fail-on ERR --format githubactions "$repo/scripts/api/testdata/warning-base.yaml" "$repo/scripts/api/testdata/warning.yaml")"
+[[ "$warning_output" == *"::warning"* ]] || { echo "WARN finding was not emitted as a GitHub annotation."; exit 1; }
+echo "Invalid schema, stale generation, invalid base, breaking change, warning visibility, and compatible change paths behave as expected."
