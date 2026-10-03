@@ -91,7 +91,7 @@ plugins:
 
 nav:
   - Get started:
-      - Get started: getting-started/get-started.md
+      - Overview: getting-started/get-started.md
       - Interactive Sandbox: getting-started/sandbox.md
       - Production Installation: getting-started/installation.md
 
@@ -109,15 +109,10 @@ nav:
       - API Reference: reference/api.md
 
   - Resources:
-      - Contributing: contributing/index.md
-      - Testing: contributing/testing.md
-      - E2E Tests: contributing/e2e.md
-      - Decisions: contributing/decisions.md
-      - CI Security Policy: engineering/ci-security.md
-      - Repository Security: engineering/repository-security.md
-      - Secret Scanning: engineering/secret-scanning.md
-      - API Contract: engineering/api-contract.md
-      - ADR 0001 - Resource Identity: engineering/adr-0001-universal-resource-identity.md
+      - Contributing: resources/contributing.md
+      - Testing: resources/testing.md
+      - E2E Tests: resources/e2e.md
+      - Decisions: resources/decisions.md
       - Roadmap: resources/roadmap.md
       - FAQ: resources/faq.md
       - Troubleshooting: resources/troubleshooting.md
