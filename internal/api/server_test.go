@@ -58,7 +58,13 @@ func apiFixture(t *testing.T) (*Server, *store.Memory, *fake.Clientset) {
 	if err := plugins.RegisterMetrics(apiMetrics{}); err != nil {
 		t.Fatal(err)
 	}
-	res := resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Owner: "team", Environment: "development", Metadata: map[string]any{"namespace": "test", "name": "app"}, CurrentState: map[string]any{"memory_request_bytes": int64(512 * 1024 * 1024), "memory_limit_bytes": int64(1024 * 1024 * 1024)}}
+	res := resource.Resource{
+		ID: "test", Type: resource.TypeKubernetesDeployment, Provider: resource.ProviderKubernetes,
+		ProviderResourceID: "test/app", Name: "app", Account: "test-cluster", Region: "local",
+		Owner: "team", Environment: resource.EnvDevelopment, Criticality: resource.CriticalityLow,
+		Metadata:     map[string]any{"namespace": "test", "name": "app"},
+		CurrentState: map[string]any{"memory_request_bytes": int64(512 * 1024 * 1024), "memory_limit_bytes": int64(1024 * 1024 * 1024)},
+	}
 	if _, err := st.UpsertResource(context.Background(), res); err != nil {
 		t.Fatal(err)
 	}

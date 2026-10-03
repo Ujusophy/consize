@@ -1,5 +1,5 @@
 {
-  "id": "k8s:prod:checkout-api",
+  "id": "resource:v1:kubernetes:prod-cluster:cluster-local:kubernetes.deployment:apps%2Fv1%2Fnamespaces%2Fprod%2Fdeployments%2Fcheckout-api",
   "type": "kubernetes.deployment",
   "provider": "kubernetes",
   "provider_resource_id": "apps/v1/namespaces/prod/deployments/checkout-api",
@@ -23,4 +23,3 @@
   },
   "monthly_cost": 0
 }
-

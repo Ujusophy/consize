@@ -59,7 +59,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: '#/components/schemas/Resource'}
+            schema: {$ref: '#/components/schemas/ResourceInput'}
       responses:
         '200':
           description: Resource stored successfully.
@@ -254,6 +254,34 @@ components:
     ActionRequest: {type: object, additionalProperties: false, properties: {mode: {type: string, enum: [approved]}}}
     Resource:
       type: object
+      required: [schema_version, id, type, provider, provider_resource_id, name, environment, owner, region, account, criticality, lifecycle_state, support_status, labels, metadata, current_state, monthly_cost, source_plugin_id, observed_at, first_seen_at, last_seen_at, created_at, updated_at]
+      properties:
+        schema_version: {type: integer, minimum: 1, description: Version of the universal resource contract.}
+        id: {type: string, minLength: 1, description: Stable Consize identity derived only from immutable provider coordinates for new resources.}
+        type: {type: string, minLength: 1, description: Provider-neutral resource type.}
+        provider: {type: string, minLength: 1}
+        provider_resource_id: {type: string, minLength: 1, description: Stable identity assigned by the provider.}
+        name: {type: string, minLength: 1}
+        environment: {type: string}
+        owner: {type: string, minLength: 1}
+        region: {type: string, minLength: 1, description: Provider location or explicit non-regional scope.}
+        account: {type: string, minLength: 1, description: "Provider account, project, subscription, or cluster identity."}
+        criticality: {type: string, enum: [low, medium, high]}
+        lifecycle_state: {type: string, enum: [active, stale, deleted]}
+        support_status: {type: string, enum: [fully_supported, model_only, unsupported]}
+        labels: {type: object, additionalProperties: {type: string}}
+        metadata: {$ref: '#/components/schemas/JsonObject'}
+        current_state: {$ref: '#/components/schemas/JsonObject'}
+        monthly_cost: {type: number}
+        source_plugin_id: {type: string}
+        observed_at: {type: string, format: date-time}
+        first_seen_at: {type: string, format: date-time}
+        last_seen_at: {type: string, format: date-time}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    ResourceInput:
+      type: object
+      description: Resource observation accepted from an administrator or trusted discovery adapter. Server-managed model and lifecycle fields are returned in Resource.
       required: [id, type, provider, provider_resource_id, name, environment, owner, region, account, criticality, labels, metadata, current_state, monthly_cost, source_plugin_id, observed_at, created_at, updated_at]
       properties:
         id: {type: string}

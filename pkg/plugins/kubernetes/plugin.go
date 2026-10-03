@@ -14,6 +14,8 @@ const ID = "kubernetes-action"
 
 type Config struct {
 	Kubeconfig string
+	ClusterID  string
+	Location   string
 }
 
 type PatchDiff struct {
@@ -31,19 +33,28 @@ type Patcher interface {
 }
 
 type Plugin struct {
-	patcher Patcher
+	patcher   Patcher
+	clusterID string
+	location  string
 }
 
 func New(cfg Config) (*Plugin, error) {
+	if cfg.ClusterID == "" || cfg.Location == "" {
+		return nil, errors.New("kubernetes cluster_id and location are required for stable resource identity")
+	}
 	patcher, err := NewK8sPatcher(cfg.Kubeconfig)
 	if err != nil {
 		return nil, err
 	}
-	return NewWithPatcher(patcher), nil
+	return newWithIdentity(patcher, cfg.ClusterID, cfg.Location), nil
 }
 
 func NewWithPatcher(patcher Patcher) *Plugin {
-	return &Plugin{patcher: patcher}
+	return newWithIdentity(patcher, "test-cluster", "local")
+}
+
+func newWithIdentity(patcher Patcher, clusterID, location string) *Plugin {
+	return &Plugin{patcher: patcher, clusterID: clusterID, location: location}
 }
 
 func (p *Plugin) ID() string { return ID }

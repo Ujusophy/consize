@@ -65,7 +65,7 @@ func normalize(provider plugin.DiscoveryPlugin, observation plugin.ProviderObser
 	if observation.PluginID != provider.ID() || observation.Provider == "" || res.Provider != observation.Provider {
 		return resource.Resource{}, fmt.Errorf("discovery plugin %s returned mismatched provider identity", provider.ID())
 	}
-	if res.ID == "" || res.Type == "" || res.ProviderResourceID == "" {
+	if res.Type == "" || res.ProviderResourceID == "" {
 		return resource.Resource{}, fmt.Errorf("discovery plugin %s returned incomplete resource identity", provider.ID())
 	}
 	if !plugin.Supports(manifest.SupportedResourceTypes, res.Type) {
@@ -76,5 +76,9 @@ func normalize(provider plugin.DiscoveryPlugin, observation plugin.ProviderObser
 	}
 	res.SourcePluginID = provider.ID()
 	res.ObservedAt = observation.ObservedAt.UTC()
+	res, err := res.Normalize(now)
+	if err != nil {
+		return resource.Resource{}, fmt.Errorf("discovery plugin %s returned invalid resource: %w", provider.ID(), err)
+	}
 	return res, nil
 }
