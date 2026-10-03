@@ -2,7 +2,9 @@
   "state_path": "./.consize/local-state.json",
   "kubernetes": {
     "enabled": true,
-    "kubeconfig": "/Users/Apple/.kube/config"
+    "kubeconfig": "/Users/Apple/.kube/config",
+    "cluster_id": "docker-desktop",
+    "location": "local"
   },
   "prometheus": {
     "enabled": true,

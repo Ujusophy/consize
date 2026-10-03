@@ -32,6 +32,7 @@ ui/out/
 ui/build/
 ui/coverage/
 ui/tsconfig.tsbuildinfo
+openapi/dist/
 
 # Generated artifacts
 tmp/

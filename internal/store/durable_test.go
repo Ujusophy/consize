@@ -3,17 +3,40 @@ package store
 import (
 	"context"
 	"encoding/json"
-	"github.com/consize-oss/consize/pkg/resource"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/consize-oss/consize/pkg/resource"
 )
+
+func completeResource(id string) resource.Resource {
+	now := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+	return resource.Resource{
+		SchemaVersion: resource.CurrentSchemaVersion,
+		ID:            id, Type: resource.TypeKubernetesDeployment,
+		Provider: resource.ProviderKubernetes, ProviderResourceID: "default/app",
+		Name: "app", Environment: resource.EnvDevelopment, Owner: "platform",
+		Region: "local", Account: "test-cluster", Criticality: resource.CriticalityLow,
+		LifecycleState: resource.LifecycleActive, SupportStatus: resource.SupportFull,
+		Labels: map[string]string{}, Metadata: map[string]any{}, CurrentState: map[string]any{"size": 10},
+		ObservedAt: now, FirstSeenAt: now, LastSeenAt: now, CreatedAt: now, UpdatedAt: now,
+	}
+}
 
 func TestDurableStoreMigratesV1State(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "state.json")
+	legacyResource := completeResource("one")
+	legacyResource.SchemaVersion = 0
+	legacyResource.LifecycleState = ""
+	legacyResource.SupportStatus = ""
+	legacyResource.ObservedAt = time.Time{}
+	legacyResource.FirstSeenAt = time.Time{}
+	legacyResource.LastSeenAt = time.Time{}
 	legacy := diskState{
 		Version:         1,
-		Resources:       map[string]resource.Resource{"one": {ID: "one", Type: "test"}},
+		Resources:       map[string]resource.Resource{"one": legacyResource},
 		Recommendations: map[int64]Recommendation{}, Actions: map[int64]ActionEvent{}, Jobs: map[int64]Job{},
 		NextActionID: 1, NextRecID: 1,
 	}
@@ -42,6 +65,10 @@ func TestDurableStoreMigratesV1State(t *testing.T) {
 	if migrated.Version != currentStateVersion {
 		t.Fatalf("version = %d", migrated.Version)
 	}
+	got := migrated.Resources["one"]
+	if got.SchemaVersion != resource.CurrentSchemaVersion || got.LifecycleState != resource.LifecycleActive || got.SupportStatus != resource.SupportFull || got.ObservedAt.IsZero() || got.FirstSeenAt.IsZero() || got.LastSeenAt.IsZero() {
+		t.Fatalf("resource was not migrated: %#v", got)
+	}
 }
 
 func TestDurableStorePersistsAndLocks(t *testing.T) {
@@ -54,7 +81,7 @@ func TestDurableStorePersistsAndLocks(t *testing.T) {
 		other.Close()
 		t.Fatal("two owners acquired state")
 	}
-	input := resource.Resource{ID: "one", Type: "test", CurrentState: map[string]any{"size": 10}}
+	input := completeResource("one")
 	if _, err := st.UpsertResource(context.Background(), input); err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +121,7 @@ func TestPersistenceFailurePoisonsStore(t *testing.T) {
 	}
 	defer st.Close()
 	st.path = filepath.Join(dir, "missing", "state.json")
-	if _, err := st.UpsertResource(context.Background(), resource.Resource{ID: "one", Type: "test"}); err == nil {
+	if _, err := st.UpsertResource(context.Background(), completeResource("one")); err == nil {
 		t.Fatal("write failure ignored")
 	}
 	if st.Health(context.Background()) == nil {

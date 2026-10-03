@@ -153,19 +153,19 @@ func (s *Server) SeedDemo(ctx context.Context) error {
 		return nil
 	}
 	res := resource.Resource{
-		ID:           "k8s:prod:payments:payment-service-deployment",
-		Type:         resource.TypeKubernetesDeployment,
-		Provider:     resource.ProviderKubernetes,
-		Name:         "payment-service-deployment",
-		Environment:  resource.EnvProduction,
-		Owner:        "platform",
-		Region:       "us-east-1",
-		Account:      "acme-prod",
-		Criticality:  resource.CriticalityHigh,
-		MonthlyCost:  15000,
-		Labels:       map[string]string{"namespace": "payments", "service": "payments"},
-		Metadata:     map[string]any{"namespace": "payments", "name": "payment-service-deployment", "pod_regex": "payment-service-.+"},
-		CurrentState: map[string]any{"memory_request_bytes": 8589934592, "memory_limit_bytes": 17179869184},
+		Type:               resource.TypeKubernetesDeployment,
+		Provider:           resource.ProviderKubernetes,
+		ProviderResourceID: "payments/payment-service-deployment",
+		Name:               "payment-service-deployment",
+		Environment:        resource.EnvProduction,
+		Owner:              "platform",
+		Region:             "us-east-1",
+		Account:            "acme-prod",
+		Criticality:        resource.CriticalityHigh,
+		MonthlyCost:        15000,
+		Labels:             map[string]string{"namespace": "payments", "service": "payments"},
+		Metadata:           map[string]any{"namespace": "payments", "name": "payment-service-deployment", "pod_regex": "payment-service-.+"},
+		CurrentState:       map[string]any{"memory_request_bytes": 8589934592, "memory_limit_bytes": 17179869184},
 	}
 	res, err = s.st.UpsertResource(ctx, res)
 	if err != nil {

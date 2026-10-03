@@ -1,0 +1,528 @@
+openapi: 3.1.0
+info:
+  title: Consize API
+  version: 0.3.0-alpha
+  description: The contract for the current Consize product and operational HTTP API.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: http://127.0.0.1:8080
+    description: Local development
+tags:
+  - name: Operational
+    description: Process health endpoints for operators and probes.
+  - name: Product
+    description: Authenticated product endpoints used by the Consize UI and integrations.
+security:
+  - bearerAuth: []
+paths:
+  /api/health:
+    get:
+      tags: [Operational]
+      security: []
+      operationId: getHealth
+      summary: Check API health
+      description: Reports store, worker, and plugin health without exposing protected product data.
+      responses:
+        '200': {$ref: '#/components/responses/HealthResponse'}
+        '405': {$ref: '#/components/responses/ErrorResponse'}
+        '503': {$ref: '#/components/responses/ErrorResponse'}
+  /api/dashboard:
+    get:
+      tags: [Product]
+      operationId: getDashboard
+      summary: Get the operator dashboard
+      description: Returns the current resources, recommendations, plugins, actions, jobs, policy, and summary statistics.
+      responses:
+        '200': {$ref: '#/components/responses/DashboardResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '500': {$ref: '#/components/responses/ErrorResponse'}
+  /api/resources:
+    get:
+      tags: [Product]
+      operationId: listResources
+      summary: List registered resources
+      description: Lists provider-neutral resources currently held by the registry.
+      responses:
+        '200': {$ref: '#/components/responses/ResourcesResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '500': {$ref: '#/components/responses/ErrorResponse'}
+    post:
+      tags: [Product]
+      operationId: upsertResource
+      summary: Register a resource
+      description: Creates or updates one provider-neutral resource; administrator authorization is required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ResourceInput'}
+      responses:
+        '200':
+          description: Resource stored successfully.
+          headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+          content: {application/json: {schema: {$ref: '#/components/schemas/Resource'}}}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+  /api/discovery:
+    post:
+      tags: [Product]
+      operationId: runDiscovery
+      summary: Run configured discovery plugins
+      description: Collects provider observations and upserts their normalized resources into the registry.
+      responses:
+        '200':
+          description: Discovery completed.
+          headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [providers]
+                properties:
+                  providers: {type: array, items: {$ref: '#/components/schemas/DiscoveryResult'}}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '502': {$ref: '#/components/responses/ErrorResponse'}
+  /api/plugins:
+    get:
+      tags: [Product]
+      operationId: listPlugins
+      summary: List plugin status
+      description: Lists registered plugin manifests with their latest health status.
+      responses:
+        '200': {$ref: '#/components/responses/PluginsResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '500': {$ref: '#/components/responses/ErrorResponse'}
+  /api/actions:
+    get:
+      tags: [Product]
+      operationId: listActions
+      summary: List action events
+      description: Lists durable action and audit events visible to dashboard users.
+      responses:
+        '200': {$ref: '#/components/responses/ActionsResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '500': {$ref: '#/components/responses/ErrorResponse'}
+  /api/jobs:
+    get:
+      tags: [Product]
+      operationId: listJobs
+      summary: List durable jobs
+      description: Lists action jobs, including recovery and verification state.
+      responses:
+        '200': {$ref: '#/components/responses/JobsResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '503': {$ref: '#/components/responses/ErrorResponse'}
+  /api/recommendations/generate:
+    post:
+      tags: [Product]
+      operationId: generateRecommendations
+      summary: Generate recommendations
+      description: Reads configured metrics for one resource and persists recommendations produced by the active algorithm.
+      parameters:
+        - name: resource_id
+          in: query
+          required: true
+          description: Stable registry identifier of the resource to evaluate.
+          schema: {type: string, minLength: 1}
+      responses:
+        '200':
+          description: Recommendations generated.
+          headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [recommendations, evidence]
+                properties:
+                  recommendations: {type: array, items: {$ref: '#/components/schemas/Recommendation'}}
+                  evidence: {$ref: '#/components/schemas/MetricsSnapshot'}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '404': {$ref: '#/components/responses/ErrorResponse'}
+        '502': {$ref: '#/components/responses/ErrorResponse'}
+  /api/recommendations/{recommendation_id}/plan:
+    post:
+      tags: [Product]
+      operationId: planRecommendation
+      summary: Plan a recommendation
+      description: Evaluates policy and plugin preflight in dry-run mode without applying infrastructure changes.
+      parameters: [{$ref: '#/components/parameters/RecommendationId'}]
+      requestBody: {$ref: '#/components/requestBodies/ActionRequest'}
+      responses:
+        '200':
+          description: Dry-run action event and plan.
+          headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+          content: {application/json: {schema: {$ref: '#/components/schemas/ActionEvent'}}}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '404': {$ref: '#/components/responses/ErrorResponse'}
+  /api/recommendations/{recommendation_id}/execute:
+    post:
+      tags: [Product]
+      operationId: executeRecommendation
+      summary: Execute an approved recommendation
+      description: Persists an approved durable job for worker execution, verification, and recovery.
+      parameters: [{$ref: '#/components/parameters/RecommendationId'}]
+      requestBody: {$ref: '#/components/requestBodies/ActionRequest'}
+      responses:
+        '202': {$ref: '#/components/responses/JobAcceptedResponse'}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '503': {$ref: '#/components/responses/ErrorResponse'}
+  /api/recommendations/{recommendation_id}/recover:
+    post:
+      tags: [Product]
+      operationId: recoverRecommendation
+      summary: Recover an unresolved recommendation
+      description: Explicitly authorizes recovery of an unresolved durable action job.
+      parameters: [{$ref: '#/components/parameters/RecommendationId'}]
+      requestBody: {$ref: '#/components/requestBodies/ActionRequest'}
+      responses:
+        '202': {$ref: '#/components/responses/JobAcceptedResponse'}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer}
+  headers:
+    RequestId:
+      description: Correlation identifier generated or echoed by the API.
+      schema: {type: string, minLength: 1}
+  parameters:
+    RecommendationId:
+      name: recommendation_id
+      in: path
+      required: true
+      description: Numeric recommendation identifier.
+      schema: {type: integer, format: int64, minimum: 1}
+  requestBodies:
+    ActionRequest:
+      required: false
+      description: Explicit action mode; execute and recovery require approved.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ActionRequest'}
+  responses:
+    ErrorResponse:
+      description: The request could not be completed.
+      headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+      content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}
+    HealthResponse:
+      description: Current process health.
+      headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+      content: {application/json: {schema: {$ref: '#/components/schemas/Health'}}}
+    DashboardResponse:
+      description: Current dashboard state.
+      headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+      content: {application/json: {schema: {$ref: '#/components/schemas/Dashboard'}}}
+    ResourcesResponse:
+      description: Registered resources.
+      headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+      content: {application/json: {schema: {type: object, required: [resources], properties: {resources: {type: array, items: {$ref: '#/components/schemas/Resource'}}}}}}
+    PluginsResponse:
+      description: Registered plugin status.
+      headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+      content: {application/json: {schema: {type: object, required: [plugins], properties: {plugins: {type: array, items: {$ref: '#/components/schemas/PluginStatus'}}}}}}
+    ActionsResponse:
+      description: Action events.
+      headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+      content: {application/json: {schema: {type: object, required: [actions], properties: {actions: {type: array, items: {$ref: '#/components/schemas/ActionEvent'}}}}}}
+    JobsResponse:
+      description: Durable action jobs.
+      headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+      content: {application/json: {schema: {type: object, required: [jobs], properties: {jobs: {type: array, items: {$ref: '#/components/schemas/Job'}}}}}}
+    JobAcceptedResponse:
+      description: Durable job accepted.
+      headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+      content: {application/json: {schema: {type: object, required: [job], properties: {job: {$ref: '#/components/schemas/Job'}}}}}
+  schemas:
+    JsonObject: {type: object, additionalProperties: true}
+    Error: {type: object, required: [error], properties: {error: {type: string}}}
+    ActionRequest: {type: object, additionalProperties: false, properties: {mode: {type: string, enum: [approved]}}}
+    Resource:
+      type: object
+      required: [schema_version, id, type, provider, provider_resource_id, name, environment, owner, region, account, criticality, lifecycle_state, support_status, labels, metadata, current_state, monthly_cost, source_plugin_id, observed_at, first_seen_at, last_seen_at, created_at, updated_at]
+      properties:
+        schema_version: {type: integer, minimum: 1, description: Version of the universal resource contract.}
+        id: {type: string, minLength: 1, description: Stable Consize identity derived only from immutable provider coordinates for new resources.}
+        type: {type: string, minLength: 1, description: Provider-neutral resource type.}
+        provider: {type: string, minLength: 1}
+        provider_resource_id: {type: string, minLength: 1, description: Stable identity assigned by the provider.}
+        name: {type: string, minLength: 1}
+        environment: {type: string}
+        owner: {type: string, minLength: 1}
+        region: {type: string, minLength: 1, description: Provider location or explicit non-regional scope.}
+        account: {type: string, minLength: 1, description: "Provider account, project, subscription, or cluster identity."}
+        criticality: {type: string, enum: [low, medium, high]}
+        lifecycle_state: {type: string, enum: [active, stale, deleted]}
+        support_status: {type: string, enum: [fully_supported, model_only, unsupported]}
+        labels: {type: object, additionalProperties: {type: string}}
+        metadata: {$ref: '#/components/schemas/JsonObject'}
+        current_state: {$ref: '#/components/schemas/JsonObject'}
+        monthly_cost: {type: number}
+        source_plugin_id: {type: string}
+        observed_at: {type: string, format: date-time}
+        first_seen_at: {type: string, format: date-time}
+        last_seen_at: {type: string, format: date-time}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    ResourceInput:
+      type: object
+      description: Resource observation accepted from an administrator or trusted discovery adapter. Server-managed model and lifecycle fields are returned in Resource.
+      required: [id, type, provider, provider_resource_id, name, environment, owner, region, account, criticality, labels, metadata, current_state, monthly_cost, source_plugin_id, observed_at, created_at, updated_at]
+      properties:
+        id: {type: string}
+        type: {type: string}
+        provider: {type: string}
+        provider_resource_id: {type: string}
+        name: {type: string}
+        environment: {type: string}
+        owner: {type: string}
+        region: {type: string}
+        account: {type: string}
+        criticality: {type: string, enum: [low, medium, high]}
+        labels: {type: object, additionalProperties: {type: string}}
+        metadata: {$ref: '#/components/schemas/JsonObject'}
+        current_state: {$ref: '#/components/schemas/JsonObject'}
+        monthly_cost: {type: number}
+        source_plugin_id: {type: string}
+        observed_at: {type: string, format: date-time}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    Recommendation:
+      type: object
+      required: [id, resource_id, plugin_id, algorithm_id, action_type, title, summary, current, proposed, parameters, estimated_savings_monthly, confidence, risk, evidence, policy_id, status, created_at, updated_at]
+      properties:
+        id: {type: integer, format: int64}
+        resource_id: {type: string}
+        plugin_id: {type: string}
+        algorithm_id: {type: string}
+        action_type: {type: string}
+        title: {type: string}
+        summary: {type: string}
+        current: {$ref: '#/components/schemas/JsonObject'}
+        proposed: {$ref: '#/components/schemas/JsonObject'}
+        parameters: {$ref: '#/components/schemas/JsonObject'}
+        estimated_savings_monthly: {type: number}
+        cost_estimate: {$ref: '#/components/schemas/CostEstimate'}
+        confidence: {type: string}
+        risk: {type: string}
+        evidence: {type: array, items: {type: string}}
+        policy_id: {type: string}
+        status: {type: string}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    CostEstimate:
+      type: object
+      required: [plugin_id, resource_id, classification, currency, current_monthly, proposed_monthly, savings_monthly, pricing_source, effective_at, collected_at]
+      properties:
+        plugin_id: {type: string}
+        resource_id: {type: string}
+        classification: {type: string}
+        currency: {type: string}
+        current_monthly: {type: number}
+        proposed_monthly: {type: number}
+        savings_monthly: {type: number}
+        pricing_source: {type: string}
+        effective_at: {type: string, format: date-time}
+        collected_at: {type: string, format: date-time}
+        evidence: {$ref: '#/components/schemas/JsonObject'}
+    Manifest:
+      type: object
+      required: [id, display_name, version, category, supported_resource_types, supported_action_types, capabilities, can_mutate_infrastructure, requires_approval]
+      properties:
+        id: {type: string}
+        display_name: {type: string}
+        version: {type: string}
+        category: {type: string}
+        supported_resource_types: {type: array, items: {type: string}}
+        supported_action_types: {type: array, items: {type: string}}
+        capabilities: {type: array, items: {type: string}}
+        can_mutate_infrastructure: {type: boolean}
+        requires_approval: {type: boolean}
+    PluginStatus:
+      type: object
+      required: [manifest, health]
+      properties:
+        manifest: {$ref: '#/components/schemas/Manifest'}
+        health: {$ref: '#/components/schemas/PluginHealth'}
+    PluginHealth:
+      type: object
+      required: [status, message, checked_at]
+      properties:
+        status: {type: string}
+        message: {type: string}
+        checked_at: {type: string, format: date-time}
+    PolicyDecision:
+      type: object
+      required: [policy_id, decision, reasons]
+      properties:
+        policy_id: {type: string}
+        decision: {type: string}
+        reasons: {type: array, items: {type: string}}
+    PreflightCheck:
+      type: object
+      required: [id, status, message]
+      properties:
+        id: {type: string}
+        status: {type: string}
+        message: {type: string}
+        details: {$ref: '#/components/schemas/JsonObject'}
+    ActionPlan:
+      type: object
+      required: [plugin_id, resource_id, action_type, summary, diff, rollback_available, requires_approval]
+      properties:
+        preflight: {type: array, items: {$ref: '#/components/schemas/PreflightCheck'}}
+        plugin_artifact_digest: {type: string}
+        plugin_version: {type: string}
+        original_state: {$ref: '#/components/schemas/JsonObject'}
+        applied_state: {$ref: '#/components/schemas/JsonObject'}
+        plugin_id: {type: string}
+        resource_id: {type: string}
+        action_type: {type: string}
+        summary: {type: string}
+        diff: {$ref: '#/components/schemas/JsonObject'}
+        rollback_available: {type: boolean}
+        requires_approval: {type: boolean}
+    ActionEvent:
+      type: object
+      required: [id, resource_id, plugin_id, action_type, actor, mode, result, message, parameters, policy_decision, created_at]
+      properties:
+        id: {type: integer, format: int64}
+        recommendation_id: {type: integer, format: int64}
+        resource_id: {type: string}
+        plugin_id: {type: string}
+        action_type: {type: string}
+        actor: {type: string}
+        mode: {type: string}
+        result: {type: string}
+        message: {type: string}
+        parameters: {$ref: '#/components/schemas/JsonObject'}
+        plan: {$ref: '#/components/schemas/ActionPlan'}
+        policy_decision: {$ref: '#/components/schemas/PolicyDecision'}
+        verification_result: {$ref: '#/components/schemas/VerificationResult'}
+        created_at: {type: string, format: date-time}
+    VerificationCheck:
+      type: object
+      required: [signal, statistic, mode, threshold]
+      properties:
+        signal: {type: string}
+        statistic: {type: string, enum: [p95, p99, max]}
+        mode: {type: string, enum: [absolute, ratio]}
+        threshold: {type: number}
+    VerificationConfig:
+      type: object
+      required: [rollback_on_failure, rollback_on_timeout, timeout, isolation, enabled, metrics_plugin_id, wait, max_restart_increase, max_memory_p95_increase_ratio, max_cpu_p95_increase_ratio]
+      properties:
+        checks: {type: array, items: {$ref: '#/components/schemas/VerificationCheck'}}
+        rollback_on_failure: {type: boolean}
+        rollback_on_timeout: {type: boolean}
+        timeout: {type: string}
+        isolation: {type: string}
+        enabled: {type: boolean}
+        metrics_plugin_id: {type: string}
+        wait: {type: string}
+        max_restart_increase: {type: number}
+        max_memory_p95_increase_ratio: {type: number}
+        max_cpu_p95_increase_ratio: {type: number}
+    MetricsSnapshot:
+      type: object
+      required: [plugin_id, resource_id, source, window, signals, evidence, collected_at]
+      properties:
+        plugin_id: {type: string}
+        resource_id: {type: string}
+        source: {type: string}
+        window: {type: string}
+        signals: {$ref: '#/components/schemas/JsonObject'}
+        evidence: {type: array, items: {type: string}}
+        collected_at: {type: string, format: date-time}
+        coverage: {$ref: '#/components/schemas/JsonObject'}
+    VerificationResult:
+      type: object
+      required: [status, reasons, before, after, checked_at, thresholds]
+      properties:
+        status: {type: string}
+        reasons: {type: array, items: {type: string}}
+        before: {$ref: '#/components/schemas/MetricsSnapshot'}
+        after: {$ref: '#/components/schemas/MetricsSnapshot'}
+        checked_at: {type: string, format: date-time}
+        thresholds: {$ref: '#/components/schemas/JsonObject'}
+    Job:
+      type: object
+      required: [id, resource, plan, baseline, verification, policy, actor, state, attempts, next_run, window_start, deadline, updated_at]
+      properties:
+        id: {type: integer, format: int64}
+        resource: {$ref: '#/components/schemas/Resource'}
+        plan: {$ref: '#/components/schemas/ActionPlan'}
+        baseline: {$ref: '#/components/schemas/MetricsSnapshot'}
+        verification: {$ref: '#/components/schemas/VerificationConfig'}
+        policy: {$ref: '#/components/schemas/PolicyDecision'}
+        actor: {type: string}
+        state: {type: string}
+        attempts: {type: integer}
+        next_run: {type: string, format: date-time}
+        window_start: {type: string, format: date-time}
+        deadline: {type: string, format: date-time}
+        last_error: {type: string}
+        verification_result: {$ref: '#/components/schemas/VerificationResult'}
+        updated_at: {type: string, format: date-time}
+    Stats:
+      type: object
+      required: [projected_savings_monthly, verified_savings_monthly, pending_approvals, rollback_rate, open_recommendations, executed_actions]
+      properties:
+        projected_savings_monthly: {type: number}
+        verified_savings_monthly: {type: number}
+        pending_approvals: {type: integer}
+        rollback_rate: {type: number}
+        open_recommendations: {type: integer}
+        executed_actions: {type: integer}
+    PolicySummary:
+      type: object
+      required: [id, name, mode, verification, approval_model]
+      properties:
+        id: {type: string}
+        name: {type: string}
+        mode: {type: string}
+        verification: {type: string}
+        approval_model: {type: string}
+    Dashboard:
+      type: object
+      required: [verification, jobs, stats, resources, recommendations, plugins, actions, policy]
+      properties:
+        verification: {$ref: '#/components/schemas/VerificationConfig'}
+        jobs: {type: array, items: {$ref: '#/components/schemas/Job'}}
+        stats: {$ref: '#/components/schemas/Stats'}
+        resources: {type: array, items: {$ref: '#/components/schemas/Resource'}}
+        recommendations: {type: array, items: {$ref: '#/components/schemas/Recommendation'}}
+        plugins: {type: array, items: {$ref: '#/components/schemas/PluginStatus'}}
+        actions: {type: array, items: {$ref: '#/components/schemas/ActionEvent'}}
+        policy: {$ref: '#/components/schemas/PolicySummary'}
+    Health:
+      type: object
+      required: [status, store]
+      properties:
+        status: {type: string, enum: [healthy, degraded, unhealthy]}
+        store: {type: string, enum: [healthy, unavailable]}
+        durable_worker: {type: boolean}
+        plugins: {type: array, items: {$ref: '#/components/schemas/PluginStatus'}}
+        error: {type: string}
+    DiscoveryResult:
+      type: object
+      required: [plugin_id, count, resources]
+      properties:
+        plugin_id: {type: string}
+        count: {type: integer}
+        resources: {type: array, items: {$ref: '#/components/schemas/Resource'}}

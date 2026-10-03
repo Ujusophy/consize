@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/consize-oss/consize/pkg/resource"
 	"golang.org/x/sys/unix"
@@ -22,7 +23,7 @@ type diskState struct {
 	NextRecID       int64                        `json:"next_recommendation_id"`
 }
 
-const currentStateVersion = 2
+const currentStateVersion = 3
 
 // OpenDurable owns one local state file for its entire lifetime; other processes fail closed.
 func OpenDurable(path string) (*Memory, error) {
@@ -91,23 +92,63 @@ func OpenDurable(path string) (*Memory, error) {
 }
 
 func migrateState(state *diskState) (bool, error) {
-	switch state.Version {
-	case currentStateVersion:
-		return false, nil
-	case 1:
+	migrated := false
+	if state.Version == 1 {
 		// v2 adds discovery provenance to Resource. The fields are optional for
 		// manually registered v1 resources and are populated on rediscovery.
-		state.Version = currentStateVersion
-		return true, nil
-	default:
+		state.Version = 2
+		migrated = true
+	}
+	if state.Version == 2 {
+		// v3 adds explicit model, support, and lifecycle versions. Immutable
+		// provider identity is never guessed during migration.
+		for id, res := range state.Resources {
+			res.SchemaVersion = resource.CurrentSchemaVersion
+			if res.LifecycleState == "" {
+				res.LifecycleState = resource.LifecycleActive
+			}
+			res.SupportStatus = resource.SupportForType(res.Type)
+			if res.ObservedAt.IsZero() {
+				res.ObservedAt = firstStoredTime(res.UpdatedAt, res.CreatedAt)
+			}
+			if res.FirstSeenAt.IsZero() {
+				res.FirstSeenAt = firstStoredTime(res.CreatedAt, res.ObservedAt)
+			}
+			if res.LastSeenAt.IsZero() {
+				res.LastSeenAt = firstStoredTime(res.ObservedAt, res.UpdatedAt, res.CreatedAt)
+			}
+			state.Resources[id] = res
+		}
+		state.Version = 3
+		migrated = true
+	}
+	if state.Version != currentStateVersion {
 		return false, fmt.Errorf("unsupported state schema version %d", state.Version)
 	}
+	return migrated, nil
+}
+
+func firstStoredTime(values ...time.Time) time.Time {
+	for _, value := range values {
+		if !value.IsZero() {
+			return value.UTC()
+		}
+	}
+	return time.Time{}
 }
 
 func validateState(state diskState) error {
 	for id, res := range state.Resources {
-		if id == "" || res.ID != id || res.Type == "" {
-			return errors.New("invalid resource identity in durable state")
+		if id == "" || res.ID != id {
+			return errors.New("invalid resource key in durable state")
+		}
+		if err := res.Validate(); err != nil {
+			return fmt.Errorf("invalid durable resource %q: %w", id, err)
+		}
+		for otherID, other := range state.Resources {
+			if otherID != id && resource.SameIdentity(res, other) {
+				return fmt.Errorf("duplicate resource identity in durable state: %q and %q", id, otherID)
+			}
 		}
 	}
 	for id, rec := range state.Recommendations {

@@ -1,7 +1,9 @@
 {
   "kubernetes": {
     "enabled": true,
-    "kubeconfig": ""
+    "kubeconfig": "",
+    "cluster_id": "production-us-east-1",
+    "location": "us-east-1"
   },
   "prometheus": {
     "enabled": true,

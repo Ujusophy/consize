@@ -29,7 +29,7 @@ func TestDiscoverEmitsUniversalDeploymentResource(t *testing.T) {
 		t.Fatalf("observations = %d", len(observations))
 	}
 	got := observations[0].Resource
-	if got.ID != "k8s:payments:checkout" || got.ProviderResourceID != "payments/checkout" {
+	if got.ID != "" || got.ProviderResourceID != "payments/checkout" || got.Account != "test-cluster" || got.Region != "local" {
 		t.Fatalf("identity = %#v", got)
 	}
 	if got.Environment != "production" || got.Owner != "platform" {
@@ -37,5 +37,11 @@ func TestDiscoverEmitsUniversalDeploymentResource(t *testing.T) {
 	}
 	if got.CurrentState["memory_request_bytes"] != int64(536870912) || got.CurrentState["cpu_request_millicores"] != int64(500) {
 		t.Fatalf("state = %#v", got.CurrentState)
+	}
+}
+
+func TestNewRequiresStableClusterIdentity(t *testing.T) {
+	if _, err := New(Config{}); err == nil {
+		t.Fatal("plugin accepted missing cluster identity")
 	}
 }

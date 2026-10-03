@@ -81,6 +81,7 @@ plugins:
           - concepts/safety-net.md: The safety decision matrix (BLOCK/SPLIT/REJECT/etc)
         Reference:
           - reference/configuration.md
+          - reference/resource-model.md
           - reference/supported-platforms.md
           - reference/api.md
         Resources:
@@ -103,6 +104,7 @@ nav:
 
   - Reference:
       - Configuration: reference/configuration.md
+      - Resource Model: reference/resource-model.md
       - Supported Platforms: reference/supported-platforms.md
       - API Reference: reference/api.md
 
@@ -114,6 +116,8 @@ nav:
       - CI Security Policy: engineering/ci-security.md
       - Repository Security: engineering/repository-security.md
       - Secret Scanning: engineering/secret-scanning.md
+      - API Contract: engineering/api-contract.md
+      - ADR 0001 - Resource Identity: engineering/adr-0001-universal-resource-identity.md
       - Roadmap: resources/roadmap.md
       - FAQ: resources/faq.md
       - Troubleshooting: resources/troubleshooting.md

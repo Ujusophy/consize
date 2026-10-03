@@ -1,5 +1,5 @@
 {
-  "id": "k8s:local:consize-demo:checkout-api",
+  "id": "resource:v1:kubernetes:docker-desktop:local:kubernetes.deployment:consize-demo%2Fcheckout-api",
   "type": "kubernetes.deployment",
   "provider": "kubernetes",
   "provider_resource_id": "consize-demo/checkout-api",

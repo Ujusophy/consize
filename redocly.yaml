@@ -1,0 +1,16 @@
+apis:
+  consize@v0.3:
+    root: ./openapi/openapi.yaml
+extends:
+  - recommended-strict
+rules:
+  operation-description: error
+  operation-operationId: error
+  operation-2xx-response:
+    severity: error
+    disallowDefault: true
+  operation-4xx-response: error
+  response-contains-header:
+    severity: error
+    names:
+      X-Request-ID: string
