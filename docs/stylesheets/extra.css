@@ -1189,7 +1189,7 @@ html {
 
 .md-nav--primary .md-nav__item .md-nav__item .md-nav__link {
   font-size: 0.76rem;
-  padding: 0.4rem 0.7rem;
+  padding: 0.55rem 0.7rem;
   margin: 1px 0;
   color: var(--md-default-fg-color--light);
 }
@@ -1987,14 +1987,15 @@ body:has(.consize-hero) .md-footer {
 
 @media screen and (min-width: 76.25em) {
   .md-sidebar--primary {
-    padding-top: 0rem;                
+    padding-top: 0rem;
+    width: 15rem;                  
   }
   .md-sidebar--primary .md-sidebar__scrollwrap {
     margin-top: -1.5rem;             
   }
 
   .md-nav--primary > .md-nav__list > .md-nav__item:first-child > .md-nav__link {
-    margin-top: 0rem;                
+    margin-top: 1.4rem;                
   }
 
   .md-sidebar--primary .md-sidebar__scrollwrap {
@@ -2002,6 +2003,6 @@ body:has(.consize-hero) .md-footer {
   }
 
   .md-sidebar--primary .md-nav--primary {
-    padding-right: 1rem;             
+    padding-right: 0.5rem;             
   }
 }
