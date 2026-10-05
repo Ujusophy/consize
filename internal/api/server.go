@@ -47,6 +47,7 @@ type Dashboard struct {
 	Recommendations []store.Recommendation       `json:"recommendations"`
 	Plugins         []PluginStatus               `json:"plugins"`
 	Actions         []store.ActionEvent          `json:"actions"`
+	ActionRecords   []store.Action               `json:"action_records"`
 	Policy          PolicySummary                `json:"policy"`
 }
 
@@ -105,6 +106,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/recommendations/generate", s.protect(auth.RoleOperator, s.handleGenerateRecommendation))
 	mux.HandleFunc("/api/recommendations/", s.protect(s.recommendationRole, s.handleRecommendationAction))
 	mux.HandleFunc("/api/actions", s.protect(auth.RoleViewer, s.handleActions))
+	mux.HandleFunc("/api/action-records", s.protect(auth.RoleViewer, s.handleActionRecords))
 	mux.HandleFunc("/api/jobs", s.protect(auth.RoleViewer, s.handleJobs))
 	return s.logRequests(mux)
 }
@@ -175,6 +177,8 @@ func (s *Server) SeedDemo(ctx context.Context) error {
 		ResourceID:              res.ID,
 		PluginID:                "kubernetes-action",
 		AlgorithmID:             recommender.BuiltInHeadroomAlgorithmID,
+		AlgorithmVersion:        "1",
+		EvidenceRefs:            []string{"demo:metrics:payment-service-deployment"},
 		ActionType:              "k8s.patch_resources",
 		Title:                   "Reduce memory request for payment-service-deployment",
 		Summary:                 "Reduce memory request while retaining 35% P95 headroom and requiring policy approval for production.",
@@ -286,6 +290,19 @@ func (s *Server) handleActions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	actions, err := s.st.ListActionEvents(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"actions": actions})
+}
+
+func (s *Server) handleActionRecords(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+	actions, err := s.st.ListActions(r.Context())
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -410,7 +427,7 @@ func (s *Server) handleRecommendationAction(w http.ResponseWriter, r *http.Reque
 			writeError(w, http.StatusServiceUnavailable, "durable worker unavailable")
 			return
 		}
-		job, err := s.controller.Submit(r.Context(), id, actor)
+		job, err := s.controller.Submit(r.Context(), id, actor, r.Header.Get("Idempotency-Key"))
 		if err != nil {
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
@@ -418,7 +435,7 @@ func (s *Server) handleRecommendationAction(w http.ResponseWriter, r *http.Reque
 		writeJSON(w, http.StatusAccepted, map[string]any{"job": job})
 		return
 	}
-	out, err := orchestrator.New(s.st, s.plugins, s.policies).ExecuteRecommendation(r.Context(), id, mode, actor)
+	out, err := orchestrator.New(s.st, s.plugins, s.policies).ExecuteRecommendation(r.Context(), id, mode, actor, r.Header.Get("Idempotency-Key"))
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -451,6 +468,10 @@ func (s *Server) dashboard(ctx context.Context) (Dashboard, error) {
 	if err != nil {
 		return Dashboard{}, err
 	}
+	actionRecords, err := s.st.ListActions(ctx)
+	if err != nil {
+		return Dashboard{}, err
+	}
 	plugins, err := s.pluginStatuses(ctx)
 	if err != nil {
 		return Dashboard{}, err
@@ -463,6 +484,7 @@ func (s *Server) dashboard(ctx context.Context) (Dashboard, error) {
 		Recommendations: recs,
 		Plugins:         plugins,
 		Actions:         actions,
+		ActionRecords:   actionRecords,
 		Policy: PolicySummary{
 			ID:            "oss-foundation-v1",
 			Name:          "OSS Foundation Policy",
@@ -489,7 +511,7 @@ func (s *Server) pluginStatuses(ctx context.Context) ([]PluginStatus, error) {
 func stats(recs []store.Recommendation, actions []store.ActionEvent) Stats {
 	var out Stats
 	for _, rec := range recs {
-		if rec.Status != store.RecommendationRejected && !store.Terminal(rec.Status) && rec.Status != store.RecommendationExecuted {
+		if !store.RecommendationTerminal(rec.Status) && rec.Status != store.RecommendationExecuting {
 			out.ProjectedSavingsMonthly += rec.EstimatedSavingsMonthly
 			out.OpenRecommendations++
 		}
@@ -501,7 +523,7 @@ func stats(recs []store.Recommendation, actions []store.ActionEvent) Stats {
 	applied := map[int64]bool{}
 	rolledBack := map[int64]bool{}
 	for _, action := range actions {
-		if action.Result == store.ActionExecuted || action.Result == "waiting_rollout" || action.Result == "verifying" || action.Result == "verified" {
+		if action.Result == string(store.ActionExecuting) || action.Result == "waiting_rollout" || action.Result == "verifying" || action.Result == "verified" {
 			applied[action.RecommendationID] = true
 		}
 		if action.Result == "rolled_back" {

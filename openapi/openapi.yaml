@@ -110,6 +110,17 @@ paths:
         '401': {$ref: '#/components/responses/ErrorResponse'}
         '403': {$ref: '#/components/responses/ErrorResponse'}
         '500': {$ref: '#/components/responses/ErrorResponse'}
+  /api/action-records:
+    get:
+      tags: [Product]
+      operationId: listActionRecords
+      summary: List durable actions
+      description: Lists governed action attempts separately from append-only audit events.
+      responses:
+        '200': {$ref: '#/components/responses/ActionRecordsResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '500': {$ref: '#/components/responses/ErrorResponse'}
   /api/jobs:
     get:
       tags: [Product]
@@ -156,7 +167,7 @@ paths:
       operationId: planRecommendation
       summary: Plan a recommendation
       description: Evaluates policy and plugin preflight in dry-run mode without applying infrastructure changes.
-      parameters: [{$ref: '#/components/parameters/RecommendationId'}]
+      parameters: [{$ref: '#/components/parameters/RecommendationId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
       requestBody: {$ref: '#/components/requestBodies/ActionRequest'}
       responses:
         '200':
@@ -173,7 +184,7 @@ paths:
       operationId: executeRecommendation
       summary: Execute an approved recommendation
       description: Persists an approved durable job for worker execution, verification, and recovery.
-      parameters: [{$ref: '#/components/parameters/RecommendationId'}]
+      parameters: [{$ref: '#/components/parameters/RecommendationId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
       requestBody: {$ref: '#/components/requestBodies/ActionRequest'}
       responses:
         '202': {$ref: '#/components/responses/JobAcceptedResponse'}
@@ -208,6 +219,12 @@ components:
       required: true
       description: Numeric recommendation identifier.
       schema: {type: integer, format: int64, minimum: 1}
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Stable caller key used to return the original action when a request is repeated.
+      schema: {type: string, minLength: 1, maxLength: 200}
   requestBodies:
     ActionRequest:
       required: false
@@ -240,6 +257,10 @@ components:
       description: Action events.
       headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
       content: {application/json: {schema: {type: object, required: [actions], properties: {actions: {type: array, items: {$ref: '#/components/schemas/ActionEvent'}}}}}}
+    ActionRecordsResponse:
+      description: Durable governed action attempts.
+      headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+      content: {application/json: {schema: {type: object, required: [actions], properties: {actions: {type: array, items: {$ref: '#/components/schemas/Action'}}}}}}
     JobsResponse:
       description: Durable action jobs.
       headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
@@ -306,10 +327,13 @@ components:
       type: object
       required: [id, resource_id, plugin_id, algorithm_id, action_type, title, summary, current, proposed, parameters, estimated_savings_monthly, confidence, risk, evidence, policy_id, status, created_at, updated_at]
       properties:
+        schema_version: {type: integer, minimum: 1}
         id: {type: integer, format: int64}
         resource_id: {type: string}
         plugin_id: {type: string}
         algorithm_id: {type: string}
+        algorithm_version: {type: string}
+        recommendation_type: {type: string}
         action_type: {type: string}
         title: {type: string}
         summary: {type: string}
@@ -317,14 +341,28 @@ components:
         proposed: {$ref: '#/components/schemas/JsonObject'}
         parameters: {$ref: '#/components/schemas/JsonObject'}
         estimated_savings_monthly: {type: number}
+        savings_estimate: {$ref: '#/components/schemas/SavingsEstimate'}
         cost_estimate: {$ref: '#/components/schemas/CostEstimate'}
         confidence: {type: string}
         risk: {type: string}
         evidence: {type: array, items: {type: string}}
+        evidence_refs: {type: array, minItems: 1, items: {type: string}}
         policy_id: {type: string}
-        status: {type: string}
+        status: {type: string, description: "Recommendation lifecycle state: pending, planned, approved, executing, verified, rejected, expired, superseded, failed, rolled_back, or manual_intervention."}
+        expires_at: {type: string, format: date-time}
+        superseded_by: {type: integer, format: int64}
+        status_reason: {type: string}
         created_at: {type: string, format: date-time}
         updated_at: {type: string, format: date-time}
+    SavingsEstimate:
+      type: object
+      required: [classification, amount_monthly]
+      properties:
+        classification: {type: string, enum: [estimated, operationally_verified, financially_realized]}
+        amount_monthly: {type: number}
+        currency: {type: string}
+        source: {type: string}
+        calculated_at: {type: string, format: date-time}
     CostEstimate:
       type: object
       required: [plugin_id, resource_id, classification, currency, current_monthly, proposed_monthly, savings_monthly, pricing_source, effective_at, collected_at]
@@ -402,6 +440,7 @@ components:
       required: [id, resource_id, plugin_id, action_type, actor, mode, result, message, parameters, policy_decision, created_at]
       properties:
         id: {type: integer, format: int64}
+        action_id: {type: integer, format: int64}
         recommendation_id: {type: integer, format: int64}
         resource_id: {type: string}
         plugin_id: {type: string}
@@ -415,6 +454,57 @@ components:
         policy_decision: {$ref: '#/components/schemas/PolicyDecision'}
         verification_result: {$ref: '#/components/schemas/VerificationResult'}
         created_at: {type: string, format: date-time}
+    Action:
+      type: object
+      required: [schema_version, id, recommendation_id, resource_id, remediation_path, plugin_id, action_type, mode, idempotency_key, requested_by, policy_decision, status, parameters, requested_at, updated_at]
+      properties:
+        schema_version: {type: integer, minimum: 1}
+        id: {type: integer, format: int64}
+        recommendation_id: {type: integer, format: int64}
+        resource_id: {type: string}
+        remediation_path: {type: string}
+        plugin_id: {type: string}
+        plugin_version: {type: string}
+        action_type: {type: string}
+        mode: {type: string, enum: [dry_run, approved]}
+        idempotency_key: {type: string}
+        requested_by: {type: string}
+        approved_by: {type: string}
+        policy_decision: {$ref: '#/components/schemas/PolicyDecision'}
+        status: {type: string, enum: [requested, planning, planned, approved, executing, verifying, succeeded, failed, rollback_pending, rolling_back, rolled_back, manual_intervention, cancelled]}
+        parameters: {$ref: '#/components/schemas/JsonObject'}
+        plan_result: {$ref: '#/components/schemas/PlanResult'}
+        execution_result: {$ref: '#/components/schemas/ExecutionResult'}
+        failure_code: {type: string}
+        failure_message: {type: string}
+        requested_at: {type: string, format: date-time}
+        approved_at: {type: string, format: date-time}
+        started_at: {type: string, format: date-time}
+        finished_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    PlanResult:
+      type: object
+      required: [plan, created_at]
+      properties:
+        plan: {$ref: '#/components/schemas/ActionPlan'}
+        created_at: {type: string, format: date-time}
+    ExecutionResult:
+      type: object
+      required: [result]
+      properties:
+        result: {$ref: '#/components/schemas/ActionResult'}
+        started_at: {type: string, format: date-time}
+        finished_at: {type: string, format: date-time}
+    ActionResult:
+      type: object
+      required: [plugin_id, resource_id, action_type, applied, message, evidence]
+      properties:
+        plugin_id: {type: string}
+        resource_id: {type: string}
+        action_type: {type: string}
+        applied: {type: boolean}
+        message: {type: string}
+        evidence: {$ref: '#/components/schemas/JsonObject'}
     VerificationCheck:
       type: object
       required: [signal, statistic, mode, threshold]
@@ -465,6 +555,8 @@ components:
       required: [id, resource, plan, baseline, verification, policy, actor, state, attempts, next_run, window_start, deadline, updated_at]
       properties:
         id: {type: integer, format: int64}
+        action_id: {type: integer, format: int64}
+        recommendation_id: {type: integer, format: int64}
         resource: {$ref: '#/components/schemas/Resource'}
         plan: {$ref: '#/components/schemas/ActionPlan'}
         baseline: {$ref: '#/components/schemas/MetricsSnapshot'}
@@ -478,6 +570,7 @@ components:
         deadline: {type: string, format: date-time}
         last_error: {type: string}
         verification_result: {$ref: '#/components/schemas/VerificationResult'}
+        plugin_result: {$ref: '#/components/schemas/ActionResult'}
         updated_at: {type: string, format: date-time}
     Stats:
       type: object
@@ -509,6 +602,7 @@ components:
         recommendations: {type: array, items: {$ref: '#/components/schemas/Recommendation'}}
         plugins: {type: array, items: {$ref: '#/components/schemas/PluginStatus'}}
         actions: {type: array, items: {$ref: '#/components/schemas/ActionEvent'}}
+        action_records: {type: array, items: {$ref: '#/components/schemas/Action'}}
         policy: {$ref: '#/components/schemas/PolicySummary'}
     Health:
       type: object
