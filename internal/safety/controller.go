@@ -63,7 +63,7 @@ func durations(cfg bootstrap.VerificationConfig) (time.Duration, time.Duration, 
 	return wait, isolation, timeout, nil
 }
 
-func (c *Controller) Submit(ctx context.Context, id int64, actor string) (store.Job, error) {
+func (c *Controller) Submit(ctx context.Context, id int64, actor string, idempotencyKey ...string) (store.Job, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if !c.st.Durable() {
@@ -179,7 +179,41 @@ func (c *Controller) Submit(ctx context.Context, id int64, actor string) (store.
 	if _, err := json.Marshal(baseline); err != nil {
 		return store.Job{}, fmt.Errorf("invalid baseline: %w", err)
 	}
-	return c.st.CreateJob(ctx, store.Job{ID: id, Resource: res, Plan: plan, Baseline: baseline, Verification: c.cfg, Policy: decision, Actor: actor, Deadline: c.now().Add(10 * time.Minute)})
+	key := ""
+	if len(idempotencyKey) > 0 {
+		key = idempotencyKey[0]
+	}
+	if key == "" {
+		key = fmt.Sprintf("execute-recommendation-%d", id)
+	}
+	actionRecord, err := c.st.CreateAction(ctx, store.Action{
+		RecommendationID: id,
+		ResourceID:       res.ID,
+		RemediationPath:  "direct_apply",
+		PluginID:         action.ID(),
+		PluginVersion:    action.Manifest().Version,
+		ActionType:       rec.ActionType,
+		Mode:             "approved",
+		IdempotencyKey:   key,
+		RequestedBy:      actor,
+		ApprovedBy:       actor,
+		PolicyDecision:   decision,
+		Parameters:       rec.Parameters,
+		PlanResult:       &store.PlanResult{Plan: plan, CreatedAt: c.now()},
+	})
+	if err != nil {
+		return store.Job{}, err
+	}
+	if actionRecord.Status == store.ActionRequested {
+		actionRecord, err = c.st.TransitionAction(ctx, actionRecord.ID, store.ActionApproved, func(a *store.Action) error {
+			a.ApprovedBy = actor
+			return nil
+		})
+		if err != nil {
+			return store.Job{}, err
+		}
+	}
+	return c.st.CreateJob(ctx, store.Job{ID: id, ActionID: actionRecord.ID, RecommendationID: id, Resource: res, Plan: plan, Baseline: baseline, Verification: c.cfg, Policy: decision, Actor: actor, Deadline: c.now().Add(10 * time.Minute)})
 }
 
 func (c *Controller) Run(ctx context.Context) error {
@@ -387,7 +421,8 @@ func (c *Controller) step(ctx context.Context, job store.Job) error {
 			if err = plugin.RequirePreflight(checks); err != nil {
 				return c.save(ctx, job, "cancelled", err.Error()+"; no mutation performed")
 			}
-			if _, err := action.Execute(ctx, job.Plan); err != nil {
+			result, err := action.Execute(ctx, job.Plan)
+			if err != nil {
 				var blocked *plugin.PreflightError
 				if errors.As(err, &blocked) {
 					job.Plan.Preflight = blocked.Checks
@@ -398,6 +433,7 @@ func (c *Controller) step(ctx context.Context, job store.Job) error {
 				}
 				return c.retry(ctx, job, err)
 			}
+			job.PluginResult = &result
 		}
 		observed, err := recovery.Inspect(ctx, job.Plan)
 		if err != nil {
@@ -479,9 +515,11 @@ func (c *Controller) step(ctx context.Context, job store.Job) error {
 		return c.save(ctx, job, "rolling_back", "Rollback intent persisted before restoration")
 	case "rolling_back":
 		if state == plugin.StateApplied {
-			if _, err := recovery.Rollback(ctx, job.Plan); err != nil {
+			result, err := recovery.Rollback(ctx, job.Plan)
+			if err != nil {
 				return c.retry(ctx, job, err)
 			}
+			job.PluginResult = &result
 		}
 		observed, err := recovery.Inspect(ctx, job.Plan)
 		if err != nil {

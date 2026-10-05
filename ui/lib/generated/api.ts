@@ -128,6 +128,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/action-records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List durable actions
+         * @description Lists governed action attempts separately from append-only audit events.
+         */
+        get: operations["listActionRecords"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/jobs": {
         parameters: {
             query?: never;
@@ -311,11 +331,14 @@ export interface components {
             updated_at: string;
         };
         Recommendation: {
+            schema_version?: number;
             /** Format: int64 */
             id: number;
             resource_id: string;
             plugin_id: string;
             algorithm_id: string;
+            algorithm_version?: string;
+            recommendation_type?: string;
             action_type: string;
             title: string;
             summary: string;
@@ -323,16 +346,33 @@ export interface components {
             proposed: components["schemas"]["JsonObject"];
             parameters: components["schemas"]["JsonObject"];
             estimated_savings_monthly: number;
+            savings_estimate?: components["schemas"]["SavingsEstimate"];
             cost_estimate?: components["schemas"]["CostEstimate"];
             confidence: string;
             risk: string;
             evidence: string[];
+            evidence_refs?: string[];
             policy_id: string;
+            /** @description Recommendation lifecycle state: pending, planned, approved, executing, verified, rejected, expired, superseded, failed, rolled_back, or manual_intervention. */
             status: string;
+            /** Format: date-time */
+            expires_at?: string;
+            /** Format: int64 */
+            superseded_by?: number;
+            status_reason?: string;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
             updated_at: string;
+        };
+        SavingsEstimate: {
+            /** @enum {string} */
+            classification: "estimated" | "operationally_verified" | "financially_realized";
+            amount_monthly: number;
+            currency?: string;
+            source?: string;
+            /** Format: date-time */
+            calculated_at?: string;
         };
         CostEstimate: {
             plugin_id: string;
@@ -399,6 +439,8 @@ export interface components {
             /** Format: int64 */
             id: number;
             /** Format: int64 */
+            action_id?: number;
+            /** Format: int64 */
             recommendation_id?: number;
             resource_id: string;
             plugin_id: string;
@@ -413,6 +455,61 @@ export interface components {
             verification_result?: components["schemas"]["VerificationResult"];
             /** Format: date-time */
             created_at: string;
+        };
+        Action: {
+            schema_version: number;
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            recommendation_id: number;
+            resource_id: string;
+            remediation_path: string;
+            plugin_id: string;
+            plugin_version?: string;
+            action_type: string;
+            /** @enum {string} */
+            mode: "dry_run" | "approved";
+            idempotency_key: string;
+            requested_by: string;
+            approved_by?: string;
+            policy_decision: components["schemas"]["PolicyDecision"];
+            /** @enum {string} */
+            status: "requested" | "planning" | "planned" | "approved" | "executing" | "verifying" | "succeeded" | "failed" | "rollback_pending" | "rolling_back" | "rolled_back" | "manual_intervention" | "cancelled";
+            parameters: components["schemas"]["JsonObject"];
+            plan_result?: components["schemas"]["PlanResult"];
+            execution_result?: components["schemas"]["ExecutionResult"];
+            failure_code?: string;
+            failure_message?: string;
+            /** Format: date-time */
+            requested_at: string;
+            /** Format: date-time */
+            approved_at?: string;
+            /** Format: date-time */
+            started_at?: string;
+            /** Format: date-time */
+            finished_at?: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        PlanResult: {
+            plan: components["schemas"]["ActionPlan"];
+            /** Format: date-time */
+            created_at: string;
+        };
+        ExecutionResult: {
+            result: components["schemas"]["ActionResult"];
+            /** Format: date-time */
+            started_at?: string;
+            /** Format: date-time */
+            finished_at?: string;
+        };
+        ActionResult: {
+            plugin_id: string;
+            resource_id: string;
+            action_type: string;
+            applied: boolean;
+            message: string;
+            evidence: components["schemas"]["JsonObject"];
         };
         VerificationCheck: {
             signal: string;
@@ -458,6 +555,10 @@ export interface components {
         Job: {
             /** Format: int64 */
             id: number;
+            /** Format: int64 */
+            action_id?: number;
+            /** Format: int64 */
+            recommendation_id?: number;
             resource: components["schemas"]["Resource"];
             plan: components["schemas"]["ActionPlan"];
             baseline: components["schemas"]["MetricsSnapshot"];
@@ -474,6 +575,7 @@ export interface components {
             deadline: string;
             last_error?: string;
             verification_result?: components["schemas"]["VerificationResult"];
+            plugin_result?: components["schemas"]["ActionResult"];
             /** Format: date-time */
             updated_at: string;
         };
@@ -500,6 +602,7 @@ export interface components {
             recommendations: components["schemas"]["Recommendation"][];
             plugins: components["schemas"]["PluginStatus"][];
             actions: components["schemas"]["ActionEvent"][];
+            action_records?: components["schemas"]["Action"][];
             policy: components["schemas"]["PolicySummary"];
         };
         Health: {
@@ -584,6 +687,18 @@ export interface components {
                 };
             };
         };
+        /** @description Durable governed action attempts. */
+        ActionRecordsResponse: {
+            headers: {
+                "X-Request-ID": components["headers"]["RequestId"];
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    actions: components["schemas"]["Action"][];
+                };
+            };
+        };
         /** @description Durable action jobs. */
         JobsResponse: {
             headers: {
@@ -612,6 +727,8 @@ export interface components {
     parameters: {
         /** @description Numeric recommendation identifier. */
         RecommendationId: number;
+        /** @description Stable caller key used to return the original action when a request is repeated. */
+        IdempotencyKey: string;
     };
     requestBodies: {
         /** @description Explicit action mode; execute and recovery require approved. */
@@ -757,6 +874,21 @@ export interface operations {
             500: components["responses"]["ErrorResponse"];
         };
     };
+    listActionRecords: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["ActionRecordsResponse"];
+            401: components["responses"]["ErrorResponse"];
+            403: components["responses"]["ErrorResponse"];
+            500: components["responses"]["ErrorResponse"];
+        };
+    };
     listJobs: {
         parameters: {
             query?: never;
@@ -807,7 +939,10 @@ export interface operations {
     planRecommendation: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Stable caller key used to return the original action when a request is repeated. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 /** @description Numeric recommendation identifier. */
                 recommendation_id: components["parameters"]["RecommendationId"];
@@ -835,7 +970,10 @@ export interface operations {
     executeRecommendation: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Stable caller key used to return the original action when a request is repeated. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 /** @description Numeric recommendation identifier. */
                 recommendation_id: components["parameters"]["RecommendationId"];

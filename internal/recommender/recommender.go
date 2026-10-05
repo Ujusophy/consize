@@ -120,10 +120,11 @@ func (r *HeadroomRecommender) RecommendOne(_ context.Context, res resource.Resou
 				"reduction_ratio":     reductionRatio,
 			},
 		},
-		Confidence: confidence.Label,
-		Risk:       riskFor(res, reductionRatio),
-		Evidence:   append(evidenceLines(r, snapshot, observed, currentReq, proposedReq, reductionRatio), confidence.Reasons...),
-		Status:     store.RecommendationPending,
+		Confidence:   confidence.Label,
+		Risk:         riskFor(res, reductionRatio),
+		Evidence:     append(evidenceLines(r, snapshot, observed, currentReq, proposedReq, reductionRatio), confidence.Reasons...),
+		EvidenceRefs: []string{fmt.Sprintf("metrics:%s:%s:%d", snapshot.PluginID, snapshot.ResourceID, snapshot.CollectedAt.UnixNano())},
+		Status:       store.RecommendationPending,
 	}, nil
 }
 

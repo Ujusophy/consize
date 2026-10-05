@@ -14,21 +14,24 @@ import (
 )
 
 type Job struct {
-	Result       *verification.Result         `json:"verification_result,omitempty"`
-	ID           int64                        `json:"id"`
-	Resource     resource.Resource            `json:"resource"`
-	Plan         plugin.ActionPlan            `json:"plan"`
-	Baseline     plugin.MetricsSnapshot       `json:"baseline"`
-	Verification bootstrap.VerificationConfig `json:"verification"`
-	Policy       policy.Decision              `json:"policy"`
-	Actor        string                       `json:"actor"`
-	State        string                       `json:"state"`
-	Attempts     int                          `json:"attempts"`
-	NextRun      time.Time                    `json:"next_run"`
-	WindowStart  time.Time                    `json:"window_start"`
-	Deadline     time.Time                    `json:"deadline"`
-	LastError    string                       `json:"last_error,omitempty"`
-	UpdatedAt    time.Time                    `json:"updated_at"`
+	Result           *verification.Result         `json:"verification_result,omitempty"`
+	PluginResult     *plugin.ActionResult         `json:"plugin_result,omitempty"`
+	ID               int64                        `json:"id"`
+	ActionID         int64                        `json:"action_id"`
+	RecommendationID int64                        `json:"recommendation_id"`
+	Resource         resource.Resource            `json:"resource"`
+	Plan             plugin.ActionPlan            `json:"plan"`
+	Baseline         plugin.MetricsSnapshot       `json:"baseline"`
+	Verification     bootstrap.VerificationConfig `json:"verification"`
+	Policy           policy.Decision              `json:"policy"`
+	Actor            string                       `json:"actor"`
+	State            string                       `json:"state"`
+	Attempts         int                          `json:"attempts"`
+	NextRun          time.Time                    `json:"next_run"`
+	WindowStart      time.Time                    `json:"window_start"`
+	Deadline         time.Time                    `json:"deadline"`
+	LastError        string                       `json:"last_error,omitempty"`
+	UpdatedAt        time.Time                    `json:"updated_at"`
 }
 
 func Terminal(state string) bool {
@@ -52,7 +55,10 @@ func (m *Memory) CreateJob(_ context.Context, job Job) (Job, error) {
 	if existing, ok := m.jobs[job.ID]; ok {
 		return clone(existing), nil
 	}
-	rec, ok := m.recs[job.ID]
+	if job.RecommendationID == 0 {
+		job.RecommendationID = job.ID
+	}
+	rec, ok := m.recs[job.RecommendationID]
 	if !ok {
 		return Job{}, ErrNotFound
 	}
@@ -88,15 +94,36 @@ func (m *Memory) SaveJob(_ context.Context, job Job, message string) error {
 }
 
 func (m *Memory) jobEventLocked(job Job, message string) {
-	event := ActionEvent{ID: m.nextActionID, RecommendationID: job.ID, ResourceID: job.Resource.ID, PluginID: job.Plan.PluginID, Actor: job.Actor, Mode: "approved", Result: job.State, Message: message, PolicyDecision: job.Policy, CreatedAt: m.now().UTC(), Plan: &job.Plan}
+	event := ActionEvent{ID: m.nextEventID, ActionID: job.ActionID, RecommendationID: job.RecommendationID, ResourceID: job.Resource.ID, PluginID: job.Plan.PluginID, Actor: job.Actor, Mode: "approved", Result: job.State, Message: message, PolicyDecision: job.Policy, CreatedAt: m.now().UTC(), Plan: &job.Plan}
 	event.VerificationResult = job.Result
 	m.actions[event.ID] = clone(event)
-	m.nextActionID++
-	rec := m.recs[job.ID]
-	rec.Status = job.State
+	m.nextEventID++
+	rec := m.recs[job.RecommendationID]
+	if next := recommendationStatusForJob(job.State); next != "" && ValidRecommendationTransition(rec.Status, next) {
+		rec.Status = next
+	}
 	rec.PolicyID = job.Policy.PolicyID
 	rec.UpdatedAt = m.now().UTC()
-	m.recs[job.ID] = rec
+	m.recs[job.RecommendationID] = rec
+	if action, ok := m.actionRecords[job.ActionID]; ok {
+		if next := actionStatusForJob(job.State); next != "" && ValidActionTransition(action.Status, next) {
+			action.Status = next
+			action.UpdatedAt = m.now().UTC()
+			if next == ActionExecuting && action.StartedAt.IsZero() {
+				action.StartedAt = action.UpdatedAt
+			}
+			if ActionTerminal(next) {
+				action.FinishedAt = action.UpdatedAt
+			}
+			if next == ActionFailed || next == ActionManualIntervention {
+				action.FailureMessage = message
+			}
+			if job.PluginResult != nil {
+				action.ExecutionResult = &ExecutionResult{Result: clone(*job.PluginResult), StartedAt: action.StartedAt, FinishedAt: action.FinishedAt}
+			}
+			m.actionRecords[action.ID] = action
+		}
+	}
 	if job.State == "waiting_rollout" || job.State == "verified" || job.State == "rollback_verifying" || job.State == "rolled_back" {
 		res := m.resources[job.Resource.ID]
 		if job.State == "rolled_back" || job.State == "rollback_verifying" {
@@ -105,6 +132,50 @@ func (m *Memory) jobEventLocked(job Job, message string) {
 			res.CurrentState = clone(job.Plan.AppliedState)
 		}
 		m.resources[res.ID] = res
+	}
+}
+
+func recommendationStatusForJob(state string) RecommendationStatus {
+	switch state {
+	case "prepared":
+		return RecommendationApproved
+	case "applying", "waiting_rollout", "verifying", "rollback_pending", "rolling_back", "rollback_verifying":
+		return RecommendationExecuting
+	case "verified":
+		return RecommendationVerified
+	case "rolled_back":
+		return RecommendationRolledBack
+	case "manual_intervention":
+		return RecommendationManualIntervention
+	case "cancelled":
+		return RecommendationRejected
+	default:
+		return ""
+	}
+}
+
+func actionStatusForJob(state string) ActionStatus {
+	switch state {
+	case "prepared":
+		return ActionApproved
+	case "applying", "waiting_rollout":
+		return ActionExecuting
+	case "verifying":
+		return ActionVerifying
+	case "rollback_pending":
+		return ActionRollbackPending
+	case "rolling_back", "rollback_verifying":
+		return ActionRollingBack
+	case "verified":
+		return ActionSucceeded
+	case "rolled_back":
+		return ActionRolledBack
+	case "manual_intervention":
+		return ActionManualIntervention
+	case "cancelled":
+		return ActionCancelled
+	default:
+		return ""
 	}
 }
 
