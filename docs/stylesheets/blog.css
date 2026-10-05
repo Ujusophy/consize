@@ -218,6 +218,40 @@
   transition: background-size 0.35s cubic-bezier(0.2, 0, 0, 1);
 }
 
+/* Cover image: if a post puts an image before <!-- more -->, use it as the thumbnail */
+.md-post--excerpt:has(.md-post__content img)::before {
+  display: none;                      /* drop the logo tile */
+}
+
+.md-post--excerpt .md-post__content {
+  display: contents;                  /* lets the image and title sit in the card grid directly */
+}
+
+.md-post--excerpt .md-post__content > h2 {
+  grid-row: 2;
+  padding: 0.95rem 0.3rem 0.5rem;     /* moved from the old .md-post__content rule */
+}
+
+.md-post--excerpt .md-post__content > p:has(img) {
+  display: block;
+  grid-row: 1;
+  margin: 0;
+}
+
+.md-post--excerpt .md-post__content > p:has(img) img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;                  /* crops to fit, no stretching */
+  border-radius: 9px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blog-ink) 5%, transparent);
+  transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.md-post--excerpt:hover .md-post__content > p:has(img) img {
+  transform: scale(1.02);
+}
+
 .md-content__inner:has(> .md-post--excerpt) > .md-post--excerpt:hover::before {
   background-size: 19%, auto;
 }

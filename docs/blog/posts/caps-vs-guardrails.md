@@ -15,8 +15,9 @@ description: >
 # Caps vs Guardrails: How to Control Engineering Spend Without Killing Velocity
 
 ![The caps vs guardrails header](../../assets/blog/caps-vs-guardrails.png)
+
 Token bill is the newest version of an old fight between finance and
-engineering. 
+engineering.
 
 <!-- more -->
 

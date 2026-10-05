@@ -1189,7 +1189,7 @@ html {
 
 .md-nav--primary .md-nav__item .md-nav__item .md-nav__link {
   font-size: 0.76rem;
-  padding: 0.4rem 0.7rem;
+  padding: 0.55rem 0.7rem;
   margin: 1px 0;
   color: var(--md-default-fg-color--light);
 }
@@ -1936,6 +1936,9 @@ body:has(.consize-hero) .md-footer {
   .md-search__form:hover {
     border-color: var(--md-default-fg-color--light);
   }
+  
+  .md-sidebar--primary   { position: sticky; top: 0; height: 100vh; }
+  .md-sidebar--secondary { position: sticky; top: 0; height: 100vh; }
 
   /* keep the accent focus ring from section 1c (must come after :hover) */
   .md-search__form:focus-within,
@@ -1943,6 +1946,8 @@ body:has(.consize-hero) .md-footer {
     border-color: var(--md-accent-fg-color);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-accent-fg-color) 18%, transparent);
   }
+  .md-sidebar--primary   { position: sticky; top: 0; height: 100vh; }
+  .md-sidebar--secondary { position: sticky; top: 0; height: 100vh; }
 }
 
 /* --- 25. Slack icon in the header (full-colour logo) ---
@@ -1965,4 +1970,39 @@ body:has(.consize-hero) .md-footer {
 .consize-header-slack:hover {
   opacity: 1;
   transform: scale(1.08);
+}
+
+/* Keep the header title fixed; never swap to the page title */
+.md-header__title--active .md-header__topic:first-child {
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  z-index: auto !important;
+}
+.md-header__title .md-header__topic + .md-header__topic {
+  display: none !important;
+}
+
+/* --- 26. Sidebar position ---------------------------------------------- */
+
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary {
+    padding-top: 0rem;
+    width: 15rem;                  
+  }
+  .md-sidebar--primary .md-sidebar__scrollwrap {
+    margin-top: -1.5rem;             
+  }
+
+  .md-nav--primary > .md-nav__list > .md-nav__item:first-child > .md-nav__link {
+    margin-top: 1.4rem;                
+  }
+
+  .md-sidebar--primary .md-sidebar__scrollwrap {
+    margin-left: -0.6rem;          
+  }
+
+  .md-sidebar--primary .md-nav--primary {
+    padding-right: 0.5rem;             
+  }
 }

@@ -7,7 +7,7 @@ hide:
 
 # The Consize Blog
 
-Engineering write-ups, product updates, and honest takes on making Kubernetes cost optimization safe enough to actually turn on.
+Engineering write-ups, product updates, and honest takes on making cost optimization safe enough to actually turn on.
 
 [Try the sandbox](../getting-started/sandbox.md){ .md-button .md-button--primary }
 [Documentation](../getting-started/get-started.md){ .md-button }
