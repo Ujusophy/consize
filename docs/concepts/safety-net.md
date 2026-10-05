@@ -23,7 +23,7 @@ Stop       Apply
              ↓
          Verify
              ↓
-       Continue or stop
+Healthy → continue | Breach → roll back
 ```
 
 ## Guardrails
@@ -91,15 +91,13 @@ This allows teams to increase automation without giving the system unrestricted 
 
 ## Apply stepping
 
-Consize can use controlled changes rather than making large changes all at once.
-
-A proposed optimization can be evaluated and applied within configured boundaries.
+Consize never applies a large change in one go. If a step would exceed 30% of the current allocation, it is split into smaller sub-steps (see the decision matrix above), and each increment is verified before the next one proceeds.
 
 The goal is to reduce the chance that an aggressive optimization causes an unexpected production impact.
 
 ## Verification
 
-After a change is applied, Consize checks the resulting state.
+After every change, Consize monitors SLIs such as OOM kills and CPU throttling. If a threshold is breached, it triggers an automatic rollback that restores the previous state byte-for-byte.
 
 The workflow becomes:
 
@@ -114,7 +112,7 @@ Apply
    ↓
 Verify
    ↓
-Continue or stop
+Healthy → continue | Breach → roll back
 ```
 
 Verification creates a feedback loop instead of treating optimization as a one-time action.

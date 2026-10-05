@@ -1,5 +1,5 @@
 ---
-date: 2026-10-07
+date: 2026-10-06
 categories:
   - Announcements
 authors:
@@ -53,8 +53,7 @@ and limits to the higher of 2× the request or p99.
 
 We chose that on purpose. Infrastructure changes are consequential, and an
 engineer who's about to approve one should be able to audit exactly why the
-number is what it is. A recommendation you can reproduce on a napkin is one you
-can trust at 2am. The analysis engine is also built as pure functions over stored
+number is what it is. The analysis engine is also built as pure functions over stored
 telemetry, with no I/O inside, so it's straightforward to unit-test.
 
 A small rule matters more than it first appears: **Consize withholds
