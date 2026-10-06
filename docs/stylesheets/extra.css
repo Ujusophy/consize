@@ -632,7 +632,11 @@ html {
 
 .md-header__button.md-logo {
   padding: 0.3rem;
-  margin-right: 0.2rem;
+  margin-right: 0rem;
+}
+
+.md-header__inner .md-header__title {
+  margin-left: 0.15rem;
 }
 
 .md-header__button.md-logo img,
@@ -1743,3 +1747,28 @@ body:has(.consize-hero) .md-footer {
 }
 
 .md-typeset .consize-hero__actions .md-button { border-radius: 8px; }
+
+/* Hide Material's "Copied" popup and hover tooltip */
+.md-dialog,
+[data-md-component="dialog"],
+.md-tooltip2 {
+  display: none !important;
+}
+
+/* Copied state: swap the icon for a "Copied!" label */
+.consize-copied {
+  opacity: 1 !important;
+  width: auto !important;
+  padding: 0 0.5rem !important;
+  color: var(--md-accent-fg-color) !important;
+}
+.consize-copied::before,
+.consize-copied::after {
+  display: none !important;
+}
+.consize-copied__label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  white-space: nowrap;
+}

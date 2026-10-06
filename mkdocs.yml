@@ -17,17 +17,17 @@ theme:
   icon:
     repo: fontawesome/brands/github
   palette:
-    - scheme: default          # light, this is now the default
+    - scheme: default        
       primary: teal
       accent: green
       toggle:
-        icon: material/brightness-7
+        icon: material/weather-night
         name: Switch to dark mode
-    - scheme: slate            # dark
+    - scheme: slate      
       primary: teal
       accent: green
       toggle:
-        icon: material/brightness-4
+        icon: material/weather-sunny
         name: Switch to light mode
   features:
     - navigation.tabs
@@ -58,6 +58,9 @@ plugins:
         - Guides
         - Comparisons
         - FinOps
+        - Security
+        - Community
+        - Product
       archive: true
       archive_date_format: yyyy
       authors: true
