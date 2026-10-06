@@ -2027,7 +2027,7 @@ body:has(.consize-hero) .md-footer {
   text-align: left;
   padding: 2.5rem 0 1rem;
 }
-.md-typeset .consize-hero--split h1 { max-width: none; margin: 0 0 0.5em; font-size: clamp(2rem, 4vw, 2.9rem); }
+.md-typeset .consize-hero--split h1 { max-width: none; margin: 0 0 0.5em; font-size: clamp(1.8rem, 3.5vw, 2.5rem); }
 .consize-hero--split .consize-hero__text > p { margin: 0; font-size: 0.85rem; color: var(--md-default-fg-color--light); }
 .consize-hero--split .consize-hero__actions { justify-content: flex-start; margin: 1.5rem 0 0; }
 .consize-hero--split .consize-hero__cmd { max-width: none; margin: 0; }
