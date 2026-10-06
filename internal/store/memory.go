@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"sort"
 	"sync"
 	"time"
@@ -15,28 +16,32 @@ import (
 var ErrNotFound = errors.New("not found")
 
 type Memory struct {
-	path         string
-	lockFile     *os.File
-	poison       error
-	jobs         map[int64]Job
-	mu           sync.RWMutex
-	now          func() time.Time
-	resources    map[string]resource.Resource
-	recs         map[int64]Recommendation
-	actions      map[int64]ActionEvent
-	nextActionID int64
-	nextRecID    int64
+	path          string
+	lockFile      *os.File
+	poison        error
+	jobs          map[int64]Job
+	mu            sync.RWMutex
+	now           func() time.Time
+	resources     map[string]resource.Resource
+	recs          map[int64]Recommendation
+	actionRecords map[int64]Action
+	actions       map[int64]ActionEvent
+	nextActionID  int64
+	nextEventID   int64
+	nextRecID     int64
 }
 
 func NewMemory() *Memory {
 	return &Memory{
-		jobs:         map[int64]Job{},
-		now:          time.Now,
-		resources:    map[string]resource.Resource{},
-		recs:         map[int64]Recommendation{},
-		actions:      map[int64]ActionEvent{},
-		nextActionID: 1,
-		nextRecID:    1,
+		jobs:          map[int64]Job{},
+		now:           time.Now,
+		resources:     map[string]resource.Resource{},
+		recs:          map[int64]Recommendation{},
+		actionRecords: map[int64]Action{},
+		actions:       map[int64]ActionEvent{},
+		nextActionID:  1,
+		nextEventID:   1,
+		nextRecID:     1,
 	}
 }
 
@@ -107,14 +112,27 @@ func (m *Memory) ListResources(context.Context) ([]resource.Resource, error) {
 }
 
 func (m *Memory) CreateRecommendation(_ context.Context, rec Recommendation) (Recommendation, error) {
-	if rec.ResourceID == "" || rec.PluginID == "" || rec.ActionType == "" {
-		return Recommendation{}, errors.New("resource_id, plugin_id, and action_type are required")
+	if rec.ResourceID == "" || rec.PluginID == "" || rec.ActionType == "" || rec.AlgorithmID == "" || len(rec.EvidenceRefs) == 0 {
+		return Recommendation{}, errors.New("resource_id, plugin_id, action_type, algorithm_id, and evidence_refs are required")
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if _, ok := m.resources[rec.ResourceID]; !ok {
+		return Recommendation{}, errors.New("recommendation resource does not exist")
+	}
 	now := m.now().UTC()
+	if !rec.ExpiresAt.IsZero() && !rec.ExpiresAt.After(now) {
+		return Recommendation{}, errors.New("recommendation expiry must be in the future")
+	}
 	rec.ID = m.nextRecID
 	m.nextRecID++
+	rec.SchemaVersion = ContractVersion
+	if rec.AlgorithmVersion == "" {
+		rec.AlgorithmVersion = "1"
+	}
+	if rec.RecommendationType == "" {
+		rec.RecommendationType = rec.ActionType
+	}
 	if rec.Current == nil {
 		rec.Current = map[string]any{}
 	}
@@ -126,6 +144,12 @@ func (m *Memory) CreateRecommendation(_ context.Context, rec Recommendation) (Re
 	}
 	if rec.Status == "" {
 		rec.Status = RecommendationPending
+	}
+	if rec.Status != RecommendationPending {
+		return Recommendation{}, errors.New("new recommendation must start pending")
+	}
+	if rec.SavingsEstimate.Classification == "" {
+		rec.SavingsEstimate = SavingsEstimate{Classification: SavingsEstimated, AmountMonthly: rec.EstimatedSavingsMonthly, CalculatedAt: now}
 	}
 	rec.CreatedAt = now
 	rec.UpdatedAt = now
@@ -154,24 +178,150 @@ func (m *Memory) ListRecommendations(context.Context) ([]Recommendation, error) 
 	return clone(out), nil
 }
 
-func (m *Memory) SetRecommendationStatus(_ context.Context, id int64, status string) error {
+func (m *Memory) TransitionRecommendation(_ context.Context, id int64, status RecommendationStatus, reason string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	rec, ok := m.recs[id]
 	if !ok {
 		return ErrNotFound
 	}
+	if !ValidRecommendationTransition(rec.Status, status) {
+		return fmt.Errorf("%w: recommendation %s -> %s", ErrInvalidTransition, rec.Status, status)
+	}
 	rec.Status = status
+	rec.StatusReason = reason
 	rec.UpdatedAt = m.now().UTC()
 	m.recs[id] = rec
 	return m.persistLocked()
 }
 
+func (m *Memory) SupersedeRecommendation(_ context.Context, id, replacementID int64, reason string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	rec, ok := m.recs[id]
+	if !ok {
+		return ErrNotFound
+	}
+	replacement, ok := m.recs[replacementID]
+	if !ok {
+		return errors.New("replacement recommendation does not exist")
+	}
+	if rec.ResourceID != replacement.ResourceID || id == replacementID {
+		return errors.New("replacement must be a different recommendation for the same resource")
+	}
+	if !ValidRecommendationTransition(rec.Status, RecommendationSuperseded) {
+		return fmt.Errorf("%w: recommendation %s -> %s", ErrInvalidTransition, rec.Status, RecommendationSuperseded)
+	}
+	rec.Status = RecommendationSuperseded
+	rec.SupersededBy = replacementID
+	rec.StatusReason = reason
+	rec.UpdatedAt = m.now().UTC()
+	m.recs[id] = rec
+	return m.persistLocked()
+}
+
+func (m *Memory) CreateAction(_ context.Context, action Action) (Action, error) {
+	if err := action.Validate(); err != nil {
+		return Action{}, err
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	rec, ok := m.recs[action.RecommendationID]
+	if !ok {
+		return Action{}, ErrNotFound
+	}
+	now := m.now().UTC()
+	if rec.Status == RecommendationExpired || rec.Status == RecommendationSuperseded || (!rec.ExpiresAt.IsZero() && !rec.ExpiresAt.After(now)) {
+		return Action{}, ErrRecommendationGone
+	}
+	if rec.ResourceID != action.ResourceID || rec.PluginID != action.PluginID || rec.ActionType != action.ActionType {
+		return Action{}, errors.New("action does not match its recommendation")
+	}
+	for _, existing := range m.actionRecords {
+		if existing.IdempotencyKey == action.IdempotencyKey {
+			if existing.RecommendationID != action.RecommendationID || existing.ResourceID != action.ResourceID || existing.PluginID != action.PluginID || existing.ActionType != action.ActionType || existing.Mode != action.Mode {
+				return Action{}, errors.New("idempotency key is already bound to a different action request")
+			}
+			return clone(existing), nil
+		}
+	}
+	action.SchemaVersion = ContractVersion
+	action.ID = m.nextActionID
+	m.nextActionID++
+	action.Status = ActionRequested
+	action.RequestedAt = now
+	action.UpdatedAt = now
+	if action.Parameters == nil {
+		action.Parameters = map[string]any{}
+	}
+	m.actionRecords[action.ID] = clone(action)
+	return clone(action), m.persistLocked()
+}
+
+func (m *Memory) GetAction(_ context.Context, id int64) (Action, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	action, ok := m.actionRecords[id]
+	if !ok {
+		return Action{}, ErrNotFound
+	}
+	return clone(action), nil
+}
+
+func (m *Memory) ListActions(context.Context) ([]Action, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	out := make([]Action, 0, len(m.actionRecords))
+	for _, action := range m.actionRecords {
+		out = append(out, clone(action))
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out, nil
+}
+
+func (m *Memory) TransitionAction(_ context.Context, id int64, status ActionStatus, mutate func(*Action) error) (Action, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	action, ok := m.actionRecords[id]
+	if !ok {
+		return Action{}, ErrNotFound
+	}
+	if !ValidActionTransition(action.Status, status) {
+		return Action{}, fmt.Errorf("%w: action %s -> %s", ErrInvalidTransition, action.Status, status)
+	}
+	original := clone(action)
+	if mutate != nil {
+		if err := mutate(&action); err != nil {
+			return Action{}, err
+		}
+	}
+	if action.RecommendationID != original.RecommendationID || action.ResourceID != original.ResourceID || action.RemediationPath != original.RemediationPath || action.PluginID != original.PluginID || action.PluginVersion != original.PluginVersion || action.ActionType != original.ActionType || action.Mode != original.Mode || action.IdempotencyKey != original.IdempotencyKey || action.RequestedBy != original.RequestedBy || !reflect.DeepEqual(action.Parameters, original.Parameters) || !reflect.DeepEqual(action.PolicyDecision, original.PolicyDecision) {
+		return Action{}, errors.New("immutable action fields cannot be changed")
+	}
+	now := m.now().UTC()
+	action.Status = status
+	action.UpdatedAt = now
+	if status == ActionApproved {
+		action.ApprovedAt = now
+		if action.ApprovedBy == "" {
+			action.ApprovedBy = action.RequestedBy
+		}
+	}
+	if status == ActionExecuting && action.StartedAt.IsZero() {
+		action.StartedAt = now
+	}
+	if ActionTerminal(status) {
+		action.FinishedAt = now
+	}
+	m.actionRecords[id] = clone(action)
+	return clone(action), m.persistLocked()
+}
+
 func (m *Memory) CreateActionEvent(_ context.Context, event ActionEvent) (ActionEvent, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	event.ID = m.nextActionID
-	m.nextActionID++
+	event.ID = m.nextEventID
+	m.nextEventID++
 	event.CreatedAt = m.now().UTC()
 	if event.Parameters == nil {
 		event.Parameters = map[string]any{}

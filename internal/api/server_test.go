@@ -68,7 +68,7 @@ func apiFixture(t *testing.T) (*Server, *store.Memory, *fake.Clientset) {
 	if _, err := st.UpsertResource(context.Background(), res); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := st.CreateRecommendation(context.Background(), store.Recommendation{ResourceID: "test", PluginID: k8splugin.ID, ActionType: "k8s.patch_resources", Confidence: "medium", Parameters: map[string]any{"patch": k8splugin.PatchDiff{Resource: "memory", CurrentReq: 512 * 1024 * 1024, ProposedReq: 384 * 1024 * 1024, CurrentLimit: 1024 * 1024 * 1024, ProposedLimit: 1024 * 1024 * 1024}}}); err != nil {
+	if _, err := st.CreateRecommendation(context.Background(), store.Recommendation{ResourceID: "test", PluginID: k8splugin.ID, AlgorithmID: "test-algorithm", EvidenceRefs: []string{"metrics:test:baseline"}, ActionType: "k8s.patch_resources", Confidence: "medium", Parameters: map[string]any{"patch": k8splugin.PatchDiff{Resource: "memory", CurrentReq: 512 * 1024 * 1024, ProposedReq: 384 * 1024 * 1024, CurrentLimit: 1024 * 1024 * 1024, ProposedLimit: 1024 * 1024 * 1024}}}); err != nil {
 		t.Fatal(err)
 	}
 	server, err := NewServer(st, plugins, policy.NewEngine(), bootstrap.Config{Verification: bootstrap.VerificationConfig{Enabled: true, MetricsPluginID: "metrics", Wait: "5m", RollbackOnFailure: true, RollbackOnTimeout: true, MaxMemoryP95IncreaseRatio: 1.25, MaxCPUP95IncreaseRatio: 1.5}})

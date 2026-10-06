@@ -17,13 +17,15 @@ type diskState struct {
 	Version         int                          `json:"version"`
 	Resources       map[string]resource.Resource `json:"resources"`
 	Recommendations map[int64]Recommendation     `json:"recommendations"`
+	ActionRecords   map[int64]Action             `json:"action_records"`
 	Actions         map[int64]ActionEvent        `json:"actions"`
 	Jobs            map[int64]Job                `json:"jobs"`
 	NextActionID    int64                        `json:"next_action_id"`
+	NextEventID     int64                        `json:"next_event_id"`
 	NextRecID       int64                        `json:"next_recommendation_id"`
 }
 
-const currentStateVersion = 3
+const currentStateVersion = 4
 
 // OpenDurable owns one local state file for its entire lifetime; other processes fail closed.
 func OpenDurable(path string) (*Memory, error) {
@@ -68,7 +70,7 @@ func OpenDurable(path string) (*Memory, error) {
 		m.Close()
 		return nil, err
 	}
-	if state.Resources == nil || state.Recommendations == nil || state.Actions == nil || state.Jobs == nil || state.NextActionID < 1 || state.NextRecID < 1 {
+	if state.Resources == nil || state.Recommendations == nil || state.ActionRecords == nil || state.Actions == nil || state.Jobs == nil || state.NextActionID < 1 || state.NextEventID < 1 || state.NextRecID < 1 {
 		m.Close()
 		return nil, errors.New("invalid state schema")
 	}
@@ -78,9 +80,11 @@ func OpenDurable(path string) (*Memory, error) {
 	}
 	m.resources = state.Resources
 	m.recs = state.Recommendations
+	m.actionRecords = state.ActionRecords
 	m.actions = state.Actions
 	m.jobs = state.Jobs
 	m.nextActionID = state.NextActionID
+	m.nextEventID = state.NextEventID
 	m.nextRecID = state.NextRecID
 	if migrated {
 		if err := m.persistLocked(); err != nil {
@@ -122,6 +126,28 @@ func migrateState(state *diskState) (bool, error) {
 		state.Version = 3
 		migrated = true
 	}
+	if state.Version == 3 {
+		// v4 separates durable actions from append-only action events. Existing
+		// event IDs stay intact; new action IDs begin in their own sequence.
+		state.ActionRecords = map[int64]Action{}
+		state.NextEventID = state.NextActionID
+		state.NextActionID = 1
+		for id, rec := range state.Recommendations {
+			rec.SchemaVersion = ContractVersion
+			if rec.AlgorithmVersion == "" {
+				rec.AlgorithmVersion = "1"
+			}
+			if rec.RecommendationType == "" {
+				rec.RecommendationType = rec.ActionType
+			}
+			if rec.SavingsEstimate.Classification == "" {
+				rec.SavingsEstimate = SavingsEstimate{Classification: SavingsEstimated, AmountMonthly: rec.EstimatedSavingsMonthly, CalculatedAt: rec.CreatedAt}
+			}
+			state.Recommendations[id] = rec
+		}
+		state.Version = 4
+		migrated = true
+	}
 	if state.Version != currentStateVersion {
 		return false, fmt.Errorf("unsupported state schema version %d", state.Version)
 	}
@@ -160,7 +186,7 @@ func validateState(state diskState) error {
 		}
 	}
 	for id, event := range state.Actions {
-		if id < 1 || event.ID != id || id >= state.NextActionID {
+		if id < 1 || event.ID != id || id >= state.NextEventID {
 			return errors.New("invalid action sequence in durable state")
 		}
 		if event.RecommendationID > 0 {
@@ -168,11 +194,39 @@ func validateState(state diskState) error {
 				return errors.New("missing audit recommendation in durable state")
 			}
 		}
+		if event.ActionID > 0 {
+			action, ok := state.ActionRecords[event.ActionID]
+			if !ok || (event.RecommendationID > 0 && action.RecommendationID != event.RecommendationID) {
+				return errors.New("missing or mismatched audit action in durable state")
+			}
+		}
+	}
+	for id, action := range state.ActionRecords {
+		if id < 1 || action.ID != id || id >= state.NextActionID {
+			return errors.New("invalid action sequence in durable state")
+		}
+		rec, ok := state.Recommendations[action.RecommendationID]
+		if !ok || rec.ResourceID != action.ResourceID {
+			return errors.New("invalid action recommendation link in durable state")
+		}
+		if err := action.Validate(); err != nil {
+			return fmt.Errorf("invalid durable action %d: %w", id, err)
+		}
 	}
 	for id, job := range state.Jobs {
-		rec, ok := state.Recommendations[id]
+		recommendationID := job.RecommendationID
+		if recommendationID == 0 {
+			recommendationID = id
+		}
+		rec, ok := state.Recommendations[recommendationID]
 		if !ok || job.ID != id || job.Resource.ID != rec.ResourceID || job.Plan.ResourceID != rec.ResourceID || job.Plan.PluginID != rec.PluginID || job.Actor == "" {
 			return errors.New("invalid safety job identity in durable state")
+		}
+		if job.ActionID > 0 {
+			action, ok := state.ActionRecords[job.ActionID]
+			if !ok || action.RecommendationID != recommendationID {
+				return errors.New("invalid safety job action link in durable state")
+			}
 		}
 		switch job.State {
 		case "prepared", "applying", "waiting_rollout", "verifying", "rollback_pending", "rolling_back", "rollback_verifying", "verified", "rolled_back", "manual_intervention", "cancelled":
@@ -217,8 +271,8 @@ func (m *Memory) persistLocked() (err error) {
 	}()
 	state := diskState{
 		Version: currentStateVersion, Resources: m.resources,
-		Recommendations: m.recs, Actions: m.actions, Jobs: m.jobs,
-		NextActionID: m.nextActionID, NextRecID: m.nextRecID,
+		Recommendations: m.recs, ActionRecords: m.actionRecords, Actions: m.actions, Jobs: m.jobs,
+		NextActionID: m.nextActionID, NextEventID: m.nextEventID, NextRecID: m.nextRecID,
 	}
 	data, err := json.Marshal(state)
 	if err != nil {
