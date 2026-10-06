@@ -64,3 +64,4 @@ document.addEventListener("DOMContentLoaded", function () {
   input.addEventListener("input", sync);
   sync();
 });
+document.querySelector(".md-search__input")?.setAttribute("placeholder", "Search docs");
