@@ -1,19 +1,22 @@
 ---
-title: Overview
+title: Consize Documentation
 hide:
   - toc
 ---
 
-<div class="consize-hero" markdown>
+<div class="consize-hero consize-hero--split" markdown>
 
+<div class="consize-hero__text" markdown>
 
-# <span class="consize-gradient">Welcome to</span> Consize Documentation
+# <span class="consize-gradient">Optimize safely</span> with Consize
 
-Learn how to use consize to analyze your infrastructure, identify optimization opportunities, and apply safer changes with built-in guardrails without turning cost optimization into a production risk.
+Learn how to use consize to analyze, identify and apply safer changes with built-in guardrails without turning cost optimization into a production risk.
 
 <div class="consize-hero__actions" markdown>
 [Get started](getting-started/get-started.md){ .md-button .md-button--primary }
 [Try the Interactive Sandbox](getting-started/sandbox.md){ .md-button }
+</div>
+
 </div>
 
 <div class="consize-hero__cmd" markdown>

@@ -146,6 +146,7 @@ extra_javascript:
   - javascripts/mermaid-init.js
   - javascripts/page-feedback.js
   - javascripts/search-suggestions.js
+  - javascripts/copy-page.js
 
 extra:
   social:
@@ -158,3 +159,4 @@ extra_css:
   - stylesheets/extra.css
   - stylesheets/blog.css
   - stylesheets/blog-post.css
+  
