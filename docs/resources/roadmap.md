@@ -69,7 +69,7 @@ If you want to work on a roadmap item, start by:
 3. Opening or joining a discussion about the proposed change.
 4. Testing the change before submitting a pull request.
 
-See the [Contributing](../contributing/testing.md) documentation for development and testing information.
+See the [Contributing](../resources/testing.md) documentation for development and testing information.
 
 ## Roadmap changes
 

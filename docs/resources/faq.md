@@ -16,7 +16,7 @@ Only CPU/memory `requests` and `limits` on the workload spec, nothing else. Cont
 
 ## Can Consize make a workload bigger, not just smaller?
 
-Not in the current version, v1 only downsizes. If a workload is under-provisioned, Consize won't recommend increasing it. This is a deliberate scope decision, see [Decisions](../contributing/decisions.md) for how significant decisions like this get made and documented.
+Not in the current version, v1 only downsizes. If a workload is under-provisioned, Consize won't recommend increasing it. This is a deliberate scope decision, see [Decisions](../resources/decisions.md) for how significant decisions like this get made and documented.
 
 ## What happens if two recommendations apply to the same workload at once?
 

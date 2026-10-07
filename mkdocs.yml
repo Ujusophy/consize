@@ -1,6 +1,6 @@
 site_name: Consize
 site_url: https://docs.consizehq.com
-site_description: Safe, Automated Action for Kubernetes
+site_description: Safely optimize cloud, AI and SaaS resources with automated policies, guardrails, and built-in rollback.
 site_author: Consize OSS
 repo_url: https://github.com/consize-oss/consize
 repo_name: consize-oss/consize
@@ -88,7 +88,7 @@ plugins:
           - reference/supported-platforms.md
           - reference/api.md
         Resources:
-          - contributing/decisions.md: How and why decisions get documented
+          - resources/decisions.md: How and why decisions get documented
           - resources/faq.md
           - resources/troubleshooting.md
 
