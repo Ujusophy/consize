@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
+{% block extrahead %}
+  <meta name="google-site-verification" content="dSiX4RKwInIHQEeTcq5P-Px8LscqIMDnXrh5cfG_zGY" />
+  {{ super() }}
+{% endblock %}
+
 {% block content %}
   {{ super() }}
   {% include "partials/consize-page-feedback.html" %}
