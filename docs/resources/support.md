@@ -7,9 +7,9 @@ Where to go depends on what you've got.
 | Something's broken and you've checked [Troubleshooting](troubleshooting.md) | [Open a GitHub issue](https://github.com/consize-oss/consize/issues/new) |
 | A "how do I" or "why does X work this way" question, and [FAQ](faq.md) doesn't cover it | [Start a GitHub Discussion](https://github.com/consize-oss/consize/discussions) |
 | A quick question, or you'd like to chat with the team and other Consize users | [Join the Consize Slack](https://consizetownhall.slack.com/) |
-| Proposing a larger change (new provider, safety model change, new component) | [Start a GitHub Discussion](https://github.com/consize-oss/consize/discussions) first, see [Decisions](../contributing/decisions.md) |
+| Proposing a larger change (new provider, safety model change, new component) | [Start a GitHub Discussion](https://github.com/consize-oss/consize/discussions) first, see [Decisions](../resources/decisions.md) |
 | A security vulnerability | See [SECURITY.md](https://github.com/consize-oss/consize/blob/main/SECURITY.md), please don't file these as public issues |
-| You want to contribute a fix or feature | See [Contributing](../contributing/index.md) |
+| You want to contribute a fix or feature | See [Contributing](../resources/contributing.md) |
 
 ## Community
 
@@ -29,5 +29,5 @@ If it's a bug report, please include:
 
 * [Troubleshooting](troubleshooting.md)
 * [FAQ](faq.md)
-* [Contributing](../contributing/index.md)
+* [Contributing](../resources/contributing.md)
 * [Slack community](https://consizetownhall.slack.com/archives/C0C2LRMLTJL)

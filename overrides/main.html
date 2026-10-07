@@ -1,20 +1,41 @@
-{% extends "base.html" %}
-
-{% block extrahead %}
+```html
+{% extends "base.html" %} 
+ 
+{% block extrahead %} 
   <meta name="google-site-verification" content="dSiX4RKwInIHQEeTcq5P-Px8LscqIMDnXrh5cfG_zGY" />
-  {{ super() }}
-{% endblock %}
 
-{% block content %}
-  {{ super() }}
-  {% include "partials/consize-page-feedback.html" %}
-{% endblock %}
+  <meta property="og:title" content="Consize | Kubernetes, Cloud, AI & SaaS Optimization" />
+  <meta property="og:description" content="Safely optimize cloud, AI and SaaS resources with automated policies, guardrails, and built-in rollback." />
+  <meta property="og:url" content="https://docs.consizehq.com/" />
+  <meta property="og:type" content="website" />
 
-{% block footer %}
-  <div class="consize-site-footer">
-    <div class="consize-site-footer__inner">
-      {% include "partials/consize-footer-links.html" %}
-    </div>
-  </div>
-  {{ super() }}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Consize OSS",
+    "url": "https://docs.consizehq.com/",
+    "logo": "https://docs.consizehq.com/assets/logo-mark.png",
+    "sameAs": [
+      "https://github.com/consize-oss/consize"
+    ]
+  }
+  </script>
+
+  {{ super() }}  
+{% endblock %}  
+  
+{% block content %}  
+  {{ super() }}  
+  {% include "partials/consize-page-feedback.html" %}  
+{% endblock %}  
+  
+{% block footer %}  
+  <div class="consize-site-footer">  
+    <div class="consize-site-footer__inner">  
+      {% include "partials/consize-footer-links.html" %}  
+    </div>  
+  </div>  
+  {{ super() }}  
 {% endblock %}
+```
