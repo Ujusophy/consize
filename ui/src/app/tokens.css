@@ -1,9 +1,9 @@
 :root[data-theme="dark"] {
-  --app-bg: #0b0e14;
-  --app-sidebar: #111620;
-  --app-surface: #151c28;
+  --app-bg: #0B1017;
+  --app-sidebar: #101720; 
+  --app-surface: #1B2735;
   --app-surface-alt: #18202e;
-  --app-border: #1e293b;
+  --app-border: #263446;
   --app-border-light: #263345;
 
   --status-low: #10b981;
@@ -18,7 +18,7 @@
 
 
 :root[data-theme="light"] {
-  --app-bg: #f7f9fc;
+  --app-bg: #f7f9fc; 
   --app-sidebar: #ffffff;
   --app-surface: #ffffff;
   --app-surface-alt: #f1f5f9;

@@ -330,7 +330,7 @@ function EvidenceTab({ evidence }: { evidence: EvidenceItem[] }) {
   }
   return (
     <Section title="Evidence">
-      {/* Horizontal scroll is justified here: comparing columns is the point. */}
+      {/* Horizontal scroll */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>

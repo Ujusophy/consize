@@ -1,22 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
+  CheckCircle2,
+  ChevronsUpDown,
+  Database,
+  FileText,
   Grid2x2,
+  Network,
+  Settings,
+  Shield,
   Sparkles,
   Server,
-  Shield,
-  Network,
-  CheckCircle2,
-  FileText,
-  Activity,
-  ChevronsLeft,
-  ChevronsRight,
-  Settings,
-  LogOut,
 } from "lucide-react";
+import { useDashboardSummary } from "@/features/overview/queries";
+import { useScope } from "@/features/scope/useScope";
 
 const NAV_ITEMS = [
   { label: "Overview", href: "/", icon: Grid2x2 },
@@ -24,192 +24,108 @@ const NAV_ITEMS = [
   { label: "Resources", href: "/resources", icon: Server },
   { label: "Policies", href: "/policies", icon: Shield },
   { label: "Plugins", href: "/plugins", icon: Network },
-  { label: "Approvals", href: "/approvals", icon: CheckCircle2, badge: "3" },
+  { label: "Approvals", href: "/approvals", icon: CheckCircle2 },
   { label: "Audit", href: "/audit", icon: FileText },
   { label: "Reports", href: "/reports", icon: Activity },
 ] as const;
 
-const COLLAPSE_KEY = "consize-sidebar-collapsed";
-
 export function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(COLLAPSE_KEY) === "true";
-    setCollapsed(saved);
-    document.documentElement.style.setProperty("--sidebar-width", saved ? "72px" : "240px");
-  }, []);
-
-  function toggleCollapsed() {
-    const next = !collapsed;
-    setCollapsed(next);
-    window.localStorage.setItem(COLLAPSE_KEY, String(next));
-    document.documentElement.style.setProperty("--sidebar-width", next ? "72px" : "240px");
-  }
+  const { carry } = useScope();
+  // Approvals badge = approvals assigned to the signed-in user, from the
+  // same summary the Overview uses (shared cache, no extra request).
+  const { data: summary } = useDashboardSummary({});
+  const mine = summary?.pending_approvals_mine ?? 0;
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[var(--sidebar-width,240px)] bg-app-sidebar border-r border-app-border z-50 flex flex-col justify-between transition-[width] duration-150">
-      <div className="flex flex-col min-h-0">
-        <div className="h-14 px-4 flex items-center justify-between border-b border-app-border shrink-0">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 shrink-0 rounded-lg bg-app-surface border border-app-border flex items-center justify-center text-emerald-400 font-semibold text-sm">
-              C
-            </div>
-            {!collapsed && (
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm text-fg truncate">Consize</span>
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
-                    v0.3
-                  </span>
-                </div>
-                <span className="text-[10px] font-mono tracking-wider text-slate-400 uppercase">
-                  Control Plane
-                </span>
-              </div>
-            )}
+    <aside className="fixed left-0 top-0 h-dvh w-[var(--sidebar-width)] bg-app-sidebar border-r border-app-border z-50 flex flex-col select-none">
+      <div className="h-16 px-4 flex items-center border-b border-app-border shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg overflow-hidden bg-app-surface border border-app-border flex items-center justify-center p-0.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img alt="" className="w-full h-full object-cover rounded-md" src="/consize_dashboard_logo.png" />
           </div>
-          <button
-            onClick={toggleCollapsed}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="shrink-0 w-6 h-6 flex items-center justify-center text-slate-500 hover:text-fg rounded"
-          >
-            {collapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
-          </button>
+          <span className="font-semibold text-base tracking-tight text-fg">Consize</span>
         </div>
-
-        {!collapsed && (
-          <div className="px-4 pt-5 pb-2">
-            {/* <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 font-mono">
-              Operational Queue
-            </div> */}
-          </div>
-        )}
-
-        <nav aria-label="Primary" className={`flex-1 px-3 ${collapsed ? "pt-4" : ""} space-y-1 overflow-y-auto`}>
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            //const isActive = pathname === item.href;
-            const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={isActive ? "page" : undefined}
-                title={collapsed ? item.label : undefined}
-                aria-label={item.label}
-                className={`relative flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
-                  collapsed ? "justify-center" : "justify-between"
-                } ${
-                  isActive
-                    ? "bg-slate-800/80 text-white border-slate-700/60"
-                    : "text-slate-400 hover:text-fg hover:bg-slate-800/40 border-transparent"
-                }`}
-              >
-                <span className="flex items-center gap-3 min-w-0">
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-emerald-400" : "text-slate-400"}`} />
-                  {!collapsed && <span className="truncate">{item.label}</span>}
-                </span>
-                {"badge" in item &&
-                  item.badge &&
-                  (collapsed ? (
-                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-400" />
-                  ) : (
-                    <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                      {item.badge}
-                    </span>
-                  ))}
-              </Link>
-            );
-          })}
-        </nav>
       </div>
 
-      <WorkspaceMenu collapsed={collapsed} />
+      <div className="px-3 pt-4 pb-2 shrink-0">
+        <span className="text-[11px] font-medium text-fg-muted px-2 uppercase tracking-wider">
+          Operational queue
+        </span>
+      </div>
+
+      {/* The nav scrolls on short viewports; the footer below never does. */}
+      <nav aria-label="Primary" className="flex-1 min-h-0 px-3 space-y-1 overflow-y-auto">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={carry(item.href)}
+              aria-current={active ? "page" : undefined}
+              className={`group flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium rounded-btn border-l-2 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500 ${
+                active
+                  ? "bg-ok-bg-strong text-ok-fg border-emerald-400"
+                  : "border-transparent text-fg-secondary hover:text-fg hover:bg-app-surface"
+              }`}
+            >
+              <span className="flex items-center gap-3 min-w-0">
+                <Icon
+                  className={`w-4 h-4 shrink-0 transition-colors ${active ? "text-ok-strong" : "text-fg-muted group-hover:text-fg-secondary"}`}
+                  aria-hidden
+                />
+                <span className="truncate">{item.label}</span>
+              </span>
+              {item.label === "Approvals" && mine > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-warn-bg text-warn-fg border border-warn-line text-xs font-semibold">
+                  <span className="sr-only">{mine} assigned to you: </span>
+                  {mine}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Pinned to the bottom of the viewport. Static placeholders for now;
+          this becomes the workspace switcher / account menu when those
+          features exist, so it deliberately has no interactive affordances. */}
+      <div className="shrink-0 border-t border-app-border bg-app-sidebar p-3 space-y-2">
+        <div className="flex items-center justify-between p-2 bg-app-surface border border-app-border rounded-btn">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-6 h-6 rounded bg-ok-bg border border-ok-line flex items-center justify-center shrink-0">
+              <Database className="w-3.5 h-3.5 text-ok-strong" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] text-fg-muted uppercase tracking-wider leading-none mb-0.5">Workspace</div>
+              <div className="text-xs font-medium text-fg truncate leading-tight">Acme Corp Infra</div>
+            </div>
+          </div>
+          <ChevronsUpDown className="w-3.5 h-3.5 text-fg-muted shrink-0" aria-hidden />
+        </div>
+
+        <div className="flex items-center justify-between px-1 pt-1">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-6 h-6 rounded-full bg-app-surface-alt border border-app-border flex items-center justify-center shrink-0 text-[11px] font-semibold text-fg-secondary">
+              FO
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-medium text-fg truncate leading-tight">FinOps Lead / SRE</div>
+              <div className="text-[10px] text-ok-strong font-medium leading-tight">Role: Admin</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled
+            aria-label="Settings (not available yet)"
+            className="p-1 text-fg-muted rounded disabled:cursor-not-allowed"
+          >
+            <Settings className="w-3.5 h-3.5" aria-hidden />
+          </button>
+        </div>
+      </div>
     </aside>
-  );
-}
-
-function WorkspaceMenu({ collapsed }: { collapsed: boolean }) {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
-    }
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, []);
-
-  return (
-    <div ref={menuRef} className="relative border-t border-app-border p-3">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        aria-label="Workspace menu"
-        className="w-full flex items-center gap-2.5 p-2 bg-app-surface border border-app-border rounded-lg hover:border-slate-700 transition-colors"
-      >
-        <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300 shrink-0">
-          FL
-        </div>
-        {!collapsed && (
-          <div className="min-w-0 text-left">
-            <div className="text-xs font-medium text-fg truncate">Acme Corp Infra</div>
-            <div className="text-[10px] font-mono text-emerald-400">FinOps Lead / SRE</div>
-          </div>
-        )}
-      </button>
-
-      {open && (
-        <div
-          role="menu"
-          className="absolute bottom-full left-3 mb-2 w-60 bg-app-surface border border-app-border rounded-lg shadow-xl p-1.5 space-y-0.5 z-10"
-        >
-          <div className="px-2.5 py-2 border-b border-app-border mb-1">
-            <div className="text-xs font-medium text-fg">Acme Corp Infra</div>
-            <div className="text-[10px] text-slate-400 mt-0.5">FinOps Lead / SRE · Active Guard</div>
-          </div>
-          <MenuItem icon={Settings} label="Settings" disabled reason="Not wired yet" />
-          <MenuItem icon={LogOut} label="Sign out" disabled reason="Not wired yet" />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MenuItem({
-  icon: Icon,
-  label,
-  disabled,
-  reason,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  disabled?: boolean;
-  reason?: string;
-}) {
-  return (
-    <button
-      role="menuitem"
-      disabled={disabled}
-      className="w-full flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-md text-xs text-slate-300 hover:bg-slate-800/60 text-left disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-    >
-      <span className="flex items-center gap-2.5">
-        <Icon className="w-4 h-4 text-slate-400" />
-        {label}
-      </span>
-      {reason && <span className="text-[10px] text-slate-500">{reason}</span>}
-    </button>
   );
 }

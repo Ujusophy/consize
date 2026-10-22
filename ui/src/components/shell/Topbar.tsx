@@ -1,103 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Search, Bell, CalendarDays, ChevronDown, PanelsTopLeft, Moon, Sun } from "lucide-react";
-
-type Theme = "dark" | "light";
+import { Bell, Search } from "lucide-react";
+import { DateRangeMenu } from "@/features/scope/DateRangeMenu";
+import { ScopeMenu } from "@/features/scope/scopeMenu";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Topbar() {
-  const [theme, setTheme] = useState<Theme>("dark");
-
-  useEffect(() => {
-    // The layout applies the saved theme before the page is painted.
-    setTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
-  }, []);
-
-  function toggleTheme() {
-    const nextTheme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
-    document.documentElement.dataset.theme = nextTheme;
-    setTheme(nextTheme);
-    try {
-      window.localStorage.setItem("consize-theme", nextTheme);
-    } catch {
-      // Switching still works when the browser cannot save preferences.
-    }
-  }
-
   return (
-    <header className="fixed top-0 left-[var(--sidebar-width,240px)] right-0 z-40 flex h-14 items-center justify-between gap-2 overflow-x-auto border-b border-app-border bg-app-sidebar px-3 transition-[left] duration-150 lg:gap-4 lg:px-5">
-      <div className="relative w-8 shrink-0 lg:w-auto lg:min-w-0 lg:max-w-[420px] lg:flex-1">
-        <Search aria-hidden="true" className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted lg:left-3" />
+    <header className="fixed top-0 left-[var(--sidebar-width)] right-0 h-14 bg-app-sidebar/95 backdrop-blur-md border-b border-app-border z-40 px-5 flex items-center justify-between gap-4">
+      <div className="relative w-[min(34vw,420px)] min-w-[220px]">
+        <Search className="w-4 h-4 text-fg-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden />
+        {/* No search index exists yet, so this stays disabled rather than
+            looking live and doing nothing. */}
         <input
-          type="search"
+          type="text"
           disabled
-          aria-label="Search resources, policies, and PRs"
-          placeholder="Search resources, policies, and PRs…"
-          title="Search resources, policies, and PRs"
-          className="h-8 w-full rounded-md border border-app-border bg-app-bg text-transparent placeholder:text-transparent disabled:cursor-not-allowed lg:pl-9 lg:pr-10 lg:text-xs lg:text-fg lg:placeholder:text-fg-muted"
+          aria-label="Search resources, policies, and PRs (not available yet)"
+          placeholder="Search resources, policies, and PRs..."
+          className="w-full h-8 pl-9 pr-10 bg-app-field border border-app-border rounded-btn text-xs text-fg placeholder:text-fg-muted disabled:cursor-not-allowed"
         />
-        <kbd aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-app-border bg-app-surface px-1 text-[10px] text-fg-muted xl:block">
+        <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 font-sans text-[10px] text-fg-muted bg-app-surface border border-app-border rounded">
           ⌘K
         </kbd>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1.5">
-        <div className="relative">
-          <PanelsTopLeft aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-accent-400" />
-          <select
-            aria-label="Infrastructure scope"
-            title="All infrastructure"
-            defaultValue="all"
-            disabled
-            className="h-8 w-[144px] appearance-none rounded-md border border-app-border bg-app-surface pl-8 pr-6 text-[11px] text-fg-secondary disabled:cursor-not-allowed lg:w-[160px]"
-          >
-            <option value="all">All infrastructure</option>
-          </select>
-          <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-fg-muted" />
-        </div>
-
-        <div className="relative">
-          <CalendarDays aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-fg-muted" />
-          <select
-            aria-label="Date range"
-            title="Last 30 Days"
-            defaultValue="30d"
-            disabled
-            className="h-8 w-[120px] appearance-none rounded-md border border-app-border bg-app-surface pl-8 pr-6 text-[11px] text-fg-secondary disabled:cursor-not-allowed lg:w-[136px]"
-          >
-            <option value="30d">Last 30 Days</option>
-          </select>
-          <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-fg-muted" />
-        </div>
-
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-app-border bg-app-surface text-fg-secondary transition-colors hover:bg-app-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
-        >
-          {theme === "dark" ? <Sun aria-hidden="true" className="h-3.5 w-3.5" /> : <Moon aria-hidden="true" className="h-3.5 w-3.5" />}
-        </button>
-
+      <div className="flex items-center gap-2.5">
+        <ScopeMenu />
+        <DateRangeMenu />
+        <ThemeToggle />
+        {/* PRD §6.3: a badge must match real unread items. There is no
+            notification source yet, so no dot is drawn. */}
         <button
           type="button"
           disabled
-          aria-label="Notifications"
-          className="relative flex h-8 w-8 items-center justify-center rounded-md border border-app-border bg-app-surface text-fg-secondary disabled:cursor-not-allowed"
+          aria-label="Notifications (none available yet)"
+          className="relative w-8 h-8 flex items-center justify-center bg-app-surface border border-app-border rounded-btn text-fg-secondary disabled:cursor-not-allowed"
         >
-          <Bell aria-hidden="true" className="h-3.5 w-3.5" />
-          <span aria-hidden="true" className="absolute right-1.5 top-1 h-1.5 w-1.5 rounded-full bg-amber-400 ring-2 ring-app-surface" />
+          <Bell className="w-4 h-4" aria-hidden />
         </button>
-
-        <span
-          role="img"
-          aria-label="User profile avatar"
-          title="FinOps Lead / SRE"
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-accent-400/30 bg-accent-400/15 text-[11px] font-medium text-accent-400"
+        <div
+          aria-hidden
+          className="w-8 h-8 rounded-btn bg-ok-bg border border-ok-line flex items-center justify-center text-ok-fg font-medium text-xs"
         >
           FL
-        </span>
+        </div>
       </div>
     </header>
   );

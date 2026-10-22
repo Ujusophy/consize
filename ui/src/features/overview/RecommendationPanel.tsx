@@ -2,229 +2,260 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SlidersHorizontal } from "lucide-react";
-import { useRecommendationList } from "./queries";
+import { Box, Check, Clock, Cpu, Database, Folder, GitPullRequest, Lock, Server, Zap } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { formatMoney, sentenceCase } from "@/lib/format";
 import type { RecommendationListItem } from "@/schemas";
+import { summaryParamsOf, useScope } from "../scope/useScope";
+import { useDashboardSummary, useRecommendationList } from "./queries";
 
-function formatMoney(m: RecommendationListItem["estimated_savings"]) {
-  const value = (m.amount_minor / 100).toLocaleString("en-US", { maximumFractionDigits: 0 });
-  const basisLabel = m.basis === "verified_operational" ? "verified" : m.basis;
-  return { display: `$${value}`, basisLabel };
+type Attention = "all" | "approvals" | "high-risk" | "blocked";
+const ATTENTION: { key: Attention; label: string; dot?: string; empty: string }[] = [
+  { key: "all", label: "All", empty: "No recommendations yet." },
+  { key: "approvals", label: "Approvals", dot: "bg-amber-400", empty: "Nothing is waiting for approval." },
+  { key: "high-risk", label: "High risk", dot: "bg-rose-400", empty: "No high-risk recommendations." },
+  { key: "blocked", label: "Blocked", dot: "bg-rose-400", empty: "No blocked recommendations require attention." },
+];
+
+// The segmented control maps onto API filters; the server does the filtering.
+function filtersFor(a: Attention): Record<string, string> {
+  if (a === "approvals") return { status: "pending_approval" };
+  if (a === "high-risk") return { risk: "high" };
+  if (a === "blocked") return { status: "blocked" };
+  return {};
 }
 
-// Theme-aware badge tokens, not a single hardcoded dark-tuned pairing 
-const RISK_STYLES: Record<RecommendationListItem["risk"], string> = {
-  low: "bg-badge-low/10 text-badge-low-text border-badge-low/25",
-  medium: "bg-badge-medium/10 text-badge-medium-text border-badge-medium/25",
-  high: "bg-badge-high/10 text-badge-high-text border-badge-high/25",
+const RISK: Record<RecommendationListItem["risk"], { label: string; pill: string }> = {
+  low: { label: "Low", pill: "bg-ok-bg text-ok-fg border-ok-line" },
+  medium: { label: "Medium", pill: "bg-warn-bg text-warn-fg border-warn-line" },
+  high: { label: "High", pill: "bg-bad-bg text-bad-fg border-bad-line" },
 };
 
-const TABS: { key?: string; label: string }[] = [
-  { key: undefined, label: "All" },
-  { key: "actionable", label: "Actionable" },
-  { key: "blocked", label: "Blocked" },
-  { key: "pending_approval", label: "Pending approval" },
-];
+const VISUAL: Record<string, { icon: LucideIcon; tile: string; glyph: string }> = {
+  Deployment: { icon: Box, tile: "bg-info-bg border-info-line", glyph: "text-info-fg" },
+  "Aurora cluster": { icon: Database, tile: "bg-warn-bg border-warn-line", glyph: "text-warn-fg" },
+  "S3 bucket": { icon: Folder, tile: "bg-violet-500/10 border-violet-500/25", glyph: "text-violet-500" },
+  "GPU node group": { icon: Cpu, tile: "bg-bad-bg border-bad-line", glyph: "text-bad-fg" },
+  "Worker pool": { icon: Server, tile: "bg-ok-bg border-ok-line", glyph: "text-ok-strong" },
+};
+const FALLBACK_VISUAL = { icon: Box, tile: "bg-app-surface-alt border-app-border", glyph: "text-fg-muted" };
+
+const PROVIDER_SHORT: Record<string, string> = { kubernetes: "k8s", aws: "AWS" };
+const METHOD_ICON: Record<string, LucideIcon> = {
+  github_pull_request: GitPullRequest,
+  schedule: Clock,
+  direct_apply: Zap,
+};
+
+// What the row's button says comes from the backend's remediation list.
+// Every button opens the focused review page: nothing mutates from a row
+// (PRD §6.4), so the "action" is the path you'll review, not a commit.
+function primaryAction(rec: RecommendationListItem) {
+  const enabled = rec.available_remediations.find((r) => r.enabled && r.method !== "review");
+  if (enabled) {
+    return {
+      label: enabled.label,
+      icon: METHOD_ICON[enabled.method] ?? Check,
+      style:
+        enabled.method === "github_pull_request"
+          ? "bg-ok-bg-strong hover:bg-ok-bg text-ok-fg border-ok-line"
+          : "bg-app-subcard hover:bg-app-surface-alt text-fg-secondary hover:text-fg border-app-border",
+    };
+  }
+  const blocked = rec.available_remediations.find((r) => !r.enabled && r.disabled_reason);
+  if (blocked) {
+    return {
+      label: sentenceCase(blocked.disabled_reason!),
+      icon: Lock,
+      style: "bg-warn-bg hover:bg-warn-bg text-warn-fg border-warn-line",
+    };
+  }
+  return {
+    label: "Review change",
+    icon: Check,
+    style: "bg-app-subcard hover:bg-app-surface-alt text-fg-secondary hover:text-fg border-app-border",
+  };
+}
 
 export function RecommendationPanel() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedId = searchParams.get("recommendation");
-  const activeStatus = searchParams.get("status") ?? undefined;
+  const { scope, range, update, carry } = useScope();
 
+  const raw = searchParams.get("attention");
+  const attention: Attention = ATTENTION.some((a) => a.key === raw) ? (raw as Attention) : "all";
+  const active = ATTENTION.find((a) => a.key === attention)!;
+
+  // Scope + attention are server-side filters; sort=priority + limit asks for
+  // the backend's ranking, not a client-side sort (ticket: "backend ranking").
   const { data, isPending, isError, error, isRefetching } = useRecommendationList({
-    status: activeStatus,
+    ...scope,
+    ...filtersFor(attention),
+    sort: "priority",
+    limit: "5",
   });
+  const { data: summary } = useDashboardSummary(summaryParamsOf(scope, range));
 
-  // Preserves whatever else is in the URL (e.g. the active status tab)
-  // instead of overwriting it — selecting a row and switching filters
-  // are separate actions and shouldn't clobber each other.
-  function selectHref(id: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("recommendation", id);
-    return `/?${params.toString()}`;
-  }
+  const items = data?.items ?? [];
 
   return (
-    <PanelShell refreshing={isRefetching}>
-      <div className="px-5 py-4 border-b border-app-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-app-surface-alt/60">
-        <div className="flex items-center gap-2.5">
-          <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
-          <h2 className="text-sm font-semibold text-fg">Top Prioritized Recommendations</h2>
-          {!isPending && !isError && (
-            <span className="font-mono text-xs px-2 py-0.5 bg-app-bg border border-app-border text-slate-400 rounded">
-              {data.items.length} items
-            </span>
-          )}
+    <div aria-busy={isRefetching} className="bg-app-surface border border-app-border rounded-btn overflow-hidden shadow-card">
+      <div className="p-4 border-b border-app-border flex flex-wrap items-center justify-between gap-3 bg-app-toolbar">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-fg">Prioritized recommendations</h2>
+            {data && (
+              <span className="px-2 py-0.5 rounded text-xs font-medium bg-app-surface-alt text-fg-secondary border border-app-border">
+                {items.length} shown
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-fg-muted mt-0.5">
+            Prioritized by projected savings, risk tier, and policy eligibility.
+          </p>
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto">
-          {TABS.map((tab) => {
-            const isActive = activeStatus === tab.key;
+        <div
+          role="group"
+          aria-label="Recommendation attention categories"
+          className="flex items-center gap-1 rounded-btn border border-app-border bg-app-inset p-1"
+        >
+          {ATTENTION.map((a) => {
+            const on = a.key === attention;
             return (
-              <Link
-                key={tab.label}
-                href={tab.key ? `/?status=${tab.key}` : "/"}
-                className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap border transition-colors ${
-                  isActive
-                    ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                    : "text-slate-400 hover:text-fg hover:bg-slate-800/60 border-transparent"
+              <button
+                key={a.key}
+                type="button"
+                aria-pressed={on}
+                onClick={() => update({ attention: a.key === "all" ? undefined : a.key })}
+                className={`flex h-7 items-center gap-1.5 rounded-md px-3 text-xs transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500 ${
+                  on
+                    ? "bg-ok-bg-strong text-ok-fg font-semibold"
+                    : "text-fg-secondary font-medium hover:bg-app-surface-alt hover:text-fg"
                 }`}
               >
-                {tab.label}
-              </Link>
+                {a.dot && <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden />}
+                {a.label}
+              </button>
             );
           })}
         </div>
       </div>
 
       {isPending ? (
-        <RowsSkeleton />
+        <div aria-label="Loading recommendations" className="p-4 space-y-3 animate-pulse">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-12 bg-app-surface-alt rounded" />
+          ))}
+        </div>
       ) : isError ? (
-        <ErrorState
-          title="Couldn't load recommendations"
-          detail={error instanceof Error ? error.message : undefined}
-        />
-      ) : data.items.length === 0 ? (
-        <EmptyState
-          title={activeStatus ? "No recommendations match this filter" : "No recommendations yet"}
-          detail={
-            activeStatus
-              ? "Clear the filter to see all open recommendations."
-              : "Evidence is being collected. Recommendations appear once enough history is available."
-          }
-        />
+        <div role="alert" className="p-6">
+          <p className="text-sm font-medium text-fg">Couldn&apos;t load recommendations</p>
+          <p className="text-xs text-fg-muted mt-1">
+            {error instanceof Error ? error.message : "The recommendation endpoint is unavailable."}
+          </p>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="px-4 py-10 text-center">
+          <p className="text-sm font-medium text-fg">{active.empty}</p>
+          {attention === "all" && (
+            <p className="text-xs text-fg-muted mt-1">
+              Evidence is being collected. Recommendations appear once enough history is available.
+            </p>
+          )}
+        </div>
       ) : (
-        <>
-          <table className="w-full text-left border-collapse table-auto">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="h-9 bg-app-surface-alt border-b border-app-border font-mono text-[11px] text-slate-400 uppercase tracking-wider">
-                <th className="px-3 font-semibold">Resource / Target</th>
-                <th className="px-2.5 font-semibold">Owner / Policy</th>
-                <th className="px-2.5 font-semibold">Risk</th>
-                <th className="px-2.5 font-semibold text-right">Est. Savings</th>
-                <th className="px-3 font-semibold text-right">Action</th>
+              <tr className="h-9 bg-app-thead border-b border-app-border text-fg-muted uppercase tracking-wider text-[11px] font-medium">
+                <th className="px-4 font-medium">Resource</th>
+                <th className="px-3 font-medium">Owner / policy</th>
+                <th className="px-3 font-medium">Change risk</th>
+                <th className="px-3 font-medium text-right">Est. savings</th>
+                <th className="px-4 font-medium text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-app-border text-xs">
-              {data.items.map((rec) => {
-                const { display, basisLabel } = formatMoney(rec.estimated_savings);
-                const isSelected = rec.id === selectedId;
-                const primary = rec.available_remediations.find((r) => r.enabled);
+            <tbody className="divide-y divide-app-border">
+              {items.map((rec) => {
+                const visual = VISUAL[rec.resource.type] ?? FALLBACK_VISUAL;
+                const Icon = visual.icon;
+                const risk = RISK[rec.risk];
+                const money = formatMoney(rec.estimated_savings);
+                const action = primaryAction(rec);
+                const ActionIcon = action.icon;
+                const href = `/recommendations/${rec.id}`;
+                const meta = [PROVIDER_SHORT[rec.resource.provider] ?? rec.resource.provider, rec.resource.source, rec.target_summary].join(" • ");
                 return (
                   <tr
                     key={rec.id}
-                    // "Selecting anywhere on a row updates the
-                    // selected-recommendation panel." The real,
-                    // keyboard-reachable path is the Link in the first
-                    // cell below; this is the mouse convenience on top.
-                    onClick={() => router.push(selectHref(rec.id))}
-                    className={`cursor-pointer transition-colors ${
-                      isSelected ? "bg-slate-800/30 border-l-2 border-emerald-500" : "hover:bg-slate-800/40"
-                    }`}
+                    // Mouse convenience: the real keyboard path is the link
+                    // on the resource name and the action button below.
+                    onClick={() => router.push(href)}
+                    className="cursor-pointer hover:bg-app-hover transition-colors"
                   >
-                    <td className="px-3 py-3">
-                      <Link
-                        href={selectHref(rec.id)}
-                        className="flex flex-col min-w-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500 rounded"
-                      >
-                        <span className="font-medium text-fg">{rec.resource.name}</span>
-                        <span className="font-mono text-[10px] text-slate-400">
-                          {rec.resource.provider} · {rec.resource.environment}
-                          {rec.resource.namespace ? ` · ${rec.resource.namespace}` : ""}
-                        </span>
-                      </Link>
-                    </td>
-                    <td className="px-2.5 py-3">
-                      <div className="flex flex-col">
-                        <span className="text-fg font-medium">{rec.owner}</span>
-                        <span className="font-mono text-[10px] text-slate-400">{rec.policy_id}</span>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-7 h-7 rounded border flex items-center justify-center shrink-0 ${visual.tile}`}>
+                          <Icon className={`w-3.5 h-3.5 ${visual.glyph}`} aria-hidden />
+                        </div>
+                        <div className="min-w-0">
+                          <Link
+                            href={href}
+                            onClick={(e) => e.stopPropagation()}
+                            className="block font-mono text-xs font-medium text-fg truncate hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500 rounded"
+                          >
+                            {rec.resource.name}
+                          </Link>
+                          <div className="font-mono text-[10px] text-fg-muted truncate mt-0.5">{meta}</div>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-2.5 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border font-mono text-[10px] font-medium ${RISK_STYLES[rec.risk]}`}
-                      >
-                        {rec.risk[0]?.toUpperCase()}
-                        {rec.risk.slice(1)}
+                    <td className="px-3 py-3">
+                      <div className="text-fg font-medium">{rec.owner}</div>
+                      <div className="font-mono text-[10px] text-fg-muted mt-0.5">{rec.policy_id}</div>
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${risk.pill}`}>
+                        {risk.label}
                       </span>
                     </td>
-                    <td className="px-2.5 py-3 text-right font-mono font-semibold text-emerald-400">
-                      {display}
-                      <span className="text-[10px] text-slate-400 font-normal"> /mo ({basisLabel})</span>
+                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                      <span title={`Estimate basis: ${money.basisLabel}`} className="text-ok-strong font-semibold font-num text-xs">
+                        {money.display}
+                      </span>
+                      <span className="text-fg-muted text-[10px]">/mo</span>
                     </td>
-                    <td className="px-3 py-3 text-right">
-                      {primary ? (
-                        // No stopPropagation yet: right now this button
-                        // does nothing a row click doesn't already do.
-                        // Once it triggers a real mutation, add
-                        // e.stopPropagation() here so select and act
-                        // don't fire together 
-                        <button className="h-6 px-2.5 bg-app-bg hover:bg-slate-800 text-fg border border-app-border rounded text-xs font-medium">
-                          {primary.label}
-                        </button>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-badge-medium/10 text-badge-medium-text border border-badge-medium/25 font-mono text-[10px] font-medium">
-                          {rec.available_remediations[0]?.disabled_reason ?? "Blocked"}
-                        </span>
-                      )}
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <Link
+                        href={href}
+                        onClick={(e) => e.stopPropagation()}
+                        className={`h-7 px-3 border rounded-btn text-xs font-medium inline-flex items-center gap-1.5 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500 ${action.style}`}
+                      >
+                        <ActionIcon className="w-3 h-3" aria-hidden />
+                        <span>{action.label}</span>
+                      </Link>
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-
-          <div className="px-5 py-3 bg-app-surface-alt/60 border-t border-app-border flex items-center justify-between text-xs text-slate-400">
-            <span>
-              Showing {data.items.length} item{data.items.length === 1 ? "" : "s"}
-              {data.page.has_more ? " (more available)" : ""}
-            </span>
-            <Link
-              href="/recommendations"
-              className="text-slate-300 hover:text-emerald-400 flex items-center gap-1.5 font-medium"
-            >
-              View full recommendation matrix →
-            </Link>
-          </div>
-        </>
+        </div>
       )}
-    </PanelShell>
-  );
-}
 
-function PanelShell({ children, refreshing }: { children: React.ReactNode; refreshing?: boolean }) {
-  return (
-    <div aria-busy={refreshing} className="bg-app-surface border border-app-border rounded-xl overflow-hidden">
-      {children}
+      <div className="px-4 py-3 bg-app-toolbar border-t border-app-border flex items-center justify-between text-xs text-fg-muted">
+        <span>
+          {attention === "all" && summary
+            ? `Showing ${items.length} of ${summary.open_recommendations} recommendations`
+            : `Showing ${items.length} ${active.label.toLowerCase()} recommendation${items.length === 1 ? "" : "s"}`}
+        </span>
+        <Link href={carry("/recommendations")} className="font-medium text-ok-strong hover:underline flex items-center gap-1">
+          <span>View all recommendations</span>
+          <span aria-hidden>→</span>
+        </Link>
+      </div>
     </div>
   );
 }
-
-function RowsSkeleton() {
-  return (
-    <div aria-label="Loading recommendations" className="p-5 space-y-3 animate-pulse">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="h-10 bg-app-surface-alt rounded" />
-      ))}
-    </div>
-  );
-}
-
-function EmptyState({ title, detail }: { title: string; detail: string }) {
-  return (
-    <div className="p-10 text-center">
-      <p className="text-sm font-medium text-fg">{title}</p>
-      <p className="text-xs text-slate-400 mt-1">{detail}</p>
-    </div>
-  );
-}
-
-function ErrorState({ title, detail }: { title: string; detail?: string }) {
-  return (
-    <div className="p-6" role="alert">
-      <p className="text-sm font-medium text-rose-300">{title}</p>
-      {detail && <p className="text-xs text-slate-400 mt-1">{detail}</p>}
-    </div>
-  );
-}
+//

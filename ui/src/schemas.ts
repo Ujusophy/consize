@@ -59,12 +59,17 @@ export const recommendationListItemSchema = z.object({
     // Optional searchable metadata used by the frontend mock; confirm with the backend.
     tags: z.record(z.string()).optional(),
     region: z.string().optional(),
+    // type + source drive the table icon and the infrastructure-scope filter.
+    type: z.string(),
+    source: z.string(),
     // Optional fields for the new list design; older API responses still work.
     kind: z.enum(["compute", "database", "storage", "ai", "gpu"]).optional(),
     description: z.string().optional(),
     scope: z.string().optional(),
     inspect: z.boolean().optional(),
   }),
+  // Short, backend-written description of the proposed target (PRD §7.5).
+  target_summary: z.string(),
   owner: z.string(),
   policy_id: z.string(),
   risk: riskSchema,
@@ -89,14 +94,38 @@ export const recommendationListSchema = pageEnvelope(recommendationListItemSchem
 });
 
 // -- Section 8.1 Dashboard summary ----------------------------------------
+export const scopeSchema = z.object({
+  provider: z.string().nullable(),
+  source: z.string().nullable(),
+  region: z.string().nullable(),
+  type: z.string().nullable(),
+});
+export type ScopeFilter = z.infer<typeof scopeSchema>;
+
 export const dashboardSummarySchema = z.object({
-  scope: z.object({ environment: z.string().nullable(), provider: z.string().nullable() }),
+  scope: scopeSchema,
   window: z.string(),
   projected_savings: moneySchema,
+  // vs. the previous equal-length period; null when the backend can't compare.
+  projected_change_ratio: z.number().nullable(),
   verified_operational_savings: moneySchema,
+  verified_changes: z.number(),
   pending_approvals: z.number(),
+  pending_approvals_mine: z.number(),
+  pending_approvals_savings: moneySchema,
+  // PRD §7.3: rollback rate shows numerator, denominator and window.
   rollback_rate: z.number(),
+  rollbacks: z.number(),
+  guarded_changes: z.number(),
   open_recommendations: z.number(),
+  // PRD §7.2/§7.8: these labels may only render when the backend says so.
+  policy_engine: z.enum(["enforcing", "unavailable"]),
+  verifier: z.enum(["healthy", "degraded", "unavailable"]),
+  last_evaluated_at: z.string(),
+  // Metrics the backend did NOT filter by the requested scope. The UI must
+  // say so instead of implying they were (ticket: "state clearly when a view
+  // is not filterable").
+  unscoped_metrics: z.array(z.string()),
   generated_at: z.string(),
   freshness: z.enum(["fresh", "stale", "unavailable"]),
 });
@@ -124,9 +153,14 @@ export const auditEventSchema = z.object({
   actor: z.string(),
   policy_id: z.string().optional(),
   signal: z.string().optional(),
+  // substring of `title` to emphasise (usually the resource name)
+  highlight: z.string().optional(),
+  branch: z.string().optional(),
+  note: z.string().optional(),
   correlation_id: z.string(),
   occurred_at: z.string(),
   outcome: z.enum([
+    "awaiting_approval",
     "applied",
     "verifying",
     "verified",
@@ -140,7 +174,8 @@ export const auditEventListSchema = z.object({ items: z.array(auditEventSchema) 
 export type AuditEvent = z.infer<typeof auditEventSchema>;
 
 // -- Section 8.3 Recommendation detail ---------------------------------------
-// Evidence quality is its own axis: a signal can be fresh-but-partial, or present-but-invalid. `value: null` means "no data" — never render it as 0.
+// Evidence quality is its own axis: a signal can be fresh-but-partial, or
+// present-but-invalid. `value: null` means "no data" — never render it as 0.
 export const evidenceItemSchema = z.object({
   signal: z.string(),
   value: z.number().nullable(),
@@ -173,9 +208,20 @@ export const recommendationDetailSchema = recommendationListItemSchema.extend({
     verification: z.array(z.string()),
   }),
   superseded_by: z.string().nullable(),
+  // PRD §17 marks classification PLANNED: null means "backend doesn't supply it".
   workload_classification: z
     .object({ class: z.string(), classifier_version: z.string() })
     .nullable(),
   audit: z.array(auditEventSchema),
 });
 export type RecommendationDetail = z.infer<typeof recommendationDetailSchema>;
+
+// -- Infrastructure scope options ------------------------------------------
+export const scopeOptionSchema = z.object({ value: z.string(), label: z.string() });
+export const scopeOptionsSchema = z.object({
+  providers: z.array(scopeOptionSchema),
+  sources: z.array(scopeOptionSchema),
+  regions: z.array(scopeOptionSchema),
+  resource_types: z.array(scopeOptionSchema),
+});
+export type ScopeOptions = z.infer<typeof scopeOptionsSchema>;
