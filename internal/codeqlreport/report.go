@@ -20,6 +20,9 @@ type document struct {
 	Version string `json:"version"`
 	Runs    []struct {
 		Tool struct {
+			Extensions []struct {
+				Rules []rule `json:"rules"`
+			} `json:"extensions"`
 			Driver struct {
 				Name  string `json:"name"`
 				Rules []rule `json:"rules"`
@@ -31,6 +34,13 @@ type document struct {
 		Results []struct {
 			RuleID    string `json:"ruleId"`
 			RuleIndex *int   `json:"ruleIndex"`
+			Rule      struct {
+				ID            string `json:"id"`
+				Index         *int   `json:"index"`
+				ToolComponent struct {
+					Index *int `json:"index"`
+				} `json:"toolComponent"`
+			} `json:"rule"`
 			Locations []struct {
 				Physical struct {
 					Artifact struct {
@@ -67,8 +77,28 @@ func Normalize(data []byte, target securitypolicy.ReportTarget, at time.Time) (s
 		for _, r := range run.Tool.Driver.Rules {
 			rules[r.ID] = r
 		}
+		for _, extension := range run.Tool.Extensions {
+			for _, r := range extension.Rules {
+				rules[r.ID] = r
+			}
+		}
 		for _, result := range run.Results {
 			id := result.RuleID
+			if id == "" {
+				id = result.Rule.ID
+			}
+			if id == "" && result.Rule.Index != nil {
+				candidates := run.Tool.Driver.Rules
+				if component := result.Rule.ToolComponent.Index; component != nil {
+					if *component < 0 || *component >= len(run.Tool.Extensions) {
+						return report, fmt.Errorf("unknown rule component")
+					}
+					candidates = run.Tool.Extensions[*component].Rules
+				}
+				if index := *result.Rule.Index; index >= 0 && index < len(candidates) {
+					id = candidates[index].ID
+				}
+			}
 			if id == "" && result.RuleIndex != nil && *result.RuleIndex >= 0 && *result.RuleIndex < len(run.Tool.Driver.Rules) {
 				id = run.Tool.Driver.Rules[*result.RuleIndex].ID
 			}
