@@ -102,7 +102,10 @@
 
   // The mkdocs-llmstxt plugin publishes a clean index.md next to many pages; fall back to the rendered page.
   async function pageMarkdown() {
-    const dir = location.pathname.replace(/index\.html$/, "").replace(/\/?$/, "/");
+    const segments = location.pathname.split("/");
+    if (segments[segments.length - 1] === "index.html") segments.pop();
+    const path = segments.join("/");
+    const dir = path.endsWith("/") ? path : path + "/";
     try {
       const r = await fetch(location.origin + dir + "index.md");
       if (r.ok && !(r.headers.get("content-type") || "").includes("text/html")) return await r.text();

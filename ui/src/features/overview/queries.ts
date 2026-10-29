@@ -7,8 +7,7 @@
 //   dashboardSummarySchema,
 //   pageEnvelope,
 //   recommendationDetailSchema,
-//   recommendationListItemSchema,
-// } from "@/schemas";
+// // } from "@/schemas";
 
 // export const queryKeys = {
 //   dashboard: {
@@ -90,7 +89,6 @@ import {
   capabilityListSchema,
   dashboardSummarySchema,
   recommendationDetailSchema,
-  recommendationListItemSchema,
   scopeOptionsSchema,
   recommendationListSchema,
 } from "@/schemas";

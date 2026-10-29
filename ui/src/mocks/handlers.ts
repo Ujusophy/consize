@@ -1,7 +1,6 @@
 import { http, HttpResponse } from "msw";
 import type { RecommendationListItem } from "@/schemas";
 import {
-  auditEvents,
   baseRecommendations,
   buildScopeOptions,
   buildSummary,
@@ -17,10 +16,6 @@ export type Scenario =
   | "backend-down";
 
 let scenario: Scenario = "healthy";
-// Demo only: pretend the evaluation finished four minutes before this mock session.
-// Keep this timestamp across list refetches so the displayed age can increase.
-// A fresh page load starts a new mock session; real data will use the backend's evaluation time.
-const mockEvaluatedAt = new Date(Date.now() - 4 * 60_000).toISOString();
 export function setScenario(next: Scenario) {
   scenario = next;
 }
