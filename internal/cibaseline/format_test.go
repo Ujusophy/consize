@@ -39,3 +39,17 @@ func TestFormattingGateRejectsWithoutRepairing(t *testing.T) {
 		t.Fatalf("clean fixture failed: %s %v", b, err)
 	}
 }
+
+func TestGoTestFailureIsNotTreatedAsSuccess(t *testing.T) {
+	root := t.TempDir()
+	file := filepath.Join(root, "failure_test.go")
+	if err := os.WriteFile(file, []byte("package fixture\nimport \"testing\"\nfunc TestSyntheticFailure(t *testing.T) { t.Fatal(\"synthetic CI refusal\") }\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command("go", "test", file)
+	command.Env = append(os.Environ(), "GOWORK=off")
+	output, err := command.CombinedOutput()
+	if err == nil || !bytes.Contains(output, []byte("synthetic CI refusal")) {
+		t.Fatalf("unit failure did not propagate: %s %v", output, err)
+	}
+}

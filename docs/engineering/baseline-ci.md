@@ -43,7 +43,7 @@ The browser test refuses existing listeners on ports 18080/3031. Playwright wait
 
 The new tests cover API permission refusal, malformed successful JSON, unavailable network, invalid error JSON, workflow trigger/check integrity, lockfile version agreement and invalid/incomplete SARIF. Report normalization discards source messages and rejects unknown rules/invalid source locations.
 
-Validate representative formatting, Go test, TypeScript and unit-test failures on disposable unmerged branches. Keep links to their failing jobs and the final passing PR run in the PR test plan. An intentionally failing fixture must never land on main. Do not mark CON-58 complete until canonical CI confirms the clean run and failure evidence.
+`internal/cibaseline` executes synthetic bad-format and failing Go tests in temporary directories. `scripts/ci/frontend-controls.mjs` executes the locked compiler and the real frontend test runner against synthetic type/assertion failures and requires their expected nonzero exits. These failure proofs run inside the named CI jobs without committing defective product code. Additional disposable-branch checks can be used when changing workflow dispatch or protection settings. Keep links to their failing jobs and the final passing PR run in the PR test plan. An intentionally failing fixture must never land on main. Do not mark CON-58 complete until canonical CI confirms the clean run and failure evidence.
 
 ## Required-check mapping
 
