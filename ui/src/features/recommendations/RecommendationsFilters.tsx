@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { ChevronDown, RotateCcw, Search } from "lucide-react";
 import { titleCase } from "@/lib/format";
 
@@ -37,7 +37,11 @@ export function RecommendationsFilters({
     + Number(Boolean(filters.status) && !["pending_approval", "blocked"].includes(filters.status));
 
   // Keep the field in sync with Reset and browser Back/Forward navigation.
-  useEffect(() => setSearchDraft(filters.q), [filters.q]);
+  const [appliedQuery, setAppliedQuery] = useState(filters.q);
+  if (appliedQuery !== filters.q) {
+    setAppliedQuery(filters.q);
+    setSearchDraft(filters.q);
+  }
 
   return (
     <div className="border-b border-app-border">

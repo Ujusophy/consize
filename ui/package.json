@@ -7,7 +7,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "NODE_PATH=./node_modules node ../tools/ci/node_modules/eslint/bin/eslint.js --config ../tools/ci/eslint.config.mjs . --max-warnings=0",
+    "typecheck": "tsc --noEmit --incremental false",
+    "test": "node --import ./tests/typescript-loader.mjs --test src/lib/*.test.ts ../scripts/ci/doc-copy.test.mjs",
+    "test:e2e": "node ../tools/ci/node_modules/@playwright/test/cli.js test"
   },
   "dependencies": {
     "@fontsource-variable/geist-mono": "^5.3.0",
@@ -35,5 +38,10 @@
     "workerDirectory": [
       "public"
     ]
+  },
+  "packageManager": "npm@10.9.8",
+  "engines": {
+    "node": "22.23.1",
+    "npm": "10.9.8"
   }
 }
