@@ -27,3 +27,27 @@ for (const [pathname, expected] of [["/guide/index.html", "/guide/index.md"], ["
     assert.equal(fetched, `https://docs.example.test${expected}`);
   });
 }
+
+test("copied Markdown table escapes both backslashes and pipes", async () => {
+  let mounted;
+  let copied;
+  const node = () => ({ children: [], setAttribute() {}, append(...children) { this.children.push(...children); }, addEventListener(type, fn) { this[type] = fn; }, replaceWith() {} });
+  const cell = { nodeType: 3, textContent: String.raw`a\|b` };
+  const root = {
+    nodeType: 1, tagName: "TABLE", className: "", cloneNode() { return this; },
+    querySelectorAll: selector => selector === "tr" ? [{ children: [cell] }] : [],
+  };
+  vm.runInNewContext(source, {
+    location: { pathname: "/guide/", origin: "https://docs.example.test" },
+    document: {
+      readyState: "complete", createElement: node, createElementNS: node, querySelectorAll: () => [],
+      querySelector: selector => selector.includes("sidebar") ? { append(value) { mounted = value; } } : root,
+    },
+    navigator: { clipboard: { async writeText(text) { copied = text; } } },
+    window: {}, setTimeout() {}, async fetch() { return { ok: false }; },
+  });
+  const button = mounted.children[0];
+  button.firstChild = button.children[0];
+  await button.click();
+  assert.ok(copied.includes(String.raw`a\\\|b`), copied);
+});

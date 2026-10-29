@@ -141,7 +141,7 @@ func Normalize(data []byte, target securitypolicy.ReportTarget, at time.Time) (s
 				return report, fmt.Errorf("invalid source location")
 			}
 			fp := fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s:%s:%d", id, path, location.Region.Line))))
-			report.Findings = append(report.Findings, securitypolicy.Finding{Fingerprint: fp, RuleID: id, FindingType: "sast", Severity: severity, Confidence: confidence, Reachability: "unknown", Mandatory: true, ExceptionAllowed: true, Component: target.Component, ComponentType: "source", Path: path, Environment: target.Environment, Context: target.Context, Version: target.Version, Summary: "CodeQL finding; review rule and source location in the repository", Redacted: true})
+			report.Findings = append(report.Findings, securitypolicy.Finding{Fingerprint: fp, RuleID: id, FindingType: "sast", Severity: severity, Confidence: confidence, Reachability: "unknown", Mandatory: true, ExceptionAllowed: true, Component: target.Component, ComponentType: "source", Path: path, Environment: target.Environment, Context: target.Context, Version: target.Version, Summary: fmt.Sprintf("CodeQL %s at source line %d", id, location.Region.Line), Redacted: true})
 		}
 	}
 	return report, nil

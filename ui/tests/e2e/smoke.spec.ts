@@ -8,12 +8,13 @@ test("real API reads and visible UI contract failure without mock data", async (
   const resources = await request.get(`${api}/api/resources`);
   expect(resources.ok()).toBeTruthy();
   expect((await resources.json()).resources ?? []).toEqual([]);
-  const summaryResponse = page.waitForResponse(response =>
-    response.url().startsWith(`${api}/api/v1/dashboard/summary`));
+  const summaryRequest = page.waitForRequest(request =>
+    request.url().startsWith(`${api}/api/v1/dashboard/summary`));
   await page.goto("/");
   // The current UI contract is not yet implemented by the Go API. Assert its
   // real failure state explicitly; this smoke must not invent a happy path.
-  expect((await summaryResponse).status()).toBe(404);
+  await summaryRequest;
+  expect((await request.get(`${api}/api/v1/dashboard/summary`)).status()).toBe(404);
   await expect(page.getByRole("alert").filter({ hasText: "Couldn't load summary metrics" })).toBeVisible();
   await expect(page.getByRole("alert").filter({ hasText: "Couldn't load recommendations" })).toBeVisible();
   const originalTheme = await page.locator("html").getAttribute("data-theme");

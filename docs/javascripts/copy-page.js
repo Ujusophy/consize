@@ -74,7 +74,7 @@
         return `\n\n${items.join("\n")}\n\n`;
       }
       case "table": {
-        const rows = [...n.querySelectorAll("tr")].map((tr) => [...tr.children].map((c) => md(c).trim().replace(/\|/g, "\\|").replace(/\n+/g, " ")));
+        const rows = [...n.querySelectorAll("tr")].map((tr) => [...tr.children].map((c) => md(c).trim().replace(/[\\|]/g, "\\$&").replace(/\n+/g, " ")));
         if (!rows.length) return "";
         return "\n\n" + [rows[0], rows[0].map(() => "---"), ...rows.slice(1)].map((r) => `| ${r.join(" | ")} |`).join("\n") + "\n\n";
       }
