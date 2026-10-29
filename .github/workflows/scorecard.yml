@@ -1,0 +1,30 @@
+name: Repository posture
+on:
+  schedule:
+    - cron: "41 5 * * 2"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: scorecard-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  scorecard:
+    name: Scorecard assessment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
+        with:
+          results_file: scorecard-results.json
+          results_format: json
+          publish_results: false
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: repository-posture-${{ github.run_id }}
+          path: scorecard-results.json
+          retention-days: 14
+          if-no-files-found: error
